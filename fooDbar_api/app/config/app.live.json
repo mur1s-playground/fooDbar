@@ -1,0 +1,23 @@
+{
+  "modules": {
+    "namespace": "FooDBar",
+    "config": "/media/public/fooDbar_api/app/config/modules.json",
+    "path": "/media/public/fooDbar_api/app/modules/",
+    "defaultModule": "object",
+    "authModule": "users",
+    "authController": "Login",
+    "authFunction": "validateLogin"
+  },
+  "dbmodel": {
+    "namespace": "FooDBar",
+    "classname_prefix": "",
+    "parentpath": "/media/public/fooDbar_api/vendor/reinerlanz/frame/src/DB/",
+    "path": "/media/public/fooDbar_api/app/model/"
+  },
+  "mysql": {
+    "host" : "localhost",
+    "username" : "mur1",
+    "password" : "pw",
+    "database" : "fooDbar"
+  }
+}

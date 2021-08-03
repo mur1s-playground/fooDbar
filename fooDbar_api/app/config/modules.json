@@ -1,0 +1,75 @@
+{
+    "allergies": {
+        "controllers": [],
+        "defaultController": "Allergy"
+    },
+    "demand": {
+        "controllers": {
+            "Index": {
+                "defaultAction": "index",
+                "actions": [
+                    "index"
+                ]
+            }
+        },
+        "defaultController": "Index"
+    },
+    "products": {
+        "controllers": {
+            "Fetch": {
+                "defaultAction": "fetch",
+                "actions": [
+                    "fetch"
+                ]
+            },
+            "Parse": {
+                "defaultAction": "parse",
+                "actions": [
+                    "parse"
+                ]
+            }
+        },
+        "defaultController": "Parse"
+    },
+    "recipe": {
+        "controllers": {
+            "Index": {
+                "defaultAction": "index",
+                "actions": [
+                    "index"
+                ]
+            }
+        },
+        "defaultController": "Index"
+    },
+    "users": {
+        "controllers": {
+            "Login": {
+                "defaultAction": "login",
+                "actions": [
+                    "login",
+                    "logout",
+                    "update",
+                    "register"
+                ]
+            },
+            "State": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
+            },
+            "Target": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
+            }
+        },
+        "defaultController": "Login"
+    }
+}
