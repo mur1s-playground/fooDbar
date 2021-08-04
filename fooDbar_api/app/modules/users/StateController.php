@@ -22,7 +22,7 @@ class StateController {
 			]
 	));
 
-	$order_state = new Order(UsersStateModel::class, UsersStateModel::FIELD_DATETIME_INSERT, Order::ORDER_DESC);
+	$order_state = new Order(UsersStateModel::class, UsersStateModel::FIELD_ID, Order::ORDER_DESC);
 
 	$users_state = new UsersStateModel();
 	$users_state->find($user_state_cond, null, array($order_state));
@@ -33,7 +33,7 @@ class StateController {
 	$result["state"] = new \stdClass();
 	while ($users_state->next()) {
 		$result["no_state"] = false;
-		$result["state"]->{$users_state->getDatetimeInsert()} = $users_state->toArray();
+		$result["state"]->{$users_state->getId()} = $users_state->toArray();
 	}
 
 	exit(json_encode($result, JSON_PRETTY_PRINT));
@@ -65,7 +65,7 @@ class StateController {
         $date_now = $today->format("Y-m-d H:i:s");
 	$user_state->setDatetimeInsert($date_now);
 
-	$user_state->setPal(intval($data->{'Pal'})/100.0);
+	$user_state->setPal(floatval($data->{'Pal'}));
 	$user_state->insert();
 
 	$result = array();

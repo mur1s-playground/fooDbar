@@ -1,0 +1,17 @@
+table {
+	width: 100%;
+}
+
+td {
+	text-align: center;
+}
+
+.user_state input {
+	max-width: 60px;
+	text-align: center;
+}
+
+.user_target input {
+	max-width: 60px;
+	text-align: center;
+}

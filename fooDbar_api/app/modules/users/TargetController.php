@@ -22,7 +22,7 @@ class TargetController {
 			]
 	));
 
-	$order_target = new Order(UsersTargetModel::class, UsersTargetModel::FIELD_DATE_INSERT, Order::ORDER_DESC);
+	$order_target = new Order(UsersTargetModel::class, UsersTargetModel::FIELD_ID, Order::ORDER_DESC);
 
 	$users_target = new UsersTargetModel();
 	$users_target->find($user_target_cond, null, array($order_target));
@@ -33,7 +33,7 @@ class TargetController {
 	$result["target"] = new \stdClass();
 	while ($users_target->next()) {
 		$result["no_target"] = false;
-		$result["target"]->{$users_target->getDateInsert()} = $users_target->toArray();
+		$result["target"]->{$users_target->getId()} = $users_target->toArray();
 	}
 
 	exit(json_encode($result, JSON_PRETTY_PRINT));

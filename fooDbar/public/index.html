@@ -30,7 +30,7 @@
 		
 		var demand = new Demand(db, null)
 		var user_target = new UserTarget(db, [demand]);
-		var user_state = new UserState(db, [demand]);
+		var user_state = new UserState(db, [user_target, demand]);
 		var user = new User(db, [user_state, user_target]);
 
 		app.component_add(base_element, messagebox);
