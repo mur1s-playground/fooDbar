@@ -28,47 +28,185 @@ var UserState = function(db, change_dependencies) {
 	this.pal_calc = document.createElement("tr");
 	this.pal_calc.style.display = "none";
 
+	this.pal_desc =  [
+                        ["sleep",                                                                       1.0],
+                        ["personal care (dressing, showering)",                                         2.3],
+                        ["eating",                                                                      1.5],
+                        ["cooking",                                                                     2.1],
+                        ["non-mechanized domestic chores (sweeping, washing clothes and dishes by hand)", 2.3],
+                        ["sitting (office work, selling produce, tending shop)",                        1.5],
+                        ["standing, carrying light loads (waiting on tables, arranging merchandise)",   2.2],
+                        ["general household work",                                                      2.8],
+                        ["non mechanized agricultural work (planting, weeding, gathering)",             4.1],
+                        ["collecting water/wood",                                                       4.4],
+                        ["commuting to/from work on the bus",                                           1.2],
+                        ["driving car (from/to work)",                                                  2.0],
+                        ["walking (at varying paces without a load)",                                   3.2],
+                        ["light activities (watching TV, chatting)",                                    1.4],
+                        ["low intensity aerobic exercise",                                              4.2]
+                ];
+
+	this.pal_examples = [
+		[[8, 0], [1, 1], [1, 2], [1, 3], [8, 5], [1, 7], [1, 11], [1, 12], [2, 13]],
+		[[8, 0], [1, 1], [1, 2], [8, 6], [1, 10], [1, 12], [1, 14], [3, 13]],
+		[[8, 0], [1, 1], [1, 2], [1, 3], [6, 8], [1, 9], [1, 4], [1, 12], [4, 13]]
+	];
+
+	this.on_pal_slider_change = function(sl_id, is_custom = true) {
+		var slider_elem = document.getElementById(user_state.widget.name + "_pal_slider_" + sl_id);
+
+ 		var span_elem = document.getElementById(user_state.widget.name + "_pal_span_" + sl_id);
+                span_elem.innerHTML = Math.round(slider_elem.value/60 * 100)/100;
+
+                var value = slider_elem.value/60 * user_state.pal_desc[sl_id][1];
+                var times = slider_elem.value/60;
+                for (var d = 0; d < user_state.pal_desc.length; d++) {
+                	if (d != sl_id) {
+                        	var sp_elem = document.getElementById(user_state.widget.name + "_pal_span_" + d);
+                                value += parseFloat(sp_elem.innerHTML) * user_state.pal_desc[d][1];
+                                times += parseFloat(sp_elem.innerHTML);
+                        }
+                }
+                var result_elem = document.getElementById(user_state.widget.name + "_pal_span_result");
+                result_elem.innerHTML = Math.round(value/times * 100)/100;
+		if (is_custom) {
+			document.getElementById(user_state.widget.name + "_pal_select").selectedIndex = 3;
+		}
+	}
+
+
 	this.get_pal_calc_container = function() {
 		var pal_container = document.createElement("td");
 		pal_container.colSpan = "10";
 
 		var table = document.createElement("table");
+		table.className = "pal_table";
 
-		var row_1 = document.createElement("tr");
-		var c11 = document.createElement("td");
-		c11.innerHTML = "<font style='font-weight: bold;'>Sedentary/Light activity (1.40 - 1.69):</font>";
-		row_1.appendChild(c11);
+		var example = this.pal_examples[1];
 
-		var c12 = document.createElement("td");
-		c12.innerHTML = "<font style='font-weight: bold;'>Active/Moderatly active (1.70 - 1.99)</font>";
-		row_1.appendChild(c12);
+		var row = document.createElement("tr");
+		for (var c = 0; c < 2; c++) {
+			var col_1 = document.createElement("td");
+        	        var col_2 = document.createElement("td");
 
-  		var c13 = document.createElement("td");
-		c13.innerHTML = "<font style='font-weight: bold;'>Vigorous/Vigorously active (2.00 - 2.40)</font>";
-		row_1.appendChild(c13);
+			if (c == 0) {
+				var select_example = document.createElement("select");
+				select_example.id = this.widget.name + "_pal_select";
+				select_example.onchange = function() {
+					for (var d = 0; d < user_state.pal_desc.length; d++) {
+						if (this.selectedIndex < user_state.pal_examples.length) {
+							var found = false;
+							for (var e = 0; e < user_state.pal_examples[this.selectedIndex].length; e++) {
+								if (user_state.pal_examples[this.selectedIndex][e][1] == d) {
+									var slider_elem = document.getElementById(user_state.widget.name + "_pal_slider_" + d);
+									slider_elem.value = user_state.pal_examples[this.selectedIndex][e][0] * 60;
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								var slider_elem = document.getElementById(user_state.widget.name + "_pal_slider_" + d);
+                                                                slider_elem.value = 0;
+							}
+							user_state.on_pal_slider_change(d, false);
+						}
+					}
+				};
 
-		table.appendChild(row_1);
+				var opts = [ "Sedentary/Light activity", "Active/moderately active", "Vigorous/Vigorously active", "custom"];
 
-		var row_2 = document.createElement("tr");
-                var c1 = document.createElement("td");
-		c1.style.textAlign = "left";
-		c1.style.verticalAlign = "top";
-		c1.innerHTML = "<font style='font-weight: bold;'>e.g. 1.53</font><br>8h sleep,<br>1h personal care,<br>1h eating,<br>1h cooking,<br>8h sitting (office work, seeling produce, tending shop),<br>1h general household work,<br>1h driving car,<br>1h walking,<br>2h light activities (watching TV, chatting)";
-		row_2.appendChild(c1);
+				for (var o = 0; o < opts.length; o++) {
+					var options = document.createElement("option");
+					options.innerHTML = opts[o];
+					select_example.appendChild(options);
+				}
+				select_example.selectedIndex = 1;
+				col_1.appendChild(select_example);
+			}
 
-                var c2 = document.createElement("td");
-		c2.style.textAlign = "left";
-		c2.style.verticalAlign = "top";
-		c2.innerHTML = "<font style='font-weight: bold;'>e.g. 1.76</font><br>8h sleep,<br>1h personal care,<br>1h eating,<br>8h standing or carrying light loads (waiting tables, arranging merchandise),<br>1h using the bus,<br>1h walking without load,<br>1h low intensity aerobic exercise,<br>3h light activities (watching TV, chatting)";
-		row_2.appendChild(c2);
+			col_2.className = "pal_3";
+			col_2.colSpan = "2";
+                	row.appendChild(col_1);
+        	        row.appendChild(col_2);
+			col_2.innerHTML = "<img src='/img/symbol_clock.svg' style='height: 30px;' />";
+		}
+		table.appendChild(row);
 
-                var c3 = document.createElement("td");
-		c3.style.textAlign = "left";
-		c3.style.verticalAlign = "top";
-		c3.innerHTML = "<font style='font-weight: bold;'>e.g. 2.25</font><br>8h sleep,<br>1h personal care,<br>1h eating,<br>1h cooking,<br>6h non-mechanized agricultural work (planting, weeding, gathering),<br>1h collecting water/wood,<br>1h non-mechanized domestic chores (sweeping, washing clothes and dishes by hand),<br>1h walking without load,<br>4h miscellaneous light activities";
-		row_2.appendChild(c3);
+		var cost = 0.0;
 
-		table.appendChild(row_2);
+		for (var d = 0; d < this.pal_desc.length; d++) {
+			var row = document.createElement("tr");
+		for (var c = 0; c < 2; c++) {
+			var col_1 = document.createElement("td");
+			var col_2 = document.createElement("td");
+			col_2.className = "pal_2";
+			var col_3 = document.createElement("td");
+			col_3.className = "pal_3";
+			row.appendChild(col_1);
+			row.appendChild(col_2);
+			row.appendChild(col_3);
+			if (d < this.pal_desc.length) {
+			col_1.innerHTML = this.pal_desc[d][0];
+
+			var slider = document.createElement("input");
+			slider.style.minWidth = "100%";
+			slider.id = this.widget.name + "_pal_slider_" + d;
+			slider.type = "range";
+			slider.d = d;
+			slider.min = 0;
+			slider.max = 24 * 60;
+			slider.value = 0;
+			for (var e = 0; e < example.length; e++) {
+				if (example[e][1] == d) {
+					slider.value = example[e][0] * 60;
+					break;
+				}
+			}
+
+			slider.onchange = function() {
+				user_state.on_pal_slider_change(this.d);
+			};
+
+			var sl_span = document.createElement("span");
+			sl_span.id = user_state.widget.name + "_pal_span_" + d;
+			sl_span.innerHTML = Math.round(slider.value/60 * 100)/100;
+
+			col_2.appendChild(slider);
+			col_3.appendChild(sl_span);
+			}
+			if (c == 0) d++;
+		}
+			table.appendChild(row);
+		}
+
+		var row = document.createElement("tr");
+		row.className = "pal_footer";
+                var col_1 = document.createElement("td");
+		col_1.colSpan = "6";
+                row.appendChild(col_1);
+		var sp_res = document.createElement("span");
+		sp_res.className = "pal_result";
+		sp_res.id = this.widget.name + "_pal_span_result";
+		col_1.appendChild(sp_res);
+
+		var apply_button = document.createElement("button");
+		apply_button.innerHTML = "&#10003;";
+		apply_button.title = "Apply";
+		apply_button.onclick = function() {
+			document.getElementById(user_state.widget.name + "_pal").value = document.getElementById(user_state.widget.name + "_pal_span_result").innerHTML;
+			user_state.toggle_pal_calc();
+		}
+		col_1.appendChild(apply_button);
+
+		var cancel_button = document.createElement("button");
+		cancel_button.innerHTML = "&#xd7;";
+		cancel_button.title = "Close";
+		cancel_button.onclick = function() {
+			user_state.toggle_pal_calc();
+		}
+		col_1.appendChild(cancel_button);
+
+                table.appendChild(row);
 
 		pal_container.appendChild(table);
 		return pal_container;
@@ -236,7 +374,7 @@ var UserState = function(db, change_dependencies) {
 		var del_elem = document.createElement("td");
 		var delete_button = document.createElement("button");
 		delete_button.obj = state;
-		delete_button.innerHTML = "&#xd7;";
+		delete_button.innerHTML = "&#128465;";
 		delete_button.title = "Delete";
 		delete_button.onclick = function() {
 			var p = {
@@ -392,6 +530,7 @@ var UserState = function(db, change_dependencies) {
 			user_state.user_state.appendChild(user_state.pal_calc);
 			user_state.pal_calc.innerHTML = "";
 			user_state.pal_calc.appendChild(user_state.get_pal_calc_container());
+			user_state.on_pal_slider_change(0, false);
 			user_state.user_state.appendChild(user_state.get_user_state_header());
 
 			if (resp["no_state"] == true) {

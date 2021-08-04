@@ -96,7 +96,8 @@ var User = function(db, change_dependencies) {
                 logged_in.appendChild(document.createTextNode(this.login_data["username"]));
 
 		var settings_button = document.createElement("button");
-		settings_button.innerHTML = "Settings";
+		settings_button.appendChild(document.createTextNode("\u2630"));
+		settings_button.title = "Settings";
 		settings_button.onclick = function() {
 			user.action = "settings";
 			user.changed = true;
@@ -104,7 +105,8 @@ var User = function(db, change_dependencies) {
 		logged_in.appendChild(settings_button);
 
                 var logout_button = document.createElement("button");
-                logout_button.innerHTML = "Log out";
+                logout_button.innerHTML = "&#128682;";
+		logout_button.title = "Log out";
                 logout_button.onclick = function() {
                 	var p = {};
 	                user.db.query_post("users/login/logout", p, user.on_logout_response);
@@ -194,7 +196,8 @@ var User = function(db, change_dependencies) {
 
 		var register_cancel = document.createElement("button");
 		register_cancel.obj = this;
-		register_cancel.innerHTML = "Cancel";
+		register_cancel.innerHTML = "&#xd7;";
+		register_cancel.title = "Cancel";
 		register_cancel.onclick = function() {
 			this.obj.action = "login";
 			this.obj.changed = true;
@@ -258,7 +261,8 @@ var User = function(db, change_dependencies) {
 
 		var apply_button = document.createElement("button");
 		apply_button.obj = this;
-		apply_button.innerHTML = "Apply";
+		apply_button.innerHTML = "&#10003;";
+		apply_button.title = "Apply";
 		apply_button.onclick = function() {
 			var p = { "allergies" : {} };
 			for (var allergy in this.obj.allergies) {
@@ -273,7 +277,8 @@ var User = function(db, change_dependencies) {
 
 		var cancel_button = document.createElement("button");
                 cancel_button.obj = this;
-                cancel_button.innerHTML = "Cancel";
+                cancel_button.innerHTML = "&#xd7;";
+		cancel_button.title = "Cancel";
                 cancel_button.onclick = function() {
                         this.obj.action = "logged_in";
                         this.obj.changed = true;
