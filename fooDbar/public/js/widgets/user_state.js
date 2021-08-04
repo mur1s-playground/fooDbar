@@ -111,17 +111,17 @@ var UserState = function(db, change_dependencies) {
 		slider_container.appendChild(slider_row);
 		var slider_c1 = document.createElement("td");
 		slider_c1.innerHTML = "Sedentary/Light activity";
-		slider_c1.title = "153 => 8h sleep, 1h personal care, 1h eating, 1h cooking, 8h sitting (office work, seeling produce, tending shop), 1h general household work, 1h driving car, 1h walking, 2h light activities (watching TV, chatting)";
+		slider_c1.title = "(140-169) 153 => 8h sleep, 1h personal care, 1h eating, 1h cooking, 8h sitting (office work, seeling produce, tending shop), 1h general household work, 1h driving car, 1h walking, 2h light activities (watching TV, chatting)";
 		slider_c1.style.textAlign = "center";
 		slider_row.appendChild(slider_c1);
 		var slider_c2 = document.createElement("td");
 		slider_c2.innerHTML = "Active/Moderatly active";
-		slider_c2.title = "176 => 8h sleep, 1h personal care, 1h eating, 8h standing or carrying light loads (waiting tables, arranging merchandise), 1h using the bus, 1h walking without load, 1h low intensity aerobic exercise, 3h light activities (watching TV, chatting)";
+		slider_c2.title = "(170-199) 176 => 8h sleep, 1h personal care, 1h eating, 8h standing or carrying light loads (waiting tables, arranging merchandise), 1h using the bus, 1h walking without load, 1h low intensity aerobic exercise, 3h light activities (watching TV, chatting)";
 		slider_c2.style.textAlign = "center";
 		slider_row.appendChild(slider_c2);
 		var slider_c3 = document.createElement("td");
 		slider_c3.innerHTML = "Vigorous/Vigorously active";
-		slider_c3.title = "225 => 8h sleep, 1h personal care, 1h eating, 1h cooking, 6h non-mechanized agricultural work (planting, weeding, gathering), 1h collecting water/wood, 1h non-mechanized domestic chores (sweeping, washing clothes and dishes by hand), 1h walking without load, 4h miscellaneous light activities";
+		slider_c3.title = "(200-240) 225 => 8h sleep, 1h personal care, 1h eating, 1h cooking, 6h non-mechanized agricultural work (planting, weeding, gathering), 1h collecting water/wood, 1h non-mechanized domestic chores (sweeping, washing clothes and dishes by hand), 1h walking without load, 4h miscellaneous light activities";
 		slider_c3.style.textAlign = "center";
 		slider_row.appendChild(slider_c3);
 

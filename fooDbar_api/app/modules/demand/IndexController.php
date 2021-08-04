@@ -5,20 +5,50 @@ namespace FooDBar;
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
 use \Frame\Join as Join;
 
-//require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Condition.php";
 use \Frame\Condition as Condition;
-
-//require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Order.php";
 use \Frame\Order as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AgeGroupModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersStateModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersTargetModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "EnergyBmrModel.php";
 
 class IndexController {
     private $DefaultController = true;
     private $DefaultAction = "index";
+/*
+    const GENDER = array(
+			0 => 'Male',
+			1 => 'Female'
+		);
+*/
+
+    const AGE_GROUPS = array(
+				//age_group_id	age_to
+				0 =>		3,
+                                1 =>    	10,
+                                2 =>    	18,
+                                3 =>    	30,
+                                4 =>    	60,
+                                5 =>    	200
+			);
+
+    const BMR = array(
+				//gender_id	age_group_id	kg_factor	scalar_correction
+				0 => array(
+						0 => array(	0.249,		-0.127		),
+						1 => array(	0.095,		2.11		),
+                                                2 => array(	0.074,		2.754           ),
+                                                3 => array(	0.063,		2.896           ),
+                                                4 => array(	0.048,		3.653           ),
+                                                5 => array(	0.049,		2.459           )	),
+                                1 => array(
+                                                0 => array(	0.244,		-0.13           ),
+                                                1 => array(	0.085,		2.033           ),
+                                                2 => array(	0.056,		2.898           ),
+                                                3 => array(	0.062,		2.036           ),
+                                                4 => array(	0.034,		3.538           ),
+                                                5 => array(	0.038,		2.755           )	)
+			);
+
 
     public function indexAction() {
 	$user = LoginController::requireAuth();
@@ -56,36 +86,20 @@ class IndexController {
 		$age_interval = $bdate->diff($today);
 		$age = $age_interval->y;		/* AGE */
 
-		$age_group_cond = new Condition("[c1] AND [c2]", array(
-		"[c1]" => [
-                                [AgeGroupModel::class, AgeGroupModel::FIELD_AGE_FROM],
-                                Condition::COMPARISON_LESS_EQUALS,
-                                [Condition::CONDITION_CONST, $age]
-                        ],
-                "[c2]" => [
-                                [AgeGroupModel::class, AgeGroupModel::FIELD_AGE_TO],
-                                Condition::COMPARISON_GREATER,
-                                [Condition::CONDITION_CONST, $age]
-                        ]
-		));
-
-		$age_group_join_bmr = new Join(new EnergyBmrModel(), "[j1]", array(
-	                "[j1]" => [
-                                [AgeGroupModel::class, AgeGroupModel::FIELD_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [EnergyBmrModel::class, EnergyBmrModel::FIELD_AGE_GROUP_ID]
-                        ]
-		));
-
-		$age_group = new AgeGroupModel();
-		$age_group->find($age_group_cond, array($age_group_join_bmr));
-		$age_group->next();
-		$age_group_id = $age_group->getId();	/* AGE GROUP ID */
+		$age_group_id = 0;			/* AGE GROUP ID */
+		for ($a = 0; $a < count(self::AGE_GROUPS); $a++) {
+			if ($age < self::AGE_GROUPS[$a]) {
+				$age_group_id = $a;
+				break;
+			}
+		}
 
 		$bmi_current = $users_state->getWeight() / ($users_state->getHeight() * $users_state->getHeight());	/* BMI CURRENT */
 
-		$bmr = $age_group->joinedModelByClass(EnergyBmrModel::class);
-		$MJperDay_pal_1_0 = $bmr->getKgFactor()*$users_state->getWeight() + $bmr->getScalarCorrection();
+		$bmr_kg_factor = self::BMR[$user->getGenderId()][$age_group_id][0];
+		$bmr_scalar_correction = self::BMR[$user->getGenderId()][$age_group_id][1];
+
+		$MJperDay_pal_1_0 = $bmr_kg_factor*$users_state->getWeight() + $bmr_scalar_correction;
 		$MJperDay_pal_user = $users_state->getPal() * $MJperDay_pal_1_0;	/* MJ/day maintain */
 
 
@@ -97,7 +111,7 @@ class IndexController {
 		if (!is_null($users_target->getBmi())) {
 			$bmi_target = $users_target->getBmi();
 			$kg_target = $bmi_target * ($users_state->getHeight() * $users_state->getHeight());
-			$MJperDay_pal_1_0_target = $bmr->getKgFactor()*$kg_target + $bmr->getScalarCorrection();
+			$MJperDay_pal_1_0_target = $bmr_kg_factor*$kg_target + $bmr_scalar_correction;
 			$MJperDay_pal_user_target = $users_state->getPal() * $MJperDay_pal_1_0_target;	/* MJ/day target */
 
 			$result["MJ/day"]["target"] = $MJperDay_pal_user_target;
