@@ -115,21 +115,12 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 
 	this.get_data_row = function(data, join_opts = null) {
                 var row_elem = document.createElement("tr");
-
-		var namespace = null;
-		var data_id = null;
-		if (this.deep_struct == null) {
-			data_id = data["Id"];
-		} else {
-			namespace = this.deep_struct["namespace"] + "\\";
-			data_id = data[namespace + this.deep_struct["model"]]["Id"];
-		}
-		row_elem.id = parent.widget.name + "_" + this.id_suffix + "_" + data_id;
+		row_elem.id = parent.widget.name + "_" + this.id_suffix + "_" + data["Id"];
 
 		for (var field in this.fields) {
 			if (!this.fields.hasOwnProperty(field)) continue;
 			var col = document.createElement("td");
-			col.id = parent.widget.name + "_" + this.id_suffix + "_" + data_id + "_" + field;
+			col.id = parent.widget.name + "_" + this.id_suffix + "_" + data["Id"] + "_" + field;
 
 			var data_field = null;
 			if (this.fields[field]["join"] == null) {
