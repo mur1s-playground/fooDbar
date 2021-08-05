@@ -112,15 +112,51 @@ class LoginController {
         exit(json_encode($result, JSON_PRETTY_PRINT));
     }
 
+    public function updatepasswordAction() {
+	$user = LoginController::requireAuth();
+
+	$values = $GLOBALS['POST']->{'passwords'};
+
+	$condition = new Condition("[c1] AND [c2]", array(
+		"[c1]" =>   [
+                                    [UsersModel::class, UsersModel::FIELD_EMAIL],
+                                    Condition::COMPARISON_EQUALS,
+                                    [Condition::CONDITION_CONST, $user->getEmail()]
+                        ],
+		"[c2]" =>   [
+                                    [UsersModel::class, UsersModel::FIELD_PASSWORD],
+                                    Condition::COMPARISON_EQUALS,
+                                    [Condition::CONDITION_CONST, hash('sha256', $values->{'current_password'})]
+                        ]
+	));
+
+	$result = array();
+        $result["status"] = false;
+
+	$user_check = new UsersModel();
+	$user_check->find($condition);
+	if ($user_check->next()) {
+		$user->setPassword(hash('sha256', $values->{'password'}));
+		$user->save();
+		$result["status"] = true;
+	} else {
+	        $result["error"] = "wrong password";
+	}
+
+	exit(json_encode($result, JSON_PRETTY_PRINT));
+    }
+
     public function registerAction() {
+	$data = $GLOBALS['POST'];
+
         $result = array();
         $result["status"] = false;
 
-	$condition = new Condition("[c1] AND [c2]", array(
+	$condition = new Condition("[c1]", array(
                     "[c1]" =>   [
                                     [UsersModel::class, UsersModel::FIELD_EMAIL],
                                     Condition::COMPARISON_EQUALS,
-                                    [Condition::CONDITION_CONST, $email]
+                                    [Condition::CONDITION_CONST, $data->{'email'}]
                         ]
 		));
 	$user_exists = new UsersModel();
@@ -128,8 +164,6 @@ class LoginController {
 	if ($user_exists->next()) {
 		$result["error"] = "User already exists";
 	} else {
-		$data = $GLOBALS['POST'];
-
 		$user = new UsersModel();
 		$user->setName($data->{"username"});
 		$user->setEmail($data->{"email"});

@@ -29,14 +29,14 @@ var Demand = function(db, change_dependencies) {
 
 	this.update = function() {
 		if (this.changed) {
-			this.elem.style.display = "block";
-
 			this.changed = false;
 
 			if (user.login_data != null) {
+				demand.elem.style.display = "block";
 				var p = {};
 				demand.db.query_post("demand/index", p, demand.on_demand_response);
 			} else {
+				demand.elem.style.display = "none";
 				this.demand.innerHTML = "";
 			}
 		}

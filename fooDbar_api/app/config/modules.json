@@ -50,6 +50,7 @@
                     "login",
                     "logout",
                     "update",
+                    "updatepassword",
                     "register"
                 ]
             },

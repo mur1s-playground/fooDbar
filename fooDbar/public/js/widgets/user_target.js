@@ -121,6 +121,7 @@ var UserTarget = function(db, change_dependencies) {
                 target_elem.appendChild(date_elem);
 
 		var del_elem = document.createElement("td");
+		del_elem.style.textAlign = "right";
 		var delete_button = document.createElement("button");
 		delete_button.obj = target;
 		delete_button.innerHTML = "&#128465;";
@@ -205,6 +206,7 @@ var UserTarget = function(db, change_dependencies) {
 		user_target_form.appendChild(date_col);
 
 		var add_col = document.createElement("td");
+		add_col.style.textAlign = "right";
 		var target_add_button = document.createElement("button");
 		target_add_button.obj = this;
 		target_add_button.innerHTML = "&#xFF0B;";
@@ -264,15 +266,16 @@ var UserTarget = function(db, change_dependencies) {
 
 	this.update = function() {
 		if (this.changed) {
-			this.elem.style.display = "block";
-
 			this.changed = false;
 
 			if (user.login_data != null) {
+				user_target.elem.style.display = "block";
 				var p = {};
 				user_target.db.query_post("users/target", p, user_target.on_user_target_response);
 			} else {
+				user_target.elem.style.display = "none";
 				user_target.user_target.innerHTML = "";
+				user_target.target = null;
 			}
 		}
 	}

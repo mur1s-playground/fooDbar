@@ -372,6 +372,7 @@ var UserState = function(db, change_dependencies) {
 		state_elem.appendChild(date_elem);
 
 		var del_elem = document.createElement("td");
+		del_elem.style.textAlign = "right";
 		var delete_button = document.createElement("button");
 		delete_button.obj = state;
 		delete_button.innerHTML = "&#128465;";
@@ -499,6 +500,7 @@ var UserState = function(db, change_dependencies) {
 		user_state_form.appendChild(date_col);
 
 		var del_col = document.createElement("td");
+		del_col.style.textAlign = "right";
 		var state_add_button = document.createElement("button");
 		state_add_button.obj = this;
 		state_add_button.innerHTML = "&#xFF0B;";
@@ -560,21 +562,25 @@ var UserState = function(db, change_dependencies) {
                                         user_state.user_state.appendChild(state_elem);
                                         user_state.on_insert_bmi_factors_change();
 				}
+				user_state.changed_f();
+				user_state.changed = false;
 			}
 		}
         }
 
 	this.update = function() {
 		if (this.changed) {
-			this.elem.style.display = "block";
-
 			this.changed = false;
 
 			if (user.login_data != null) {
+				user_state.elem.style.display = "block";
 				var p = {};
 				user_state.db.query_post("users/state", p, user_state.on_user_state_response);
 			} else {
+				user_state.elem.style.display = "none";
 				user_state.user_state.innerHTML = "";
+				user_state.state = null;
+				user_state.newest_height = null;
 			}
 		}
 	}

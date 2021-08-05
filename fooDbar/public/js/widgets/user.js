@@ -40,7 +40,13 @@ var User = function(db, change_dependencies) {
 				messagebox.message_add(unset_allergies_elem, 1000, "no-class", "has_unset_allergies", true);
 			}
                         user.changed_f();
-                }
+                } else {
+			var l_elem = document.createElement("div");
+                        l_elem.innerHTML = "Log in failed.";
+                        l_elem.style.background = "red";
+
+                        messagebox.message_add(l_elem, 1000, "no-class", "login_failure", true);
+		}
         }
 
 	this.login_form_create = function() {
@@ -60,7 +66,8 @@ var User = function(db, change_dependencies) {
 
 		var login_submit = document.createElement("button");
 		login_submit.obj = this;
-		login_submit.innerHTML = "Log in";
+		login_submit.innerHTML = "<img src='/img/symbol_login.svg' style='width: 30px;' />";
+		login_submit.title = "Log in";
 		login_submit.onclick = function() {
 			var email = document.getElementById(this.obj.widget.name + "_login_email").value;
 			var password = document.getElementById(this.obj.widget.name + "_login_password").value;
@@ -71,7 +78,8 @@ var User = function(db, change_dependencies) {
 
 		var register = document.createElement("button");
 		register.obj = this;
-		register.innerHTML = "Register";
+		register.innerHTML = "&#x00AE;";
+		register.title = "Register";
 		register.onclick = function() {
 			user.action = "register";
 			user.changed = true;
@@ -91,10 +99,19 @@ var User = function(db, change_dependencies) {
 	}
 
 	this.logged_in_create = function() {
-		var logged_in = document.createElement("div");
+		var logged_in = document.createElement("table");
 
-                logged_in.appendChild(document.createTextNode(this.login_data["username"]));
+		var logged_in_row = document.createElement("tr");
+		logged_in.appendChild(logged_in_row);
 
+		var logged_in_col_1 = document.createElement("td");
+                logged_in_col_1.appendChild(document.createTextNode(this.login_data["username"]));
+		logged_in_row.appendChild(logged_in_col_1);
+
+		var logged_in_col_2 = document.createElement("td");
+		logged_in_col_2.style.textAlign = "right";
+		logged_in_row.appendChild(logged_in_col_2)
+;
 		var settings_button = document.createElement("button");
 		settings_button.appendChild(document.createTextNode("\u2630"));
 		settings_button.title = "Settings";
@@ -102,16 +119,16 @@ var User = function(db, change_dependencies) {
 			user.action = "settings";
 			user.changed = true;
 		}
-		logged_in.appendChild(settings_button);
+		logged_in_col_2.appendChild(settings_button);
 
                 var logout_button = document.createElement("button");
-                logout_button.innerHTML = "&#128682;";
+                logout_button.innerHTML = "<img src='/img/symbol_logout.svg' style='width: 30px;' />";
 		logout_button.title = "Log out";
                 logout_button.onclick = function() {
                 	var p = {};
 	                user.db.query_post("users/login/logout", p, user.on_logout_response);
                 }
-                logged_in.appendChild(logout_button);
+                logged_in_col_2.appendChild(logout_button);
 
 		return logged_in;
 	}
@@ -122,7 +139,13 @@ var User = function(db, change_dependencies) {
                         user.login_data = null;
                         user.action = "login";
                         user.changed = true;
-                }
+                } else {
+			var reg_elem = document.createElement("div");
+                        reg_elem.innerHTML = resp["error"];
+                        reg_elem.style.background = "yellow";
+
+                        messagebox.message_add(reg_elem, 1000, "no-class", "reg_failed", true);
+		}
 	}
 
 	this.register_form_create = function() {
@@ -170,7 +193,8 @@ var User = function(db, change_dependencies) {
 
 		var register_submit = document.createElement("button");
 		register_submit.obj = this;
-		register_submit.innerHTML = "Register";
+		register_submit.innerHTML = "&#10003;";
+		register_submit.title = "Register";
 		register_submit.onclick = function() {
 			var input_username = document.getElementById(this.obj.widget.name + "_username");
 			var input_email = document.getElementById(this.obj.widget.name + "_email");
@@ -207,6 +231,29 @@ var User = function(db, change_dependencies) {
 		return register_form;
 	}
 
+	this.on_settings_password_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			user.action = "logged_in";
+
+			var pw_elem = document.createElement("div");
+                        pw_elem.innerHTML = "Password changed successfully.";
+                        pw_elem.style.background = "green";
+
+                        messagebox.message_add(pw_elem, 1000, "no-class", "password_changed", true);
+
+			user.changed_f();
+		} else {
+			if (resp["error"] == "wrong password") {
+				var pw_elem = document.createElement("div");
+	                     	pw_elem.innerHTML = "Password change failed: Wrong password!";
+        	                pw_elem.style.background = "red";
+
+	                        messagebox.message_add(pw_elem, 1000, "no-class", "password_not_changed", true);
+			}
+		}
+	}
+
 	this.on_settings_response = function() {
 		var resp = JSON.parse(this.responseText);
                 if (resp["status"] == true) {
@@ -218,26 +265,99 @@ var User = function(db, change_dependencies) {
 
 	this.settings_form_create = function() {
 		var settings_form = document.createElement("div");
-/*
+
+		var settings_pw = document.createElement("div");
+		settings_pw.className = "subset";
+		settings_form.appendChild(settings_pw);
+
+		var span_pw = document.createElement("span");
+		span_pw.innerHTML = "Change password";
+		settings_pw.appendChild(span_pw);
+
+		var input_password_c = document.createElement("input");
+		input_password_c.type = "password";
+		input_password_c.id = this.widget.name + "_password_current";
+		input_password_c.placeholder = "Current password";
+		settings_pw.appendChild(input_password_c);
+
                 var input_password = document.createElement("input");
                 input_password.type = "password";
                 input_password.id = this.widget.name + "_password";
-                input_password.placeholder = "Password";
-                settings_form.appendChild(input_password);
+                input_password.placeholder = "New password";
+                settings_pw.appendChild(input_password);
 
                 var input_password_2 = document.createElement("input");
                 input_password_2.type = "password";
                 input_password_2.id = this.widget.name + "_password2";
-                input_password_2.placeholder = "Password";
-                settings_form.appendChild(input_password_2);
-*/
+                input_password_2.placeholder = "New password";
+                settings_pw.appendChild(input_password_2);
+
+
+		var apply_btn = document.createElement("button");
+                apply_btn.obj = this;
+                apply_btn.innerHTML = "&#10003;";
+                apply_btn.title = "Apply";
+                apply_btn.onclick = function() {
+			if (document.getElementById(user.widget.name + "_password").value === document.getElementById(user.widget.name + "_password2").value) {
+	                        var p = { "passwords" : {
+					"current_password": document.getElementById(user.widget.name + "_password_current").value,
+					"password": document.getElementById(user.widget.name + "_password").value
+				} };
+	                        user.db.query_post("users/login/updatepassword", p, user.on_settings_password_response);
+			} else {
+				var pw_elem = document.createElement("div");
+        	                pw_elem.innerHTML = "Password mismatch.";
+                	        pw_elem.style.background = "yellow";
+
+                        	messagebox.message_add(pw_elem, 1000, "no-class", "password_mismatch", true);
+			}
+                }
+                settings_pw.appendChild(apply_btn);
+
+                var cancel_btn = document.createElement("button");
+                cancel_btn.obj = this;
+                cancel_btn.innerHTML = "&#xd7;";
+                cancel_btn.title = "Cancel";
+                cancel_btn.onclick = function() {
+                        this.obj.action = "logged_in";
+                        this.obj.changed = true;
+                }
+                settings_pw.appendChild(cancel_btn);
+
+		var settings_pa = document.createElement("div");
+		settings_pa.className = "subset";
+		settings_form.appendChild(settings_pa);
+
+		var span_t = document.createElement("div");
+		span_t.innerHTML = "Preferences/Allergies";
+		settings_pa.appendChild(span_t);
+
+		var table = document.createElement("table");
+
+		var c = 0;
+		var row = null;
 		for (var allergy in this.allergies) {
 			if (this.allergies.hasOwnProperty(allergy)) {
 				if (!allergy.startsWith('A')) continue;
 
+				if (c % 3 == 0) {
+					row = document.createElement("tr");
+					table.appendChild(row);
+				}
+				c++;
+
+				var col = document.createElement("td");
+				col.style.textAlign = "right";
+				row.appendChild(col);
+
 				var checkbox_lbl = document.createElement("span");
 				checkbox_lbl.innerHTML = allergy.substring(1);
-				settings_form.appendChild(checkbox_lbl);
+				col.appendChild(checkbox_lbl);
+
+
+				var col_2 = document.createElement("td");
+				col_2.style.textAlign = "left";
+				row.appendChild(col_2);
 
 				var checkbox = document.createElement("input");
 				checkbox.id = this.widget.name + "_" + allergy;
@@ -255,9 +375,17 @@ var User = function(db, change_dependencies) {
 						checkbox.checked = false;
 					}
 				}
-				settings_form.appendChild(checkbox);
+				col_2.appendChild(checkbox);
 			}
 		}
+
+		var row = document.createElement("tr");
+		var col = document.createElement("td");
+		col.colSpan = "6";
+		row.appendChild(col);
+		table.appendChild(row);
+
+		settings_pa.appendChild(table);
 
 		var apply_button = document.createElement("button");
 		apply_button.obj = this;
@@ -273,7 +401,7 @@ var User = function(db, change_dependencies) {
 			}
 			user.db.query_post("users/login/update", p, user.on_settings_response);
 		}
-		settings_form.appendChild(apply_button);
+		col.appendChild(apply_button);
 
 		var cancel_button = document.createElement("button");
                 cancel_button.obj = this;
@@ -283,7 +411,7 @@ var User = function(db, change_dependencies) {
                         this.obj.action = "logged_in";
                         this.obj.changed = true;
                 }
-                settings_form.appendChild(cancel_button);
+                col.appendChild(cancel_button);
 
 		return settings_form;
 	}
