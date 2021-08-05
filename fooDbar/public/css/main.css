@@ -27,6 +27,10 @@ td {
 	text-align: center;
 }
 
+.datatable_header {
+	width: 60px;
+}
+
 .user_state input {
 	height: 45px;
 	max-width: 60px;
