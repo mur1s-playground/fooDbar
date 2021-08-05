@@ -22,6 +22,14 @@
                     "fetch"
                 ]
             },
+            "Index": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
+            },
             "Parse": {
                 "defaultAction": "parse",
                 "actions": [
@@ -29,7 +37,7 @@
                 ]
             }
         },
-        "defaultController": "Parse"
+        "defaultController": "Index"
     },
     "recipe": {
         "controllers": {

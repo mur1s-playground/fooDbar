@@ -13,6 +13,7 @@
 		<script type="text/javascript" src="js/widgets/user_state.js"></script>
                 <script type="text/javascript" src="js/widgets/user_target.js"></script>
                 <script type="text/javascript" src="js/widgets/demand.js"></script>
+		<script type="text/javascript" src="js/widgets/products.js"></script>
 	</head>
 	<body>
 	<div id="app"></div>
@@ -29,16 +30,18 @@
 
         	var db = new DB("Main");
 		
+		var products = new Products(db, null);
 		var demand = new Demand(db, null)
 		var user_target = new UserTarget(db, [demand]);
 		var user_state = new UserState(db, [user_target, demand]);
-		var user = new User(db, [user_state, user_target]);
+		var user = new User(db, [user_state, user_target, products]);
 
 		app.component_add(base_element, messagebox);
 		app.component_add(base_element, user);
 		app.component_add(base_element, user_state);
 		app.component_add(base_element, user_target);
 		app.component_add(base_element, demand);
+		app.component_add(base_element, products);
 
         function main_loop() {
             app.update();

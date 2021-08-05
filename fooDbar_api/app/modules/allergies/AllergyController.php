@@ -20,16 +20,7 @@ class AllergyController {
 	}
 	return $result;
     }
-/*
-    public static function getAllergyGetters($db_table) {
-	$result = array();
-	$allergy_fields = AllergyController::getAllergyFields($db_table);
-	foreach ($allergy_fields as $field_name_camel) {
-        	$result[] = "get" . $field_name_camel;
-	}
-	return $result;
-    }
-*/
+
     public static function getAllergyValues($db_table) {
 	$allergy_fields = AllergyController::getAllergyFields($db_table);
 

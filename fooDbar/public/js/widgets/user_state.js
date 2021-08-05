@@ -25,15 +25,7 @@ var UserState = function(db, change_dependencies) {
 					"Pal": { "placeholder": "PAL" },
 					"add_button": { "onclick": function() {
 						                        var p = {
-						                                "state" : {
-						                                        "Height": document.getElementById(this.obj.widget.name + "_state_Height").value,
-						                                        "Weight": document.getElementById(this.obj.widget.name + "_state_Weight").value,
-						                                        "FatPercent": document.getElementById(this.obj.widget.name + "_state_FatPercent").value,
-						                                        "MusclePercent": document.getElementById(this.obj.widget.name + "_state_MusclePercent").value,
-						                                        "BonePercent": document.getElementById(this.obj.widget.name + "_state_BonePercent").value,
-						                                        "WaterPercent": document.getElementById(this.obj.widget.name + "_state_WaterPercent").value,
-						                                        "Pal": document.getElementById(this.obj.widget.name + "_state_Pal").value
-						        	                        }
+						                                "state" : this.obj.data_table.get_inserted_values()
 							                        };
 						                        this.obj.db.query_post("users/state/insert", p, this.obj.on_state_add_response);
 								 }
@@ -291,8 +283,14 @@ var UserState = function(db, change_dependencies) {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
 			user_state.state[resp["new_state"]["Id"]] = resp["new_state"];
-			user_state.user_state.insertBefore(user_state.get_state_node(resp["new_state"]), user_state.user_state.children[1]);
+			user_state.newest_height = resp["new_state"]["Height"];
+			if (user_state.user_state.children.length > 3) {	//2 + PAL calc
+				user_state.user_state.insertBefore(user_state.get_state_node(resp["new_state"]), user_state.user_state.children[3]);
+			} else {
+				user_state.user_state.appendChild(user_state.get_state_node(resp["new_state"]));
+			}
 			user_state.changed_f();
+			user_state.changed = false;
 		}
 	}
 

@@ -16,11 +16,7 @@ var UserTarget = function(db, change_dependencies) {
                                         "MusclePercent": { "placeholder": "Muscle%" },
                                         "add_button": { "onclick":  function() {
 										var p = {
-							                                "target" : {
-                	        			        			        "Bmi": document.getElementById(this.obj.widget.name + "_target_Bmi").value,
-							                                        "FatPercent": document.getElementById(this.obj.widget.name + "_target_FatPercent").value,
-				                        			                "MusclePercent": document.getElementById(this.obj.widget.name + "_target_MusclePercent").value
-											}
+							                                "target" : this.obj.data_table.get_inserted_values()
 						                                };
 							                        this.obj.db.query_post("users/target/insert", p, this.obj.on_target_add_response);
 									}
@@ -85,8 +81,13 @@ var UserTarget = function(db, change_dependencies) {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
 			user_target.target[resp["new_target"]["Id"]] = resp["new_target"];
-			user_target.user_target.insertBefore(user_target.get_target_node(resp["new_target"]), user_target.user_target.children[1]);
+			if (user_target.user_target.children.length > 2) {
+				user_target.user_target.insertBefore(user_target.get_target_node(resp["new_target"]), user_target.user_target.children[2]);
+			} else {
+				user_target.user_target.appendChild(user_target.get_target_node(resp["new_target"]));
+			}
 			user_target.changed_f();
+			user_target.changed = false;
 		}
 	}
 

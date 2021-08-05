@@ -16,7 +16,7 @@ require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "Pr
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AmountTypeModel.php";
 
 class ParseController {
-    private $DefaultController = true;
+    private $DefaultController = false;
     private $DefaultAction = "parse";
 
     private function parseUnit($str) {

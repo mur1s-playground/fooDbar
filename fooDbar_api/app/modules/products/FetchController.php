@@ -16,7 +16,7 @@ require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "Pr
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AmountTypeModel.php";
 
 class FetchController {
-    private $DefaultController = true;
+    private $DefaultController = false;
     private $DefaultAction = "fetch";
 
     public function fetchAction() {

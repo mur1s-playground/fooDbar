@@ -45,6 +45,13 @@ td {
 	vertical-align: middle;
 }
 
+.products input {
+        height: 45px;
+        max-width: 60px;
+        text-align: center;
+        vertical-align: middle;
+}
+
 .pal_header td {
 	border-bottom: 1px solid black;
 	font-weight: bold;
