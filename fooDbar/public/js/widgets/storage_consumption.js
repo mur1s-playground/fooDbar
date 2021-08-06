@@ -106,7 +106,7 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.on_undo_response = function() {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
-			var to_delete_element = document.getElementById(storage_consumption.widget.name + "_storage_" + resp["deleted_consumption_item"]["Id"]);
+			var to_delete_element = document.getElementById(storage_consumption.widget.name + "_consumption_" + resp["deleted_consumption_item"]["Id"]);
 			storage_consumption.consumption.removeChild(to_delete_element);
 
 			//storage_consumption.changed_f();
@@ -118,11 +118,15 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.on_consumption_add_response = function() {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
-			storage_consumption.consumption_data[resp["new_consumption_item"]["Id"]] = resp["new_consumption_item"];
-			if (storage_consumption.consumption.children.length > 2) {
-				storage_consumption.consumption.insertBefore(storage_consumption.data_table.get_data_row(resp["new_consumption_item"], { "storages": storage.storages, "products": products.product_data } ), storage_consumption.storage_consumption.children[2]);
-			} else {
-				storage_consumption.consumption.appendChild(storage_consumption.data_table.get_data_row(resp["new_consumption_item"], { "storages": storage.storages, "products": products.product_data } ));
+			for (var item in resp["new_consumption_item"]) {
+				if (resp["new_consumption_item"].hasOwnProperty(item)) {
+					storage_consumption.consumption_data[resp["new_consumption_item"][item]["Id"]] = resp["new_consumption_item"][item];
+					if (storage_consumption.consumption.children.length > 2) {
+		                                storage_consumption.consumption.insertBefore(storage_consumption.data_table.get_data_row(resp["new_consumption_item"][item], { "storages": storage.storages, "products": products.product_data } ), storage_consumption.consumption.children[2]);
+                		        } else {
+                                		storage_consumption.consumption.appendChild(storage_consumption.data_table.get_data_row(resp["new_consumption_item"][item], { "storages": storage.storages, "products": products.product_data } ));
+		                        }
+				}
 			}
 
 			//rev dep

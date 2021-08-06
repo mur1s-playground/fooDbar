@@ -8,12 +8,20 @@ require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath'))
 use \Frame\Join as Join;
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "GroupBy.php";
+use \Frame\GroupBy as GroupBy;
+
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
+use \Frame\DBFunction as DBFunction;
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
+use \Frame\DBFunctionExpression as DBFunctionExpression;
 
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesMembershipModel.php";
 
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageConsumptionModel.php";
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
 
 class ConsumptionController {
     private $DefaultController = false;
@@ -25,7 +33,6 @@ class ConsumptionController {
 	$result = array();
         $result["status"] = true;
 
-	/* filter by current users storages_membership */
 	$storages_membership_condition = new Condition("[c1]", array(
                 "[c1]" => [
                                 [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
@@ -34,7 +41,6 @@ class ConsumptionController {
                         ]
         ));
 
-	/* get user name of consumption */
 	$consumption_user_join = new Join(new UsersModel(), "[j1]", array(
 		"[j1]" => [
                                 [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_USERS_ID],
@@ -43,7 +49,6 @@ class ConsumptionController {
                         ]
 	));
 
-	/* get storages_id and products_id */
 	$consumption_storage_join = new Join(new StorageModel(), "[j2]", array(
 		"[j2]" => [
                                 [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
@@ -52,7 +57,6 @@ class ConsumptionController {
                         ]
 	));
 
-	/* get storages_membership */
         $storages_membership_join = new Join(new StoragesMembershipModel(), "[j3]", array(
                 "[j3]" => [
                                 [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
@@ -71,7 +75,7 @@ class ConsumptionController {
 	$fields->addField(StorageModel::class, StorageModel::FIELD_PRODUCTS_ID);
 
 	$consumption = new StorageConsumptionModel();
-	$consumption->find($consumption_cond, array($consumption_user_join, $consumption_storage_join, $storages_membership_join), null, null, $fields);
+	$consumption->find($storages_membership_condition, array($consumption_user_join, $consumption_storage_join, $storages_membership_join), null, null, $fields);
 
 	$result["consumption"] = new \stdClass();
 	while ($consumption->next()) {
@@ -92,7 +96,124 @@ class ConsumptionController {
     public function addAction() {
 	$user = LoginController::requireAuth();
 
+	$data = $GLOBALS['POST']->{'consumption_item'};
+
+	$storage_cond = new Condition("[c1] AND [c2] AND [c3] AND [c4]", array(
+		"[c1]" => [
+				[StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $data->{'StoragesId'}]
+			],
+		"[c2]" => [
+				[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $data->{'ProductsId'}]
+			],
+		"[c3]" => [
+				[StorageModel::class, StorageModel::FIELD_DATETIME_EMPTY],
+				Condition::COMPARISON_IS,
+				[Condition::CONDITION_RESERVED, Condition::RESERVED_NULL]
+			],
+		"[c4]" => [
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $user->getId()]
+                        ]
+	));
+
+	$storages_membership_join = new Join(new StoragesMembershipModel(), "[j1]", array(
+                "[j1]" => [
+                                [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_STORAGES_ID]
+                        ]
+        ));
+
+
+	$sum_expr = new DBFunctionExpression("[c1]", array(
+		"[c1]" => [StorageModel::class, StorageModel::FIELD_AMOUNT]
+	));
+
+	$fields = new Fields(array());
+	$fields->addFunctionField("SumAmount", DBFunction::FUNCTION_SUM, $sum_expr);
+
+	$group_by = new GroupBy(StorageModel::class, StorageModel::FIELD_PRODUCTS_ID);
+
+	$storage = new StorageModel();
+	$storage->find($storage_cond, array($storages_membership_join), null, null, $fields, $group_by);
+
+	$result = array();
 	$result["status"] = false;
+	if ($storage->next()) {
+		$available_amount = floatval($storage->DBFunctionResult("SumAmount"));
+
+		$requested_amount = $data->{'Amount'};
+
+		if ($available_amount < $requested_amount) {
+			$result["error"] = "not enough product in storage";
+			$result["SumAmount"] = $available_amount;
+		} else {
+			$result["status"] = true;
+			$result["new_consumption_item"] = new \stdClass();
+
+			$order = new Order(StorageModel::class, StorageModel::FIELD_DATETIME_INSERT, Order::ORDER_ASC);
+
+			$storage_consume = new StorageModel();
+			$storage_consume->find($storage_cond, array($storages_membership_join), $order);
+
+			$consumed_amount = 0;
+
+			$date_f = $data->{'Datetime'};
+			if (strlen($date_f) == 0) {
+				$date_now = date_create();
+				$date_f = $date_now->format("Y-m-d H:i:s");
+			}
+
+			while ($storage_consume->next()) {
+				$amount = $storage_consume->getAmount();
+
+				if (is_null($storage_consume->getDatetimeOpen())) {
+					$storage_consume->setDatetimeOpen($date_f);
+				}
+
+				$consumption = new StorageConsumptionModel();
+				$consumption->setStorageId($storage_consume->getId());
+
+				if ($amount > $requested_amount) {
+					$consumption->setAmount($requested_amount);
+
+					$amount -= $requested_amount;
+					$requested_amount = 0.0;
+				} else if ($amount <= $requested_amount){
+                                        $consumption->setAmount($amount);
+
+					$requested_amount -= $amount;
+					$amount = 0.0;
+
+					$storage_consume->setDatetimeEmpty($date_f);
+				}
+
+				$storage_consume->setAmount($amount);
+				$storage_consume->save();
+
+				$consumption->setDatetime($date_f);
+                                $consumption->setUsersId($user->getId());
+                                $consumption->insert();
+
+
+				$result["new_consumption_item"]->{$consumption->getId()}["Id"] = $consumption->getId();
+		                $result["new_consumption_item"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
+                		$result["new_consumption_item"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
+		                $result["new_consumption_item"]->{$consumption->getId()}["User"] = $user->getName();
+                		$result["new_consumption_item"]->{$consumption->getId()}["StoragesId"] = $storage_consume->getStoragesId();
+                		$result["new_consumption_item"]->{$consumption->getId()}["ProductsId"] = $storage_consume->getProductsId();
+
+				if ($requested_amount == 0) {
+					break;
+				}
+			}
+		}
+	}
 
 	exit(json_encode($result, JSON_PRETTY_PRINT));
     }
@@ -100,7 +221,71 @@ class ConsumptionController {
     public function undoAction() {
 	$user = LoginController::requireAuth();
 
-	$result["status"] = false;
+	$data = $GLOBALS['POST']->{'consumption_item_id'};
+
+	$consumption_cond = new Condition("[c1] AND [c2]", array(
+		"[c1]" => [
+				[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $data]
+		],
+		"[c2]" => [
+				[StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $user->getId()]
+			]
+
+	));
+
+	$storage_join = new Join(new StorageModel(), "[j1]", array(
+		"[j1]" => [
+				[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+				Condition::COMPARISON_EQUALS,
+				[StorageModel::class, StorageModel::FIELD_ID]
+			]
+	));
+
+	$product_join = new Join(new ProductsModel(), "[j2]", array(
+		"[j2]" => [
+				[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
+				Condition::COMPARISON_EQUALS,
+				[ProductsModel::class, ProductsModel::FIELD_ID]
+			]
+	));
+
+	$storage_membership_join = new Join(new StoragesMembershipModel(), "[j3]", array(
+		"[j3]" => [
+				[StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+				Condition::COMPARISON_EQUALS,
+				[StoragesMembershipModel::class, StoragesMembershipModel::FIELD_STORAGES_ID]
+			]
+	));
+
+	$consumption = new StorageConsumptionModel();
+	$consumption->find($consumption_cond, array($storage_join, $product_join, $storage_membership_join));
+
+	$result = array();
+        $result["status"] = true;
+	if ($consumption->next()) {
+		$storage = $consumption->joinedModelByClass(StorageModel::class);
+		$amount = $storage->getAmount() + $consumption->getAmount();
+		$storage->setAmount($amount);
+		if (!is_null($storage->getDatetimeEmpty())) {
+			$storage->setDatetimeEmpty(null);
+		}
+
+		$product = $consumption->joinedModelByClass(ProductsModel::class);
+		if ($product->getAmount() == $amount) {
+			$storage->setDatetimeOpen(null);
+		}
+		$storage->save();
+
+		$result["deleted_consumption_item"] = array( 'Id' => $consumption->getId() );
+		$consumption->delete();
+	} else {
+		$result["status"] = false;
+                $result["error"] = "item not found/accessible";
+	}
 
         exit(json_encode($result, JSON_PRETTY_PRINT));
     }

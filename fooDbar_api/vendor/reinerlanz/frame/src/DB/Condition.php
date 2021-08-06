@@ -5,6 +5,9 @@ namespace Frame;
 class Condition {
     const CONDITION_CONST       = 'CONDITION_CONST';
     const CONDITION_CONST_ARRAY = 'CONDITION_CONST_ARRAY';
+    const CONDITION_RESERVED	= 'CONDITION_RESERVED';
+
+    const RESERVED_NULL		= 'NULL';
 
     const COMPARISON_EQUALS = '=';
     const COMPARISON_NOT_EQUAL = '<>';
@@ -15,6 +18,8 @@ class Condition {
     const COMPARISON_LIKE = 'LIKE';
     const COMPARISON_IN = 'IN';
     const COMPARISON_NOT_IN = 'NOT IN';
+    const COMPARISON_IS = 'IS';
+    const COMPARISON_IS_NOT = 'IS NOT';
 
     private $expr = "";
     private $value_array = "";

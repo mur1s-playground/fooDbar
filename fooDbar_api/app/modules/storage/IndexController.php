@@ -151,7 +151,7 @@ class IndexController {
 	$result["status"] = true;
 	if ($storages_membership->next()) {
 		$storage = $storages_membership->joinedModelByClass(StorageModel::class);
-		$result["deleted_storage_item"] = $storage->toArray();
+		$result["deleted_storage_item"] = array( 'Id' => $storage->getId() );
 		$storage->delete();
 	} else {
 		$result["status"] = false;

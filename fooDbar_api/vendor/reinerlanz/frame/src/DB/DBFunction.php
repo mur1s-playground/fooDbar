@@ -10,6 +10,7 @@ class DBFunction {
     const FUNCTION_COUNT    = "Count";
     const FUNCTION_MAX      = "Max";
     const FUNCTION_MIN      = "Min";
+    const FUNCTION_SUM	    = "Sum";
 
     const DATATYPE_DATE     = "DATE";
     const DATATYPE_DATETIME = "DATETIME";

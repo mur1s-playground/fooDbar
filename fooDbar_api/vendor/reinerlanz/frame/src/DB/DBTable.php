@@ -317,6 +317,8 @@ class DBTable {
                         } else {
                             $condition_expr_array[$i] = "'" . $this->DBO->real_escape_string($replacement[0][1]) . "'";
                         }
+		    } else if ($replacement[0][0] == Condition::CONDITION_RESERVED) {
+			$condition_expr_array[$i] = $replacement[0][1];
                     } else if ($replacement[0][0] == DBFunction::class) {
                         //currently only cond on selected function fields
                         //TODO: sanitise custom field name
@@ -348,6 +350,8 @@ class DBTable {
                         } else {
                             $condition_expr_array[$i] .= "'" . $this->DBO->real_escape_string($replacement[2][1]) . "'";
                         }
+		    } else if ($replacement[2][0] == Condition::CONDITION_RESERVED) {
+                        $condition_expr_array[$i] .= $replacement[2][1];
                     } else if ($replacement[2][0] == Condition::CONDITION_CONST_ARRAY) {
                         $condition_expr_array[$i] .= '(';
                         $tmp_cond_array = array();
