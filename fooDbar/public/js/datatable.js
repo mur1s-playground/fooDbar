@@ -75,6 +75,10 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 				} else {
 					var select = document.createElement("select");
 					select.id = parent.widget.name + "_" + this.id_suffix + "_" + field;
+					if (this.insert_fields[field]["onchange"]) {
+                                                select.onchange = this.insert_fields[field]["onchange"];
+                                        }
+
 
 					for (var opt in join_opts[this.fields[field]["join"]["model"]]) {
 						var option = document.createElement("option");
@@ -104,6 +108,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 
 		var col = document.createElement("td");
 		var add_button = document.createElement("button");
+		add_button.id = parent.widget.name + "_" + this.id_suffix + "_add_button";
        	        add_button.obj = this.parent;
                	add_button.innerHTML = "&#xFF0B;";
                 add_button.onclick = this.insert_fields["add_button"]["onclick"];

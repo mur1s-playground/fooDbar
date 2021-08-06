@@ -26,7 +26,7 @@ var Products = function(db, change_dependencies) {
                                         "AEggs": { "title": "Eggs", "header": { "type": "text", "text": "Eggs", "text_class": "datatable_header" } },
                                         "AFish": { "title": "Fish", "header": { "type": "text", "text": "Fish", "text_class": "datatable_header" } },
                                         "APeanuts": { "title": "Peanuts", "header": { "type": "text", "text": "Peanuts", "text_class": "datatable_header" } },
-                                        "ASoybeans": { "title": "Soybeans", "header": { "type": "text", "Soybeans": "Salt", "text_class": "datatable_header" } },
+                                        "ASoybeans": { "title": "Soybeans", "header": { "type": "text", "text": "Soybeans", "text_class": "datatable_header" } },
                                         "AMilk": { "title": "Milk", "header": { "type": "text", "text": "Milk", "text_class": "datatable_header" } },
                                         "ANuts": { "title": "Nuts", "header": { "type": "text", "text": "Nuts", "text_class": "datatable_header" } },
                                         "ACeleriac": { "title": "Celeriac", "header": { "type": "text", "text": "Celeriac", "text_class": "datatable_header" } },
@@ -158,6 +158,8 @@ var Products = function(db, change_dependencies) {
 			} else {
 				 products.products.appendChild(products.data_table.get_insert_row(null, products.join_opts));
 			}
+			products.changed_f();
+			products.changed = false;
 		}
         }
 

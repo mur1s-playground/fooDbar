@@ -50,6 +50,27 @@
         },
         "defaultController": "Index"
     },
+    "storage": {
+        "controllers": {
+            "Consumption": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "add",
+                    "undo"
+                ]
+            },
+            "Index": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
+            }
+        },
+        "defaultController": "Index"
+    },
     "users": {
         "controllers": {
             "Login": {
