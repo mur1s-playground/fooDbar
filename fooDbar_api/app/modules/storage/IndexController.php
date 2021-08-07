@@ -124,12 +124,14 @@ class IndexController {
 		$s_id_array[] = $id;
 	}
 
-	$storage_cond = new Condition("[c1] AND [c2] AND [c3]", array(
+	$storage_cond = new Condition("/*[c1] AND */[c2] AND [c3]", array(
+/*
                 "[c1]" => [
                                 [StorageModel::class, StorageModel::FIELD_DATETIME_EMPTY],
                                 Condition::COMPARISON_IS,
                                 [Condition::CONDITION_RESERVED, Condition::RESERVED_NULL]
                         ],
+*/
 		"[c2]" => [
 				[StorageModel::class, StorageModel::FIELD_STORAGES_ID],
 				Condition::COMPARISON_IN,

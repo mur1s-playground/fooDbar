@@ -103,7 +103,7 @@ class IndexController {
 		$MJperDay_pal_user = $users_state->getPal() * $MJperDay_pal_1_0;	/* MJ/day maintain */
 
 
-		$result["MJ/day"] = array(
+		$result["MJPerDay"] = array(
 			 "maintain"      => $MJperDay_pal_user
 		);
 
@@ -114,7 +114,7 @@ class IndexController {
 			$MJperDay_pal_1_0_target = $bmr_kg_factor*$kg_target + $bmr_scalar_correction;
 			$MJperDay_pal_user_target = $users_state->getPal() * $MJperDay_pal_1_0_target;	/* MJ/day target */
 
-			$result["MJ/day"]["target"] = $MJperDay_pal_user_target;
+			$result["MJPerDay"]["target"] = $MJperDay_pal_user_target;
 		}
 	}
 

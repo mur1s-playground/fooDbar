@@ -67,6 +67,7 @@ class ConsumptionController {
 
 	$fields = new Fields(array());
 	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID);
+	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID);
 	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_AMOUNT);
 	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
 	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_RECIPE_ID);
@@ -83,6 +84,7 @@ class ConsumptionController {
 		$storage_model = $consumption->joinedModelByClass(StorageModel::class);
 
 		$result["consumption"]->{$consumption->getId()}["Id"] = $consumption->getId();
+		$result["consumption"]->{$consumption->getId()}["StorageId"] = $consumption->getStorageId();
 		$result["consumption"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
 		$result["consumption"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
 		$result["consumption"]->{$consumption->getId()}["User"] = $users_model->getName();
@@ -97,6 +99,12 @@ class ConsumptionController {
 	$user = LoginController::requireAuth();
 
 	$data = $GLOBALS['POST']->{'consumption_item'};
+	$trash = false;
+	if (isset($GLOBALS['POST']->{'trash'})) {
+		if ($GLOBALS['POST']->{'trash'} == true) {
+			$trash = true;
+		}
+	}
 
 	$storage_cond = new Condition("[c1] AND [c2] AND [c3] AND [c4]", array(
 		"[c1]" => [
@@ -197,14 +205,20 @@ class ConsumptionController {
 				$storage_consume->save();
 
 				$consumption->setDatetime($date_f);
-                                $consumption->setUsersId($user->getId());
+				$username = $user->getName();
+				if ($trash) {
+					$consumption->setUsersId(0);
+					$username = "Trash";
+				} else {
+	                                $consumption->setUsersId($user->getId());
+				}
                                 $consumption->insert();
 
 
 				$result["new_consumption_item"]->{$consumption->getId()}["Id"] = $consumption->getId();
 		                $result["new_consumption_item"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
                 		$result["new_consumption_item"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
-		                $result["new_consumption_item"]->{$consumption->getId()}["User"] = $user->getName();
+		                $result["new_consumption_item"]->{$consumption->getId()}["User"] = $username;
                 		$result["new_consumption_item"]->{$consumption->getId()}["StoragesId"] = $storage_consume->getStoragesId();
                 		$result["new_consumption_item"]->{$consumption->getId()}["ProductsId"] = $storage_consume->getProductsId();
 

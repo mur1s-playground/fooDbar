@@ -7,6 +7,8 @@ var Demand = function(db, change_dependencies) {
 	this.elem = this.widget.elem;
 	this.elem.style.display = "none";
 
+	this.demand_data = null;
+
 	this.changed = true;
 
 	this.changed_f = function() {
@@ -24,7 +26,11 @@ var Demand = function(db, change_dependencies) {
 
         this.on_demand_response = function() {
                 var resp = JSON.parse(this.responseText);
-		demand.demand.innerHTML = this.responseText;
+		if (resp["status"] == true) {
+			demand.demand_data = {};
+			demand.demand_data["MJPerDay"] = resp["MJPerDay"];
+			demand.demand.innerHTML = this.responseText;
+		}
         }
 
 	this.update = function() {

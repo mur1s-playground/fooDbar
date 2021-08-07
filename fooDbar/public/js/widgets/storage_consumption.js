@@ -22,8 +22,16 @@ var StorageConsumption = function(db, change_dependencies) {
 							                                "consumption_item" : this.obj.data_table.get_inserted_values()
 						                                };
 							                        this.obj.db.query_post("storage/consumption/add", p, this.obj.on_consumption_add_response);
-									}
-                                                       }
+									},
+							"button": { "title": "Trash", "type": "text", "text": "&#128465;", "onclick": function() {
+																	var p = {
+																		"consumption_item": storage_consumption.data_table.get_inserted_values(),
+																		"trash": true
+																	};
+																	storage_consumption.db.query_post("storage/consumption/add", p, storage_consumption.on_consumption_add_response);
+																}
+								}
+							}
                                 },
                                 {
                                         "Delete": { "title": "Delete", "type": "text", "text": "&#128465;", "onclick":
@@ -60,6 +68,269 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.consumption.className = "consumption";
 	this.widget.content.appendChild(this.consumption);
 
+
+	this.do_consumption_calc = function(date_f, date_t, username) {
+                var time_diff = (date_t.getTime() - date_f.getTime()) / (3600 * 24 * 1000);
+
+		var max_time = null;
+		var min_time = null;
+
+                var c_data = storage_consumption.consumption_data;
+                var s_data = storage.storage_data;
+                var p_data = products.product_data;
+
+                var price_r = 0;
+                var kj_r = 0;
+                for (var c in c_data) {
+	                if (c_data.hasOwnProperty(c)) {
+        	                var c_time = new Date(c_data[c]["Datetime"].replace(" ", "T"));
+                                if (c_time.getTime() >= date_f.getTime() && c_time.getTime() < date_t.getTime()) {
+					if (c_data[c]["User"] !== username) continue;
+					if (min_time == null || min_time > c_time.getTime()) {
+						min_time = c_time.getTime();
+					}
+					if (max_time == null || max_time < c_time.getTime()) {
+						max_time = c_time.getTime();
+					}
+
+                	                var p = p_data[c_data[c]["ProductsId"]];
+                                        var p_at_id = p["AmountTypeId"];
+
+                                        var s = s_data[c_data[c]["StorageId"]];
+                                        var s_price = parseFloat(s["Price"]);
+
+                                        var p_amount = parseFloat(p["Amount"]);
+                                        var p_kj = parseFloat(p["Kj"]);
+
+                                        var c_amount = parseFloat(c_data[c]["Amount"]);
+                                        var c_amount_price = c_amount/p_amount * s_price;
+
+                                        price_r += c_amount_price;
+
+                                        if (p_at_id == 1) { //g
+ 	                                       var c_kj = c_amount/100 * p_kj;
+                                               kj_r += c_kj;
+                                        } else if (p_at_id == 2) { //l
+                                               var c_kj = (c_amount * 10) * p_kj;
+                                               kj_r += c_kj;
+                                        } else if (p_at_id == 3) { //pc.
+                                               var c_kj = c_amount * p_kj;
+                                               kj_r += c_kj;
+                                        }
+                                }
+                        }
+        	}
+		time_diff = Math.ceil((max_time - min_time) / (24 * 3600 * 1000));
+		return [time_diff, price_r, kj_r];
+	}
+
+	this.get_consumption_calc_default = function() {
+		var ccd_row = document.createElement("tr");
+
+		var date_now = new Date();
+
+		var time_diff_31 = 31 * 24 * 3600 * 1000;
+		var date_31 = new Date();
+		date_31.setTime(date_now.getTime() - time_diff_31);
+		var result_31 = storage_consumption.do_consumption_calc(date_31, date_now, user.login_data["username"]);
+		var time_diff_31 = result_31[0];
+		var price_31 = result_31[1];
+		var kj_31 = result_31[2];
+
+		var result_31_trash = storage_consumption.do_consumption_calc(date_31, date_now, "Trash");
+		var price_31_trash = result_31_trash[1];
+		var kj_31_trash = result_31_trash[2]
+
+		var time_diff_7 = 7 * 24 * 3600 * 1000;
+                var date_7 = new Date();
+                date_7.setTime(date_now.getTime() - time_diff_7);
+                var result_7 = storage_consumption.do_consumption_calc(date_7, date_now, user.login_data["username"]);
+                var time_diff_7 = result_7[0];
+                var price_7 = result_7[1];
+                var kj_7 = result_7[2];
+
+		var time_diff_24 = 24 * 3600 * 1000;
+                var date_24 = new Date();
+                date_24.setTime(date_now.getTime() - time_diff_24);
+                var result_24 = storage_consumption.do_consumption_calc(date_24, date_now, user.login_data["username"]);
+                var time_diff_24 = result_24[0];
+                var price_24 = result_24[1];
+                var kj_24 = result_24[2];
+
+		var date_t = new Date();
+		date_t.setTime(date_now.getTime());
+		date_t.setHours(0);
+		date_t.setMinutes(0);
+		date_t.setSeconds(0);
+		date_t.setMilliseconds(0);
+		var result_t = storage_consumption.do_consumption_calc(date_t, date_now, user.login_data["username"]);
+		var time_diff_t = result_t[0];
+		var price_t = result_t[1];
+		var kj_t = result_t[2];
+
+		var table_data = {
+			"31d Trash": {
+				"Timespan":  Math.round(time_diff_31 * 100) / 100,
+                                "Price": Math.round(price_31_trash * 100) / 100,
+                                "MJ": Math.round(kj_31_trash/10) / 100,
+                                "PricePerDay": Math.round(price_31_trash / time_diff_31 * 100) / 100,
+                                "MJPerDay": Math.round(kj_31_trash / (time_diff_31 * 10)) / 100,
+				"MaintainDiff": "",
+				"TargetDiff": ""
+			},
+			"31d": {
+				"Timespan":  Math.round(time_diff_31 * 100) / 100,
+				"Price": Math.round(price_31 * 100) / 100,
+				"MJ": Math.round(kj_31/10) / 100,
+				"PricePerDay": Math.round(price_31 / time_diff_31 * 100) / 100,
+				"MJPerDay": Math.round(kj_31 / (time_diff_31 * 10)) / 100
+			},
+			"7d": {
+				"Timespan":  Math.round(time_diff_7 * 100) / 100,
+                                "Price": Math.round(price_7 * 100) / 100,
+                                "MJ": Math.round(kj_7/10) / 100,
+                                "PricePerDay": Math.round(price_7 / time_diff_7 * 100) / 100,
+                                "MJPerDay": Math.round(kj_7 / (time_diff_7 * 10)) / 100
+			},
+			"24h": {
+				"Timespan":  Math.round(time_diff_24 * 100) / 100,
+                                "Price": Math.round(price_24 * 100) / 100,
+                                "MJ": Math.round(kj_24/10) / 100,
+                                "PricePerDay": Math.round(price_24 / time_diff_24 * 100) / 100,
+                                "MJPerDay": Math.round(kj_24 / (time_diff_24 * 10)) / 100
+			},
+			"Today": {
+				"Timespan":  Math.round(time_diff_t * 100) / 100,
+                                "Price": Math.round(price_t * 100) / 100,
+                                "MJ": Math.round(kj_t/10) / 100,
+                                "PricePerDay": Math.round(price_t / time_diff_t * 100) / 100,
+                                "MJPerDay": Math.round(kj_t / (time_diff_t * 10)) / 100
+			}
+		};
+
+		var rows = ["Today", "24h", "7d", "31d"];
+
+		for (var row in rows) {
+				if (demand.demand_data != null) {
+					table_data[rows[row]]["MaintainDiff"] = Math.round((demand.demand_data["MJPerDay"]["maintain"] - table_data[rows[row]]["MJPerDay"]) * 100) / 100;
+					table_data[rows[row]]["TargetDiff"] = Math.round((demand.demand_data["MJPerDay"]["target"] - table_data[rows[row]]["MJPerDay"]) * 100) / 100;
+				} else {
+					table_data[rows[row]]["MaintainDiff"] = "n/A";
+        	                        table_data[rows[row]]["TargetDiff"] = "n/A";
+				}
+		}
+		rows.push("31d Trash");
+
+		var titles = ["Price (&#8364;)", "MJ", "Price/Day (&#8364;)", "MJ/Day", "&#x394;MJ Maintain", "&#x394;MJ Target"];
+		var cols = ["Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff"];
+
+		var tbl = document.createElement("table");
+		tbl.id = storage_consumption.widget_name + "_consumption_calc_table";
+		var row_1 = document.createElement("tr");
+		var col_1 = document.createElement("td");
+		col_1.innerHTML = "Timespan";
+		row_1.appendChild(col_1);
+		for (var col in cols) {
+			var col_ = document.createElement("td");
+			col_.innerHTML = titles[col];
+			row_1.appendChild(col_);
+		}
+		tbl.appendChild(row_1);
+		for (var row in rows) {
+			var row_ = document.createElement("tr");
+			var col_1 = document.createElement("td");
+			col_1.innerHTML = rows[row];
+			row_.appendChild(col_1);
+			for (var col in cols) {
+				var col_ = document.createElement("td");
+				col_.innerHTML = table_data[rows[row]][cols[col]];
+				row_.appendChild(col_);
+			}
+			tbl.appendChild(row_);
+		}
+
+		var consumption_tbl = document.createElement("td");
+                consumption_tbl.colSpan = "6";
+                consumption_tbl.appendChild(tbl);
+		ccd_row.appendChild(consumption_tbl);
+
+		return ccd_row;
+	}
+
+	this.get_consumption_calc = function() {
+		var cc_row = document.createElement("tr");
+
+		var consumption_calc = document.createElement("td");
+		consumption_calc.colSpan = "6";
+		cc_row.appendChild(consumption_calc);
+
+		var time_from = document.createElement("input");
+		time_from.id = storage_consumption.widget.name + "_calc_time_from";
+		time_from.placeholder = "e.g. 2021-07-23 00:00:00";
+		consumption_calc.appendChild(time_from);
+
+		var time_to = document.createElement("input");
+		time_to.id = storage_consumption.widget.name + "_calc_time_to";
+		time_to.placeholder = "e.g. 2021-07-30 23:59:59";
+		consumption_calc.appendChild(time_to);
+
+		var calc_button = document.createElement("button");
+		calc_button.innerHTML = "&#10003;";
+		calc_button.onclick = function() {
+			var time_f = document.getElementById(storage_consumption.widget.name + "_calc_time_from").value;
+			var time_t = document.getElementById(storage_consumption.widget.name + "_calc_time_to").value;
+
+			var date_f = new Date(time_f.replace(" ", "T"));
+	                var date_t = new Date(time_t.replace(" ", "T"));
+
+			var result = storage_consumption.do_consumption_calc(date_f, date_t, user.login_data["username"]);
+			var time_diff = result[0];
+			var price_r = result[1];
+			var kj_r = result[2];
+
+			var t_r_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Time");
+			t_r_elem.innerHTML = Math.round(time_diff * 100) / 100 + "d";
+
+			var p_r_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Price");
+			p_r_elem.innerHTML = Math.round(price_r * 100) / 100;
+
+			var mj_r_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_MJ");
+			mj_r_elem.innerHTML = Math.round(kj_r/10) / 100;
+
+			var p_avg_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_PricePerDay");
+                        p_avg_elem.innerHTML = Math.round(price_r / time_diff * 100) / 100;
+
+			var mj_avg_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_MJPerDay");
+			mj_avg_elem.innerHTML = Math.round(kj_r / (time_diff * 10)) / 100;
+		}
+		consumption_calc.appendChild(calc_button);
+
+		consumption_calc.appendChild(document.createElement("br"));
+
+		var tbl = document.getElementById(storage_consumption.widget_name + "_consumption_calc_table");
+		var row_sp = document.createElement("tr");
+		var col_sp = document.createElement("td");
+		col_sp.innerHTML = "&nbsp;";
+		col_sp.colSpan = "6";
+		row_sp.appendChild(col_sp);
+		tbl.appendChild(row_sp);
+
+		var row = document.createElement("tr");
+
+		var cols = ["Time", "Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff"];
+		for (var col in cols) {
+			var spn_result = document.createElement("span");
+	                spn_result.id = storage_consumption.widget.name + "_calc_result_" + cols[col];
+
+			var col_ = document.createElement("td");
+			col_.appendChild(spn_result);
+			row.appendChild(col_);
+		}
+		tbl.appendChild(row);
+
+		return cc_row;
+	}
+
 	this.on_select_storage_insert_change = function() {
 		var storages_select = document.getElementById(storage_consumption.widget.name + "_consumption_StoragesId");
 		var products_select = document.getElementById(storage_consumption.widget.name + "_consumption_ProductsId");
@@ -74,7 +345,9 @@ var StorageConsumption = function(db, change_dependencies) {
 			for (var storage_item in storage.storage_data) {
 				if (storage.storage_data.hasOwnProperty(storage_item)) {
 					if (storage.storage_data[storage_item]["ProductsId"] == products_select.options[o].value &&
-						storage.storage_data[storage_item]["StoragesId"] == storages_select.options[storages_select.selectedIndex].value) {
+						storage.storage_data[storage_item]["StoragesId"] == storages_select.options[storages_select.selectedIndex].value &&
+							parseFloat(storage.storage_data[storage_item]["Amount"]) > 0
+								) {
 							if (selectable_idx == -1) selectable_idx = o;
 							if (products_select.selectedIndex == o) {
 								selected_is_enabled = true;
@@ -87,8 +360,10 @@ var StorageConsumption = function(db, change_dependencies) {
 			}
 			if (found === true) {
 				products_select.options[o].disabled = false;
+				products_select.options[o].hidden = false;
 			} else {
 				products_select.options[o].disabled = "disabled";
+				products_select.options[o].hidden = "hidden";
 			}
 		}
 		if (something_enabled === true) {
@@ -121,8 +396,8 @@ var StorageConsumption = function(db, change_dependencies) {
 			for (var item in resp["new_consumption_item"]) {
 				if (resp["new_consumption_item"].hasOwnProperty(item)) {
 					storage_consumption.consumption_data[resp["new_consumption_item"][item]["Id"]] = resp["new_consumption_item"][item];
-					if (storage_consumption.consumption.children.length > 2) {
-		                                storage_consumption.consumption.insertBefore(storage_consumption.data_table.get_data_row(resp["new_consumption_item"][item], { "storages": storage.storages, "products": products.product_data } ), storage_consumption.consumption.children[2]);
+					if (storage_consumption.consumption.children.length > 4) {
+		                                storage_consumption.consumption.insertBefore(storage_consumption.data_table.get_data_row(resp["new_consumption_item"][item], { "storages": storage.storages, "products": products.product_data } ), storage_consumption.consumption.children[4]);
                 		        } else {
                                 		storage_consumption.consumption.appendChild(storage_consumption.data_table.get_data_row(resp["new_consumption_item"][item], { "storages": storage.storages, "products": products.product_data } ));
 		                        }
@@ -139,6 +414,8 @@ var StorageConsumption = function(db, change_dependencies) {
 		if (resp["status"] == true) {
 			storage_consumption.consumption_data = resp["consumption"];
 			storage_consumption.consumption.innerHTML = "";
+			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc_default());
+			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc());
 
 			storage_consumption.consumption.appendChild(storage_consumption.data_table.get_header_row());
 

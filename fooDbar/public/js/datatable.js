@@ -123,6 +123,19 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
                	add_button.innerHTML = "&#xFF0B;";
                 add_button.onclick = this.insert_fields["add_button"]["onclick"];
 		col.appendChild(add_button);
+
+		var field = "add_button";
+		if (this.insert_fields[field]["button"]) {
+                	var button = document.createElement("button");
+                        button.id = parent.widget.name + "_" + this.id_suffix + "_" + field + "_button";
+                        button.title = this.insert_fields[field]["button"]["title"];
+                        if (this.insert_fields[field]["button"]["type"] == "text") {
+                        	button.innerHTML = this.insert_fields[field]["button"]["text"];
+                        }
+                        button.onclick = this.insert_fields[field]["button"]["onclick"];
+                        col.appendChild(button);
+                }
+
 		row_elem.appendChild(col);
 
 		return row_elem;
