@@ -98,6 +98,16 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 
 					col.appendChild(select);
 				}
+				if (this.insert_fields[field]["button"]) {
+					var button = document.createElement("button");
+					button.id = parent.widget.name + "_" + this.id_suffix + "_" + field + "_button";
+					button.title = this.insert_fields[field]["button"]["title"];
+					if (this.insert_fields[field]["button"]["type"] == "text") {
+						button.appendChild(document.createTextNode(this.insert_fields[field]["button"]["text"]));
+					}
+					button.onclick = this.insert_fields[field]["button"]["onclick"];
+					col.appendChild(button);
+				}
 			} else {
 				var span = document.createElement("span");
 				span.id = parent.widget.name + "_" + this.id_suffix + "_" + field;

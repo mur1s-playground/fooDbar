@@ -22,7 +22,7 @@ var UserState = function(db, change_dependencies) {
 					"MusclePercent": { "placeholder": "Muscle%" },
 					"BonePercent": { "placeholder": "Bone%" },
 					"WaterPercent": { "placeholder": "Water%" },
-					"Pal": { "placeholder": "PAL" },
+					"Pal": { "placeholder": "PAL", "button": { "title": "Help", "type": "text", "text": "?", "onclick": function() { user_state.toggle_pal_calc(); } } },
 					"add_button": { "onclick": function() {
 						                        var p = {
 						                                "state" : this.obj.data_table.get_inserted_values()
@@ -233,7 +233,7 @@ var UserState = function(db, change_dependencies) {
 		apply_button.innerHTML = "&#10003;";
 		apply_button.title = "Apply";
 		apply_button.onclick = function() {
-			document.getElementById(user_state.widget.name + "_pal").value = document.getElementById(user_state.widget.name + "_pal_span_result").innerHTML;
+			document.getElementById(user_state.widget.name + "_state_Pal").value = document.getElementById(user_state.widget.name + "_pal_span_result").innerHTML;
 			user_state.toggle_pal_calc();
 		}
 		col_1.appendChild(apply_button);
