@@ -761,7 +761,7 @@ class DBTable {
                         if (is_numeric($replacement[1])) {
                             $expr_array[$expr_ct][$i] = $replacement[1];
                         } else {
-                            $expr_array[$expr_ct][$i] = $this->DBO->real_escape_string($replacement[1]);
+                            $expr_array[$expr_ct][$i] = "'" . $this->DBO->real_escape_string($replacement[1]) . "'";
                         }
                     } else if ($replacement[0] == DBFunction::class) {
                         $sub_expr = null;
@@ -769,7 +769,7 @@ class DBTable {
                         $expr_array[$expr_ct][$i] = $this->parseFunctionExpression($replacement[1], $sub_expr);
                     } else {
                         $j = 0;
-                        if (sizeof($replacement[0]) == 3) {
+                        if (sizeof($replacement) == 3) {
                             $j = $replacement[2];
                         }
                         for (; $j < sizeof($this->joins); $j++) {
