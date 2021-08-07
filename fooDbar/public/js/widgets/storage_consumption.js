@@ -81,6 +81,11 @@ var StorageConsumption = function(db, change_dependencies) {
 
                 var price_r = 0;
                 var kj_r = 0;
+		var fat_r = 0;
+		var carbs_r = 0;
+		var protein_r = 0;
+		var salt_r = 0;
+		var fiber_r = 0;
                 for (var c in c_data) {
 	                if (c_data.hasOwnProperty(c)) {
         	                var c_time = new Date(c_data[c]["Datetime"].replace(" ", "T"));
@@ -102,26 +107,35 @@ var StorageConsumption = function(db, change_dependencies) {
                                         var p_amount = parseFloat(p["Amount"]);
                                         var p_kj = parseFloat(p["Kj"]);
 
+					var n_fat = parseFloat(p["NFat"]);
+					var n_carbs = parseFloat(p["NCarbs"]);
+					var n_protein = parseFloat(p["NProtein"]);
+					var n_salt = parseFloat(p["NSalt"]);
+					var n_fiber = parseFloat(p["NFiber"]);
+
                                         var c_amount = parseFloat(c_data[c]["Amount"]);
                                         var c_amount_price = c_amount/p_amount * s_price;
 
                                         price_r += c_amount_price;
 
+					var c_a = c_amount;
                                         if (p_at_id == 1) { //g
- 	                                       var c_kj = c_amount/100 * p_kj;
-                                               kj_r += c_kj;
+						c_a /= 100;
                                         } else if (p_at_id == 2) { //l
-                                               var c_kj = (c_amount * 10) * p_kj;
-                                               kj_r += c_kj;
-                                        } else if (p_at_id == 3) { //pc.
-                                               var c_kj = c_amount * p_kj;
-                                               kj_r += c_kj;
-                                        }
+						c_a *= 10;
+                                        } //else pc. *= 1
+					if (!isNaN(p_kj)) kj_r += c_a * p_kj;
+					if (!isNaN(n_fat)) fat_r += c_a * n_fat;
+					if (!isNaN(n_carbs)) carbs_r += c_a * n_carbs;
+					if (!isNaN(n_protein)) protein_r += c_a * n_protein;
+					if (!isNaN(n_salt)) salt_r += c_a * n_salt;
+					if (!isNaN(n_fiber)) fiber_r += c_a * n_fiber;
                                 }
                         }
         	}
 		time_diff = Math.ceil((max_time - min_time) / (24 * 3600 * 1000));
-		return [time_diff, price_r, kj_r];
+		if (time_diff == 0) time_diff = 1;
+		return [time_diff, price_r, kj_r, fat_r, carbs_r, protein_r, salt_r, fiber_r];
 	}
 
 	this.get_consumption_calc_default = function() {
@@ -133,29 +147,19 @@ var StorageConsumption = function(db, change_dependencies) {
 		var date_31 = new Date();
 		date_31.setTime(date_now.getTime() - time_diff_31);
 		var result_31 = storage_consumption.do_consumption_calc(date_31, date_now, user.login_data["username"]);
-		var time_diff_31 = result_31[0];
-		var price_31 = result_31[1];
-		var kj_31 = result_31[2];
 
 		var result_31_trash = storage_consumption.do_consumption_calc(date_31, date_now, "Trash");
-		var price_31_trash = result_31_trash[1];
-		var kj_31_trash = result_31_trash[2]
+		result_31_trash[0] = result_31[0];
 
 		var time_diff_7 = 7 * 24 * 3600 * 1000;
                 var date_7 = new Date();
                 date_7.setTime(date_now.getTime() - time_diff_7);
                 var result_7 = storage_consumption.do_consumption_calc(date_7, date_now, user.login_data["username"]);
-                var time_diff_7 = result_7[0];
-                var price_7 = result_7[1];
-                var kj_7 = result_7[2];
 
 		var time_diff_24 = 24 * 3600 * 1000;
                 var date_24 = new Date();
                 date_24.setTime(date_now.getTime() - time_diff_24);
                 var result_24 = storage_consumption.do_consumption_calc(date_24, date_now, user.login_data["username"]);
-                var time_diff_24 = result_24[0];
-                var price_24 = result_24[1];
-                var kj_24 = result_24[2];
 
 		var date_t = new Date();
 		date_t.setTime(date_now.getTime());
@@ -164,48 +168,31 @@ var StorageConsumption = function(db, change_dependencies) {
 		date_t.setSeconds(0);
 		date_t.setMilliseconds(0);
 		var result_t = storage_consumption.do_consumption_calc(date_t, date_now, user.login_data["username"]);
-		var time_diff_t = result_t[0];
-		var price_t = result_t[1];
-		var kj_t = result_t[2];
+
+		var get_data_row = function(result) {
+			var r = {
+				"Timespan": Math.round(result[0] * 100) / 100,
+				"Price": Math.round(result[1] * 100) / 100,
+				"MJ": Math.round(result[2]/10) / 100,
+				"PricePerDay": Math.round(result[1] / result[0] * 100) / 100,
+				"MJPerDay": Math.round(result[2] / (result[0] * 10)) / 100,
+				"MaintainDiff": "",
+				"TargetDiff": "",
+				"Fat": Math.round(result[3] * 100) / 100,
+				"Carbs": Math.round(result[4] * 100) / 100,
+				"Protein": Math.round(result[5] * 100) / 100,
+				"Salt": Math.round(result[6] * 100) / 100,
+				"Fiber": Math.round(result[7] * 100) / 100,
+			};
+			return r;
+		}
 
 		var table_data = {
-			"31d Trash": {
-				"Timespan":  Math.round(time_diff_31 * 100) / 100,
-                                "Price": Math.round(price_31_trash * 100) / 100,
-                                "MJ": Math.round(kj_31_trash/10) / 100,
-                                "PricePerDay": Math.round(price_31_trash / time_diff_31 * 100) / 100,
-                                "MJPerDay": Math.round(kj_31_trash / (time_diff_31 * 10)) / 100,
-				"MaintainDiff": "",
-				"TargetDiff": ""
-			},
-			"31d": {
-				"Timespan":  Math.round(time_diff_31 * 100) / 100,
-				"Price": Math.round(price_31 * 100) / 100,
-				"MJ": Math.round(kj_31/10) / 100,
-				"PricePerDay": Math.round(price_31 / time_diff_31 * 100) / 100,
-				"MJPerDay": Math.round(kj_31 / (time_diff_31 * 10)) / 100
-			},
-			"7d": {
-				"Timespan":  Math.round(time_diff_7 * 100) / 100,
-                                "Price": Math.round(price_7 * 100) / 100,
-                                "MJ": Math.round(kj_7/10) / 100,
-                                "PricePerDay": Math.round(price_7 / time_diff_7 * 100) / 100,
-                                "MJPerDay": Math.round(kj_7 / (time_diff_7 * 10)) / 100
-			},
-			"24h": {
-				"Timespan":  Math.round(time_diff_24 * 100) / 100,
-                                "Price": Math.round(price_24 * 100) / 100,
-                                "MJ": Math.round(kj_24/10) / 100,
-                                "PricePerDay": Math.round(price_24 / time_diff_24 * 100) / 100,
-                                "MJPerDay": Math.round(kj_24 / (time_diff_24 * 10)) / 100
-			},
-			"Today": {
-				"Timespan":  Math.round(time_diff_t * 100) / 100,
-                                "Price": Math.round(price_t * 100) / 100,
-                                "MJ": Math.round(kj_t/10) / 100,
-                                "PricePerDay": Math.round(price_t / time_diff_t * 100) / 100,
-                                "MJPerDay": Math.round(kj_t / (time_diff_t * 10)) / 100
-			}
+			"31d Trash": get_data_row(result_31_trash),
+			"31d": get_data_row(result_31),
+			"7d": get_data_row(result_7),
+			"24h": get_data_row(result_24),
+			"Today": get_data_row(result_t)
 		};
 
 		var rows = ["Today", "24h", "7d", "31d"];
@@ -221,8 +208,8 @@ var StorageConsumption = function(db, change_dependencies) {
 		}
 		rows.push("31d Trash");
 
-		var titles = ["Price (&#8364;)", "MJ", "Price/Day (&#8364;)", "MJ/Day", "&#x394;MJ Maintain", "&#x394;MJ Target"];
-		var cols = ["Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff"];
+		var titles = ["Price (&#8364;)", "MJ", "Price/Day (&#8364;)", "MJ/Day", "&#x394;MJ Maintain", "&#x394;MJ Target", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
+		var cols = ["Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
 
 		var tbl = document.createElement("table");
 		tbl.id = storage_consumption.widget_name + "_consumption_calc_table";
@@ -287,6 +274,11 @@ var StorageConsumption = function(db, change_dependencies) {
 			var time_diff = result[0];
 			var price_r = result[1];
 			var kj_r = result[2];
+			var fat_r = result[3];
+			var carbs_r = result[4];
+			var protein_r = result[5];
+			var salt_r = result[6];
+			var fiber_r = result[7];
 
 			var t_r_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Time");
 			t_r_elem.innerHTML = Math.round(time_diff * 100) / 100 + "d";
@@ -302,6 +294,21 @@ var StorageConsumption = function(db, change_dependencies) {
 
 			var mj_avg_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_MJPerDay");
 			mj_avg_elem.innerHTML = Math.round(kj_r / (time_diff * 10)) / 100;
+
+			var fat_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Fat");
+			fat_elem.innerHTML = Math.round(fat_r * 100) / 100;
+
+			var carbs_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Carbs");
+			carbs_elem.innerHTML = Math.round(carbs_r * 100) / 100;
+
+			var protein_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Protein");
+			protein_elem.innerHTML = Math.round(protein_r * 100) / 100;
+
+			var salt_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Salt");
+			salt_elem.innerHTML = Math.round(salt_r * 100) / 100;
+
+			var fiber_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Fiber");
+			fiber_elem.innerHTML = Math.round(fiber_r * 100) / 100;
 		}
 		consumption_calc.appendChild(calc_button);
 
@@ -311,13 +318,13 @@ var StorageConsumption = function(db, change_dependencies) {
 		var row_sp = document.createElement("tr");
 		var col_sp = document.createElement("td");
 		col_sp.innerHTML = "&nbsp;";
-		col_sp.colSpan = "6";
+		col_sp.colSpan = "12";
 		row_sp.appendChild(col_sp);
 		tbl.appendChild(row_sp);
 
 		var row = document.createElement("tr");
 
-		var cols = ["Time", "Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff"];
+		var cols = ["Time", "Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
 		for (var col in cols) {
 			var spn_result = document.createElement("span");
 	                spn_result.id = storage_consumption.widget.name + "_calc_result_" + cols[col];
