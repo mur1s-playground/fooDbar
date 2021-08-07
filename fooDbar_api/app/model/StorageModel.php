@@ -9,6 +9,7 @@ class StorageModel extends \Frame\DBTable {
 	const FIELD_ID = 'Id';
 	const FIELD_STORAGES_ID = 'StoragesId';
 	const FIELD_PRODUCTS_ID = 'ProductsId';
+	const FIELD_PRODUCTS_SOURCE_ID = 'ProductsSourceId';
 	const FIELD_AMOUNT = 'Amount';
 	const FIELD_DATETIME_INSERT = 'DatetimeInsert';
 	const FIELD_DATETIME_OPEN = 'DatetimeOpen';
@@ -24,6 +25,9 @@ class StorageModel extends \Frame\DBTable {
 	private $ProductsId;
 
 	/* int(11) */
+	private $ProductsSourceId;
+
+	/* int(11) */
 	private $Amount;
 
 	/* datetime */
@@ -37,7 +41,7 @@ class StorageModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('storage','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"StoragesId":{"Field":"storages_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsId":{"Field":"products_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeInsert":{"Field":"datetime_insert","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeOpen":{"Field":"datetime_open","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeEmpty":{"Field":"datetime_empty","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('storage','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"StoragesId":{"Field":"storages_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsId":{"Field":"products_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsSourceId":{"Field":"products_source_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeInsert":{"Field":"datetime_insert","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeOpen":{"Field":"datetime_open","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeEmpty":{"Field":"datetime_empty","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -63,6 +67,14 @@ class StorageModel extends \Frame\DBTable {
 	/* @param int(11) $ProductsId */
 	public function setProductsId($ProductsId) {
 		$this->ProductsId = $ProductsId;
+	}
+	/* @return int(11) $this->ProductsSourceId */
+	public function getProductsSourceId() {
+		return $this->ProductsSourceId;
+	}
+	/* @param int(11) $ProductsSourceId */
+	public function setProductsSourceId($ProductsSourceId) {
+		$this->ProductsSourceId = $ProductsSourceId;
 	}
 	/* @return int(11) $this->Amount */
 	public function getAmount() {

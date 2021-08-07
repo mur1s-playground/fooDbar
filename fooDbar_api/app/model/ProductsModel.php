@@ -8,10 +8,8 @@ class ProductsModel extends \Frame\DBTable {
 
 	const FIELD_ID = 'Id';
 	const FIELD_NAME = 'Name';
-	const FIELD_PRODUCTS_SOURCE_ID = 'ProductsSourceId';
 	const FIELD_AMOUNT = 'Amount';
 	const FIELD_AMOUNT_TYPE_ID = 'AmountTypeId';
-	const FIELD_PRICE = 'Price';
 	const FIELD_LAST_SEEN = 'LastSeen';
 	const FIELD_KJ = 'Kj';
 	const FIELD_N_FAT = 'NFat';
@@ -43,17 +41,11 @@ class ProductsModel extends \Frame\DBTable {
 	/* varchar(255) */
 	private $Name;
 
-	/* int(11) */
-	private $ProductsSourceId;
-
 	/* double */
 	private $Amount;
 
 	/* int(11) */
 	private $AmountTypeId;
-
-	/* double */
-	private $Price;
 
 	/* datetime */
 	private $LastSeen;
@@ -129,7 +121,7 @@ class ProductsModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('products','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Name":{"Field":"name","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsSourceId":{"Field":"products_source_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"AmountTypeId":{"Field":"amount_type_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Price":{"Field":"price","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"LastSeen":{"Field":"last_seen","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"Kj":{"Field":"kj","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFat":{"Field":"n_fat","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCarbs":{"Field":"n_carbs","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NProtein":{"Field":"n_protein","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFiber":{"Field":"n_fiber","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NSalt":{"Field":"n_salt","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCalcium":{"Field":"n_calcium","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegetarian":{"Field":"a_not_vegetarian","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegan":{"Field":"a_not_vegan","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AGluten":{"Field":"a_gluten","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACrustaceans":{"Field":"a_crustaceans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AEggs":{"Field":"a_eggs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AFish":{"Field":"a_fish","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"APeanuts":{"Field":"a_peanuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASoybeans":{"Field":"a_soybeans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMilk":{"Field":"a_milk","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANuts":{"Field":"a_nuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACeleriac":{"Field":"a_celeriac","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMustard":{"Field":"a_mustard","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASesam":{"Field":"a_sesam","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASulfur":{"Field":"a_sulfur","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ALupins":{"Field":"a_lupins","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMolluscs":{"Field":"a_molluscs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('products','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Name":{"Field":"name","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"AmountTypeId":{"Field":"amount_type_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"LastSeen":{"Field":"last_seen","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"Kj":{"Field":"kj","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFat":{"Field":"n_fat","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCarbs":{"Field":"n_carbs","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NProtein":{"Field":"n_protein","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFiber":{"Field":"n_fiber","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NSalt":{"Field":"n_salt","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCalcium":{"Field":"n_calcium","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegetarian":{"Field":"a_not_vegetarian","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegan":{"Field":"a_not_vegan","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AGluten":{"Field":"a_gluten","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACrustaceans":{"Field":"a_crustaceans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AEggs":{"Field":"a_eggs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AFish":{"Field":"a_fish","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"APeanuts":{"Field":"a_peanuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASoybeans":{"Field":"a_soybeans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMilk":{"Field":"a_milk","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANuts":{"Field":"a_nuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACeleriac":{"Field":"a_celeriac","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMustard":{"Field":"a_mustard","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASesam":{"Field":"a_sesam","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASulfur":{"Field":"a_sulfur","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ALupins":{"Field":"a_lupins","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMolluscs":{"Field":"a_molluscs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -148,14 +140,6 @@ class ProductsModel extends \Frame\DBTable {
 	public function setName($Name) {
 		$this->Name = $Name;
 	}
-	/* @return int(11) $this->ProductsSourceId */
-	public function getProductsSourceId() {
-		return $this->ProductsSourceId;
-	}
-	/* @param int(11) $ProductsSourceId */
-	public function setProductsSourceId($ProductsSourceId) {
-		$this->ProductsSourceId = $ProductsSourceId;
-	}
 	/* @return double $this->Amount */
 	public function getAmount() {
 		return $this->Amount;
@@ -171,14 +155,6 @@ class ProductsModel extends \Frame\DBTable {
 	/* @param int(11) $AmountTypeId */
 	public function setAmountTypeId($AmountTypeId) {
 		$this->AmountTypeId = $AmountTypeId;
-	}
-	/* @return double $this->Price */
-	public function getPrice() {
-		return $this->Price;
-	}
-	/* @param double $Price */
-	public function setPrice($Price) {
-		$this->Price = $Price;
 	}
 	/* @return datetime $this->LastSeen */
 	public function getLastSeen() {

@@ -8,7 +8,6 @@ use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AmountTypeModel.php";
 
 class IndexController {
@@ -21,19 +20,11 @@ class IndexController {
 	$result = array();
         $result["status"] = true;
 
-	$products = new ProductsModel();
-	$products->find();
-
+        $products = new ProductsModel();
+        $products->find();
 	$result["products"] = new \stdClass();
 	while ($products->next()) {
 		$result["products"]->{$products->getId()} = $products->toArray();
-	}
-
-	$products_source = new ProductsSourceModel();
-	$products_source->find();
-	$result["products_source"] = new \stdClass();
-	while ($products_source->next()) {
-		$result["products_source"]->{$products_source->getId()} = $products_source->toArray();
 	}
 
 	$amount_type = new AmountTypeModel();

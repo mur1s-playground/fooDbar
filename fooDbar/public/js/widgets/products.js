@@ -7,10 +7,8 @@ var Products = function(db, change_dependencies) {
 
 	this.data_table = new DataTable(this, "products",
                                 {       "Name": { "title": "Name", "header": { "type": "text", "text": "Name", "text_class": "datatable_header" } },
-					"ProductsSourceId": { "title": "Products Source", "header": { "type": "text", "text": "Products source", "text_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
 					"Amount": { "title": "Amount", "header": { "type": "text", "text": "Amount", "text_class": "datatable_header" } },
 					"AmountTypeId": { "title": "Unit", "header": { "type": "text", "text": "Unit", "text_class": "datatable_header" }, "join": { "model": "amount_type", "field": "Name" } },
-					"Price": { "title": "Price", "header": { "type": "text", "text": "Price", "text_class": "datatable_header" } },
 					"LastSeen": { "title": "Last Seen", "header": { "type": "text", "text": "Last seen", "text_class": "datatable_header" } },
 					"Kj": { "title": "Kj", "header": { "type": "text", "text": "Kj", "text_class": "datatable_header" } },
 					"NFat": { "title": "Fat", "header": { "type": "text", "text": "Fat", "text_class": "datatable_header" } },
@@ -38,10 +36,8 @@ var Products = function(db, change_dependencies) {
                                 },
                                 {
 					"Name": { "placeholder": "Name" },
-                                        "ProductsSourceId": { "placeholder": "Products Source", "join": "products_source" },
                                         "Amount": { "placeholder": "Amount" },
                                         "AmountTypeId": { "placeholder": "Unit", "join": "amount_type" },
-                                        "Price": { "placeholder": "Price" },
                                         "Kj": { "placeholder": "Kj" },
                                         "NFat": { "placeholder": "Fat" },
                                         "NCarbs": { "placeholder": "Carbs" },
@@ -135,7 +131,6 @@ var Products = function(db, change_dependencies) {
                 var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
 			products.product_data = resp["products"];
-			products.join_opts["products_source"] = resp["products_source"];
 			products.join_opts["amount_type"] = resp["amount_type"];
 			products.products.innerHTML = "";
 

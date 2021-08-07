@@ -35,6 +35,14 @@
                 "actions": [
                     "parse"
                 ]
+            },
+            "Price": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
             }
         },
         "defaultController": "Index"

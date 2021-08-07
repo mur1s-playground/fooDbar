@@ -4,12 +4,16 @@ var Storage = function(db, change_dependencies) {
 
 	this.storage_data = null;
 	this.storages = null;
+	this.products_source = null;
+	this.join_opts = null;
 
 	this.data_table = new DataTable(this, "storage",
                                 {
 					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "Storage", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
 					"ProductsId": { "title": "Product", "header": { "type": "text", "text": "Product", "text_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"ProductsSourceId": { "title": "Source", "header": { "type": "text", "text": "Source", "text_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
 					"Amount": { "title": "Amount", "header": { "type": "text", "text": "Amount", "text_class": "datatable_header" } },
+					"Price": { "title": "Price", "header": { "type": "text", "text": "Price", "text_class": "datatable_header" } },
 					"DatetimeInsert": { "title": "Insert", "header": { "type": "text", "text": "Insert", "text_class": "datatable_header" } },
 					"DatetimeOpen": { "title": "Open", "header": { "type": "text", "text": "Open", "text_class": "datatable_header" } },
                                         "DatetimeEmpty": { "title": "Empty", "header": { "type": "text", "text": "Empty", "text_class": "datatable_header" } }
@@ -17,7 +21,9 @@ var Storage = function(db, change_dependencies) {
                                 {
 					"StoragesId": { "placeholder": "Storage", "join": "storages" },
                                         "ProductsId": { "placeholder": "Product", "join": "products" },
+					"ProductsSourceId": { "placeholder": "Source", "join": "products_source"},
                                         "Amount": { "placeholder": "Amount" },
+					"Price": { "placeholder": "Price" },
                                         "add_button": { "onclick":  function() {
 										var p = {
 							                                "storage_item" : this.obj.data_table.get_inserted_values()
@@ -75,9 +81,9 @@ var Storage = function(db, change_dependencies) {
 		if (resp["status"] == true) {
 			storage.storage_data[resp["new_storage_item"]["Id"]] = resp["new_storage_item"];
 			if (storage.storage.children.length > 2) {
-				storage.storage.insertBefore(storage.data_table.get_data_row(resp["new_storage_item"], { "storages": storage.storages, "products": products.product_data } ), storage.storage.children[2]);
+				storage.storage.insertBefore(storage.data_table.get_data_row(resp["new_storage_item"], storage.join_opts ), storage.storage.children[2]);
 			} else {
-				storage.storage.appendChild(storage.data_table.get_data_row(resp["new_storage_item"], { "storages": storage.storages, "products": products.product_data } ));
+				storage.storage.appendChild(storage.data_table.get_data_row(resp["new_storage_item"], storage.join_opts ));
 			}
 			storage.changed_f();
 			storage.changed = false;
@@ -88,7 +94,11 @@ var Storage = function(db, change_dependencies) {
                 var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
 			storage.storage_data = resp["storage"];
+			storage.products_source = resp["products_source"];
 			storage.storages = resp["storages"];
+
+			storage.join_opts = {"storages": storage.storages, "products": products.product_data, "products_source": storage.products_source };
+
 			storage.storage.innerHTML = "";
 
 			storage.storage.appendChild(storage.data_table.get_header_row());
@@ -103,12 +113,12 @@ var Storage = function(db, change_dependencies) {
 				idx.sort(function(a,b) {return b-a});
 				for (var i = 0; i < idx.length; i++) {
 					if (i == 0) {
-                        	        	storage.storage.appendChild(storage.data_table.get_insert_row(storage.storage_data[idx[i]],  { "storages": storage.storages, "products": products.product_data } ));
+                        	        	storage.storage.appendChild(storage.data_table.get_insert_row(storage.storage_data[idx[i]],  storage.join_opts ));
 					}
-	                                storage.storage.appendChild(storage.data_table.get_data_row(storage.storage_data[idx[i]], { "storages": storage.storages, "products": products.product_data } ));
+	                                storage.storage.appendChild(storage.data_table.get_data_row(storage.storage_data[idx[i]], storage.join_opts ));
 				}
 			} else {
-				 storage.storage.appendChild(storage.data_table.get_insert_row(null, { "storages": storage.storages, "products": products.product_data } ));
+				 storage.storage.appendChild(storage.data_table.get_insert_row(null, storage.join_opts ));
 			}
 			storage.changed_f();
 			storage.changed = false;
