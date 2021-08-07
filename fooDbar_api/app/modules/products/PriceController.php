@@ -55,7 +55,9 @@ class PriceController {
                 if ($products_price->getPrice() != $price) {
                         $new_price = true;
                 }
-        }
+        } else {
+		$new_price = true;
+	}
         if ($new_price) {
 		return self::addPrice($products_id, $products_source_id, $datetime, $price);
         }
