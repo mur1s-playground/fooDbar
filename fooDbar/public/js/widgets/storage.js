@@ -16,7 +16,7 @@ var Storage = function(db, change_dependencies) {
 					"Price": { "title": "Price", "header": { "type": "text", "text": "Price", "text_class": "datatable_header" } },
 					"DatetimeInsert": { "title": "Insert", "header": { "type": "text", "text": "Insert", "text_class": "datatable_header" } },
 					"DatetimeOpen": { "title": "Open", "header": { "type": "text", "text": "Open", "text_class": "datatable_header" } },
-                                        "DatetimeEmpty": { "title": "Empty", "header": { "type": "text", "text": "Empty", "text_class": "datatable_header" } }
+//                                        "DatetimeEmpty": { "title": "Empty", "header": { "type": "text", "text": "Empty", "text_class": "datatable_header" } }
                                 },
                                 {
 					"StoragesId": { "placeholder": "Storage", "join": "storages" },
@@ -115,7 +115,12 @@ var Storage = function(db, change_dependencies) {
 					if (i == 0) {
                         	        	storage.storage.appendChild(storage.data_table.get_insert_row(storage.storage_data[idx[i]],  storage.join_opts ));
 					}
-	                                storage.storage.appendChild(storage.data_table.get_data_row(storage.storage_data[idx[i]], storage.join_opts ));
+					var row = storage.data_table.get_data_row(storage.storage_data[idx[i]], storage.join_opts );
+					if (storage.storage_data[idx[i]]["Amount"] == 0) {
+						row.style.display = "none";
+					}
+
+	                                storage.storage.appendChild(row);
 				}
 			} else {
 				 storage.storage.appendChild(storage.data_table.get_insert_row(null, storage.join_opts ));
@@ -131,7 +136,6 @@ var Storage = function(db, change_dependencies) {
 
 			if (user.login_data != null) {
 				if (products.product_data != null) {
-					storage.elem.style.display = "block";
 					var p = {};
 					storage.db.query_post("storage/index", p, storage.on_storage_response);
 				}

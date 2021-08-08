@@ -29,7 +29,24 @@ var Demand = function(db, change_dependencies) {
 		if (resp["status"] == true) {
 			demand.demand_data = {};
 			demand.demand_data["MJPerDay"] = resp["MJPerDay"];
-			demand.demand.innerHTML = this.responseText;
+
+			demand.demand.innerHTML = "";
+
+			demand.demand.appendChild(document.createTextNode("MJ/Day to maintain state "));
+
+			var sp = document.createElement("span");
+			sp.innerHTML = demand.demand_data["MJPerDay"]["maintain"];
+			sp.className = "menu_user_state";
+			demand.demand.appendChild(sp);
+
+			demand.demand.appendChild(document.createElement("br"));
+
+			demand.demand.appendChild(document.createTextNode("MJ/Day to reach target "));
+
+			var sp2 = document.createElement("span");
+                        sp2.innerHTML = demand.demand_data["MJPerDay"]["target"];
+			sp2.className = "menu_user_target";
+                        demand.demand.appendChild(sp2);
 		}
         }
 
@@ -38,7 +55,6 @@ var Demand = function(db, change_dependencies) {
 			this.changed = false;
 
 			if (user.login_data != null) {
-				demand.elem.style.display = "block";
 				var p = {};
 				demand.db.query_post("demand/index", p, demand.on_demand_response);
 			} else {

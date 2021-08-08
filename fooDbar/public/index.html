@@ -16,6 +16,7 @@
 		<script type="text/javascript" src="js/widgets/products.js"></script>
 		<script type="text/javascript" src="js/widgets/storage.js"></script>
 		<script type="text/javascript" src="js/widgets/storage_consumption.js"></script>
+		<script type="text/javascript" src="js/widgets/menu.js"></script>
 	</head>
 	<body>
 	<div id="app"></div>
@@ -32,16 +33,18 @@
 
         	var db = new DB("Main");
 
+		var menu = new Menu(db, null);
 		var storage_consumption = new StorageConsumption(db, null);		
 		var storage = new Storage(db, [storage_consumption]);
 		var products = new Products(db, [storage]);
 		var demand = new Demand(db, null)
 		var user_target = new UserTarget(db, [demand]);
 		var user_state = new UserState(db, [user_target, demand]);
-		var user = new User(db, [user_state, user_target, products]);
+		var user = new User(db, [user_state, user_target, products, menu]);
 
 		app.component_add(base_element, messagebox);
 		app.component_add(base_element, user);
+		app.component_add(base_element, menu);
 		app.component_add(base_element, user_state);
 		app.component_add(base_element, user_target);
 		app.component_add(base_element, demand);

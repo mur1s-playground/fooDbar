@@ -184,11 +184,19 @@ var StorageConsumption = function(db, change_dependencies) {
 				"Salt": Math.round(result[6] * 100) / 100,
 				"Fiber": Math.round(result[7] * 100) / 100,
 			};
+
+			var total_n = r["Fat"] + r["Carbs"] + r["Protein"] + r["Salt"] + r["Fiber"];
+			if (total_n == 0) total_n = 1;
+			var cols = ["Fat", "Carbs", "Protein", "Salt", "Fiber"];
+			for (var col in cols) {
+				r[cols[col]] = "" + r[cols[col]] + " (" + (Math.round(r[cols[col]]/total_n * 10000) / 100) + "%)";
+			}
+
 			return r;
 		}
 
 		var table_data = {
-			"31d Trash": get_data_row(result_31_trash),
+			"31d &#128465;": get_data_row(result_31_trash),
 			"31d": get_data_row(result_31),
 			"7d": get_data_row(result_7),
 			"24h": get_data_row(result_24),
@@ -206,13 +214,13 @@ var StorageConsumption = function(db, change_dependencies) {
         	                        table_data[rows[row]]["TargetDiff"] = "n/A";
 				}
 		}
-		rows.push("31d Trash");
+		rows.push("31d &#128465;");
 
 		var titles = ["Price (&#8364;)", "MJ", "Price/Day (&#8364;)", "MJ/Day", "&#x394;MJ Maintain", "&#x394;MJ Target", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
 		var cols = ["Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
 
 		var tbl = document.createElement("table");
-		tbl.id = storage_consumption.widget_name + "_consumption_calc_table";
+		tbl.id = storage_consumption.widget.name + "_consumption_calc_table";
 		var row_1 = document.createElement("tr");
 		var col_1 = document.createElement("td");
 		col_1.innerHTML = "Timespan";
@@ -238,6 +246,30 @@ var StorageConsumption = function(db, change_dependencies) {
 
 		var consumption_tbl = document.createElement("td");
                 consumption_tbl.colSpan = "6";
+
+
+		var row_sp = document.createElement("tr");
+                var col_sp = document.createElement("td");
+                col_sp.innerHTML = "&nbsp;";
+                col_sp.colSpan = "12";
+                row_sp.appendChild(col_sp);
+                tbl.appendChild(row_sp);
+
+                var row = document.createElement("tr");
+                row.className = "consumption_not_calculated";
+
+                var cols = ["Time", "Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
+                for (var col in cols) {
+                        var spn_result = document.createElement("span");
+                        spn_result.id = storage_consumption.widget.name + "_calc_result_" + cols[col];
+
+                        var col_ = document.createElement("td");
+                        col_.appendChild(spn_result);
+                        row.appendChild(col_);
+                }
+                tbl.appendChild(row);
+
+
                 consumption_tbl.appendChild(tbl);
 		ccd_row.appendChild(consumption_tbl);
 
@@ -309,31 +341,12 @@ var StorageConsumption = function(db, change_dependencies) {
 
 			var fiber_elem = document.getElementById(storage_consumption.widget.name + "_calc_result_Fiber");
 			fiber_elem.innerHTML = Math.round(fiber_r * 100) / 100;
+
+			fiber_elem.parentNode.parentNode.className = "consumption_calculated";
 		}
 		consumption_calc.appendChild(calc_button);
 
 		consumption_calc.appendChild(document.createElement("br"));
-
-		var tbl = document.getElementById(storage_consumption.widget_name + "_consumption_calc_table");
-		var row_sp = document.createElement("tr");
-		var col_sp = document.createElement("td");
-		col_sp.innerHTML = "&nbsp;";
-		col_sp.colSpan = "12";
-		row_sp.appendChild(col_sp);
-		tbl.appendChild(row_sp);
-
-		var row = document.createElement("tr");
-
-		var cols = ["Time", "Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
-		for (var col in cols) {
-			var spn_result = document.createElement("span");
-	                spn_result.id = storage_consumption.widget.name + "_calc_result_" + cols[col];
-
-			var col_ = document.createElement("td");
-			col_.appendChild(spn_result);
-			row.appendChild(col_);
-		}
-		tbl.appendChild(row);
 
 		return cc_row;
 	}
@@ -421,8 +434,8 @@ var StorageConsumption = function(db, change_dependencies) {
 		if (resp["status"] == true) {
 			storage_consumption.consumption_data = resp["consumption"];
 			storage_consumption.consumption.innerHTML = "";
-			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc_default());
 			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc());
+			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc_default());
 
 			storage_consumption.consumption.appendChild(storage_consumption.data_table.get_header_row());
 
@@ -453,7 +466,6 @@ var StorageConsumption = function(db, change_dependencies) {
 
 			if (user.login_data != null) {
 				if (storage.storage_data != null) {
-					storage_consumption.elem.style.display = "block";
 					var p = {};
 					storage_consumption.db.query_post("storage/consumption", p, storage_consumption.on_consumption_response);
 				}

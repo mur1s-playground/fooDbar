@@ -163,7 +163,6 @@ var Products = function(db, change_dependencies) {
 			this.changed = false;
 
 			if (user.login_data != null) {
-				products.elem.style.display = "block";
 				var p = {};
 				products.db.query_post("products/index", p, products.on_products_response);
 			} else {

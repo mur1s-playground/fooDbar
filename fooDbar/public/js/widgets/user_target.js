@@ -140,7 +140,6 @@ var UserTarget = function(db, change_dependencies) {
 			this.changed = false;
 
 			if (user.login_data != null) {
-				user_target.elem.style.display = "block";
 				var p = {};
 				user_target.db.query_post("users/target", p, user_target.on_user_target_response);
 			} else {

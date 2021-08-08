@@ -1,3 +1,15 @@
+:root {
+	--table_bg: #cccccc;
+
+	--state_color: #1eb080;
+	--target_color: #ff445f;
+	--demand_color: #f7d43f;
+	--consumption_color: #ffa528;
+	--storage_color: #ccccff;
+	--products_color: #bfece2;
+}
+
+
 span {
 	margin: 5px;
 }
@@ -9,6 +21,10 @@ button {
 	text-align: center;
 	vertical-align: middle;
 	margin: 5px;
+}
+
+#wg_Menu_content button {
+	width: 12%;
 }
 
 input {
@@ -49,6 +65,137 @@ td {
 	vertical-align: middle;
 }
 
+/* MENU */
+.menu_user_state {
+	background: var(--state_color);
+}
+
+.menu_user_target {
+	background: var(--target_color);
+}
+
+.menu_demand {
+	background: var(--demand_color);
+}
+
+.menu_consumption {
+	background: var(--consumption_color);
+}
+
+.menu_storage {
+	background: var(--storage_color);
+}
+
+.menu_products {
+	background: var(--products_color);
+}
+
+/* CONSUMPTION */
+.consumption select {
+	height: 45px;
+        max-width: 360px;
+        vertical-align: middle;
+}
+
+.consumption input {
+	height: 45px;
+        text-align: center;
+        vertical-align: middle;
+}
+
+.consumption td:last-child {
+	text-align: right;
+}
+
+#Consumption_consumption_calc_table {
+	border-spacing: 0px;
+	border-collapse: collapse;
+	background: var(--table_bg);
+}
+
+#Consumption_consumption_calc_table td {
+	padding: 5px;
+}
+
+
+#Consumption_consumption_calc_table tr:nth-child(0n+2) td {
+	font-size: 20px;
+}
+
+#Consumption_consumption_calc_table tr td:nth-child(-n+7) {
+	background: var(--demand_color);
+}
+
+#Consumption_consumption_calc_table tr td:nth-child(-n+5) {
+        background: var(--consumption_color);
+}
+
+#Consumption_consumption_calc_table tr td:nth-child(-n+1) {
+        background: var(--table_bg);
+}
+
+#Consumption_consumption_calc_table tr:nth-child(0n+6) td, #Consumption_consumption_calc_table tr:nth-child(0n+1) td {
+        background: var(--table_bg);
+}
+
+#Consumption_consumption_calc_table tr:first-child td {
+        font-weight: bold;
+	border-top: 1px solid black;
+	border-bottom: 2px solid black;
+}
+
+#Consumption_consumption_calc_table tr:nth-child(0n+5) td, #Consumption_consumption_calc_table tr:nth-child(0n+6) td {
+        border-bottom: 2px solid black;
+}
+
+#Consumption_consumption_calc_table tr:nth-child(0n+7) td {
+        border: 0px solid black;
+}
+
+#Consumption_consumption_calc_table td:first-child {
+        font-weight: bold;
+	border-left: 2px solid black;
+	border-right: 2px solid black;
+}
+
+#Consumption_consumption_calc_table td {
+	text-align: left;
+	border-right: 1px solid black;
+}
+
+#Consumption_consumption_calc_table tr.consumption_not_calculated td {
+	border: 0px;
+        background: var(--table_bg);
+}
+
+#Consumption_consumption_calc_table tr.consumption_calculated td {
+	border: 1px solid black;
+}
+
+#Consumption_consumption_ProductsId {
+	background: var(--storage_color);
+}
+
+/* STORAGE */
+.storage input {
+	height: 45px;
+        max-width: 60px;
+        text-align: center;
+        vertical-align: middle;
+}
+
+#Storage_storage_ProductsId, #Storage_storage_ProductsSourceId {
+	height: 45px;
+	min-width: 250px;
+	max-width: 350px;
+	vertical-align: middle;
+}
+
+#Storage_storage_ProductsId {
+	background: var(--products_color);
+}
+
+/* PRODUCTS */
 .products input {
         height: 45px;
         max-width: 60px;
@@ -56,6 +203,12 @@ td {
         vertical-align: middle;
 }
 
+#Products_products_Name {
+        min-width: 300px;
+        max-width: 360px;
+}
+
+/* ------- */
 .pal_header td {
 	border-bottom: 1px solid black;
 	font-weight: bold;
