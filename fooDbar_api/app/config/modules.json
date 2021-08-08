@@ -62,6 +62,12 @@
                 "actions": [
                     "index"
                 ]
+            },
+            "Processconsumption": {
+                "defaultAction": "get",
+                "actions": [
+                    "get"
+                ]
             }
         },
         "defaultController": "Index"

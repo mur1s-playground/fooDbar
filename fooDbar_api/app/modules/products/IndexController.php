@@ -2,17 +2,37 @@
 
 namespace FooDBar;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
 use \Frame\Join as Join;
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AmountTypeModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AmountTypeModel.php";
 
 class IndexController {
     private $DefaultController = true;
     private $DefaultAction = "get";
+
+    public function getProductsByIdArray($ids) {
+	$cond = new Condition("[c1]", array(
+		"[c1]" => [
+				[ProductsModel::class, ProductsModel::FIELD_ID],
+				Condition::COMPARISON_IN,
+				[Condition::CONDITION_CONST_ARRAY, $ids]
+		]
+	));
+
+	$products = new ProductsModel();
+	$products->find($cond);
+
+	$result = new \stdClass();
+	while ($products->next()) {
+		$result->{$products->getId()} = $products->toArray();
+	}
+
+	return $result;
+    }
 
     public function getAction() {
 	$user = LoginController::requireAuth();

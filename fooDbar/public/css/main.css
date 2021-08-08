@@ -7,6 +7,8 @@
 	--consumption_color: #ffa528;
 	--storage_color: #ccccff;
 	--products_color: #bfece2;
+	--recipes_color: #0bdeee;
+	--shopping_list_color: #ff6fc0;
 }
 
 
@@ -24,7 +26,7 @@ button {
 }
 
 #wg_Menu_content button {
-	width: 12%;
+	width: 100px;
 }
 
 input {
@@ -89,6 +91,15 @@ td {
 .menu_products {
 	background: var(--products_color);
 }
+
+.menu_recipes {
+        background: var(--recipes_color);
+}
+
+.menu_shopping_list {
+        background: var(--shopping_list_color);
+}
+
 
 /* CONSUMPTION */
 .consumption select {
