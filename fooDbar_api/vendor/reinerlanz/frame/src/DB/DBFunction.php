@@ -11,6 +11,7 @@ class DBFunction {
     const FUNCTION_MAX      = "Max";
     const FUNCTION_MIN      = "Min";
     const FUNCTION_SUM	    = "Sum";
+    const FUNCTION_GROUP_CONCAT = "GroupConcat";
 
     const DATATYPE_DATE     = "DATE";
     const DATATYPE_DATETIME = "DATETIME";
