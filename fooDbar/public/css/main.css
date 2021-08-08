@@ -67,11 +67,11 @@ td {
 
 /* MENU */
 .menu_user_state {
-	background: var(--state_color);
+	background: var(--state_color) !important;
 }
 
 .menu_user_target {
-	background: var(--target_color);
+	background: var(--target_color) !important;
 }
 
 .menu_demand {
@@ -120,6 +120,8 @@ td {
 
 #Consumption_consumption_calc_table tr:nth-child(0n+2) td {
 	font-size: 20px;
+	font-weight: bold;
+	border-bottom: 2px solid black;
 }
 
 #Consumption_consumption_calc_table tr td:nth-child(-n+7) {

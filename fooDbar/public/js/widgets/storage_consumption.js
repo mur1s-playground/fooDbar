@@ -218,6 +218,7 @@ var StorageConsumption = function(db, change_dependencies) {
 
 		var titles = ["Price (&#8364;)", "MJ", "Price/Day (&#8364;)", "MJ/Day", "&#x394;MJ Maintain", "&#x394;MJ Target", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
 		var cols = ["Price", "MJ", "PricePerDay", "MJPerDay", "MaintainDiff", "TargetDiff", "Fat", "Carbs", "Protein", "Salt", "Fiber"];
+		var cols_h_class = ["", "", "", "", "menu_user_state", "menu_user_target", "", "", "", "", ""];
 
 		var tbl = document.createElement("table");
 		tbl.id = storage_consumption.widget.name + "_consumption_calc_table";
@@ -228,6 +229,7 @@ var StorageConsumption = function(db, change_dependencies) {
 		for (var col in cols) {
 			var col_ = document.createElement("td");
 			col_.innerHTML = titles[col];
+			col_.className = cols_h_class[col];
 			row_1.appendChild(col_);
 		}
 		tbl.appendChild(row_1);

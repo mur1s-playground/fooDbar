@@ -329,7 +329,7 @@ var User = function(db, change_dependencies) {
 		settings_form.appendChild(settings_pa);
 
 		var span_t = document.createElement("div");
-		span_t.innerHTML = "Preferences/Allergies";
+		span_t.innerHTML = "Allergies";
 		settings_pa.appendChild(span_t);
 
 		var table = document.createElement("table");
@@ -413,7 +413,131 @@ var User = function(db, change_dependencies) {
                 }
                 col.appendChild(cancel_button);
 
+
+                var settings_ps = document.createElement("div");
+                settings_ps.className = "subset";
+                settings_form.appendChild(settings_ps);
+
+                var span_ps = document.createElement("div");
+                span_ps.innerHTML = "Products Sources";
+                settings_ps.appendChild(span_ps);
+
+		var input_name = document.createElement("input");
+		input_name.id = user.widget.name + "_ps_find_Name";
+		input_name.placeholder = "Name";
+		settings_ps.appendChild(input_name);
+
+		var input_address = document.createElement("input");
+		input_address.id = user.widget.name + "_ps_find_Address";
+		input_address.placeholder = "Address";
+		settings_ps.appendChild(input_address);
+
+		var input_zipcode = document.createElement("input");
+		input_zipcode.id = user.widget.name + "_ps_find_Zipcode";
+		input_zipcode.placeholder = "Zipcode";
+		settings_ps.appendChild(input_zipcode);
+
+		var input_city = document.createElement("input");
+		input_city.id = user.widget.name + "_ps_find_City";
+		input_city.placeholder = "City";
+		settings_ps.appendChild(input_city);
+
+		var find_button = document.createElement("button");
+		find_button.innerHTML = "&#128269;";
+		find_button.title = "Search";
+		find_button.style.fontSize = "20px";
+		find_button.onclick = function() {
+			var p = {
+				"products_source_search": {
+					"Name": document.getElementById(user.widget.name + "_ps_find_Name").value,
+					"Address": document.getElementById(user.widget.name + "_ps_find_Address").value,
+					"Zipcode": document.getElementById(user.widget.name + "_ps_find_Zipcode").value,
+					"City": document.getElementById(user.widget.name + "_ps_find_City").value,
+				}
+			};
+			user.db.query_post("products/source/find", p, user.on_products_source_find_response);
+		}
+		settings_ps.appendChild(find_button);
+
+		settings_ps.appendChild(document.createElement("br"));
+
+		var find_select = document.createElement("select");
+		find_select.id = user.widget.name + "_ps_find_result";
+		find_select.style.display = "none";
+		settings_ps.appendChild(find_select);
+
 		return settings_form;
+	}
+
+	this.on_products_source_find_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			var select = document.getElementById(user.widget.name + "_ps_find_result");
+			select.innerHTML = "";
+			var has_result = false;
+			for (var r in resp["products_source"]) {
+				if (resp["products_source"].hasOwnProperty(r)) {
+					has_result = true;
+					var current = resp["products_source"][r];
+					var option = document.createElement("option");
+					option.value = r;
+					option.innerHTML = current["Name"] + ", " + current["Address"] + ", " + current["Zipcode"] + " " + current["City"];
+					select.appendChild(option);
+				}
+			}
+
+			var add_button = document.getElementById(user.widget.name + "_ps_find_result_add");
+
+			if (!has_result) {
+				var option = document.createElement("option");
+                                option.value = 0;
+				option.innerHTML = "No result";
+				select.disabled = "disabled";
+				select.appendChild(option);
+
+				if (add_button != null) {
+					add_button.disabled = "disabled";
+				}
+			} else {
+				if (add_button == null) {
+					var add_button = document.createElement("button");
+					add_button.id = user.widget.name + "_ps_find_result_add";
+					add_button.obj = select;
+					add_button.innerHTML = "&#xFF0B;";
+					add_button.onclick = function() {
+						var p = {
+							'new_users_products_source_item': { 'ProductsSourceId': this.obj.options[this.obj.selectedIndex].value }
+						}
+						user.db.query_post("users/productssource/insert", p, user.on_users_productssource_insert_response);
+					}
+					select.parentNode.appendChild(add_button);
+				} else {
+					add_button.disabled = false;
+				}
+				select.disabled = false;
+			}
+			select.style.display = "inline-block";
+		}
+	}
+
+	this.on_users_productssource_insert_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			var products_source_added = document.createElement("div");
+                        products_source_added.innerHTML = "Products source added.";
+                        products_source_added.style.background = "green";
+
+                        messagebox.message_add(products_source_added, 1000, "no-class", "products_source_addded", true);
+
+			user.action = "logged_in";
+			user.changed_f();
+		} else {
+			var products_source_not_added = document.createElement("div");
+                        products_source_not_added.innerHTML = resp["error"];
+                        products_source_not_added.style.background = "yellow";
+
+			messagebox.message_add(products_source_not_added, 1000, "no-class", "products_source_not_added", true);
+		}
 	}
 
 	this.update = function() {

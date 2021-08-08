@@ -43,6 +43,14 @@
                     "insert",
                     "remove"
                 ]
+            },
+            "Source": {
+                "defaultAction": "find",
+                "actions": [
+                    "find",
+                    "insert",
+                    "remove"
+                ]
             }
         },
         "defaultController": "Index"
@@ -91,6 +99,14 @@
                     "register"
                 ]
             },
+            "Productssource": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
+            },
             "State": {
                 "defaultAction": "get",
                 "actions": [
@@ -108,6 +124,6 @@
                 ]
             }
         },
-        "defaultController": "Login"
+        "defaultController": "Productssource"
     }
 }

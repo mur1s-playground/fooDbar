@@ -9,20 +9,12 @@ use \Frame\Join as Join;
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
-use \Frame\DBFunction as DBFunction;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
-use \Frame\DBFunctionExpression as DBFunctionExpression;
-
-
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesMembershipModel.php";
 
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsPriceModel.php";
-
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersProductsSourcesModel.php";
 
 class IndexController {
     private $DefaultController = true;
@@ -75,48 +67,9 @@ class IndexController {
         $result["status"] = true;
 
 	/* USERS SOURCE LOCATIONS */
-	$users_ps_cond = new Condition("[c1]", array(
-                "[c1]" => [
-                                [UsersProductsSourcesModel::class, UsersProductsSourcesModel::FIELD_USERS_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [Condition::CONDITION_CONST, $user->getId()]
-                        ]
-        ));
-
-        $users_ps_products_source_join = new Join(new ProductsSourceModel(), "[j1]", array(
-                "[j1]" => [
-                                [UsersProductsSourcesModel::class, UsersProductsSourcesModel::FIELD_PRODUCTS_SOURCE_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [ProductsSourceModel::class, ProductsSourceModel::FIELD_ID]
-                        ]
-        ));
-
-	$products_source_concat_expr = array(
-		new DBFunctionExpression("[e1]", array("[e1]" => [ProductsSourceModel::class, ProductsSourceModel::FIELD_NAME])),
-		new DBFunctionExpression("[e2]", array("[e2]" => [Condition::CONDITION_CONST, ", "])),
-		new DBFunctionExpression("[e3]", array("[e3]" => [ProductsSourceModel::class, ProductsSourceModel::FIELD_ADDRESS])),
-		new DBFunctionExpression("[e4]", array("[e4]" => [Condition::CONDITION_CONST, ", "])),
-		new DBFunctionExpression("[e5]", array("[e5]" => [ProductsSourceModel::class, ProductsSourceModel::FIELD_ZIPCODE])),
-		new DBFunctionExpression("[e6]", array("[e6]" => [Condition::CONDITION_CONST, " "])),
-		new DBFunctionExpression("[e7]", array("[e7]" => [ProductsSourceModel::class, ProductsSourceModel::FIELD_CITY]))
-	);
-
-	$fields = new Fields(array());
-	$fields->addField(ProductsSourceModel::class, ProductsSourceModel::FIELD_ID);
-	$fields->addFunctionField("ProductsSourceConcat", DBFunction::FUNCTION_CONCAT, $products_source_concat_expr);
-
-        $users_products_sources = new UsersProductsSourcesModel();
-	$users_products_sources->find($users_ps_cond, array($users_ps_products_source_join), null, null, $fields);
-
-        $result["products_source"] = new \stdClass();
-	while ($users_products_sources->next()) {
-		$products_source = $users_products_sources->joinedModelByClass(ProductsSourceModel::class);
-                $result["products_source"]->{$products_source->getId()} = array(
-											"Id" => $products_source->getId(),
-											"Name" => $users_products_sources->DBFunctionResult("ProductsSourceConcat")
-										);
-	}
-	/* ---- */
+	$GLOBALS['Boot']->loadModule("users", "Productssource");
+	$result['products_source'] = ProductssourceController::getUsersProductsSources($user);
+	/* ---------------------- */
 
 	$storages = self::getStorages($user);
 	$s_id_array = array();
