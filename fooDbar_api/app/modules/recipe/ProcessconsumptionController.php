@@ -124,6 +124,19 @@ class ProcessconsumptionController {
         $result = new \stdClass();
         while ($consumption->next()) {
 		$products_ids = $consumption->DBFunctionResult("ProductsIds");
+		$amounts = $consumption->DBFunctionResult("Amounts");
+
+		$products_ids_arr = explode(";", $products_ids);
+		$amounts_arr = explode(";", $amounts);
+		for ($p = count($products_ids_arr) - 1; $p >= 1; $p--) {
+			if ($products_ids_arr[$p] == $products_ids_arr[$p-1]) {
+				unset($products_ids_arr[$p]);
+				$amounts_arr[$p-1] += $amounts_arr[$p];
+				unset($amounts_arr[$p]);
+			}
+		}
+		$products_ids = implode(";", $products_ids_arr);
+		$amounts = implode(";", $amounts_arr);
 
                 $h = hash('sha256', $products_ids . "_" . $consumption->getUsersId());
 
@@ -131,7 +144,7 @@ class ProcessconsumptionController {
 
                 $result->{$h}[] = array(
 			"ProductsIds" 	=> $products_ids,
-			"Amounts"	=> $consumption->DBFunctionResult("Amounts"),
+			"Amounts"	=> $amounts,
                 	"Datetime" 	=> $consumption->getDatetime()
 		);
         }
