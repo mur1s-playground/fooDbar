@@ -116,9 +116,10 @@ class ProcessconsumptionController {
 
         $result = new \stdClass();
         while ($consumption->next()) {
-                $h = hash('sha256', $consumption->getDatetime() . $consumption->getUsersId());
+		$products_ids = $consumption->DBFunctionResult("ProductsIds");
+                $h = hash('sha256', $products_ids . "_" . $consumption->getUsersId());
 
-                $result->{$h}["ProductsIds"] = $consumption->DBFunctionResult("ProductsIds");
+                $result->{$h}["ProductsIds"] = $products_ids;
                 $result->{$h}["Amounts"] = $consumption->DBFunctionResult("Amounts");
                 $result->{$h}["Datetime"] = $consumption->getDatetime();
         }
@@ -134,6 +135,7 @@ class ProcessconsumptionController {
                 $c_a *= 10;
         }
 
+	$kj_p		= $product[ProductsModel::FIELD_KJ];
 	$fat_p 	 	= $product[ProductsModel::FIELD_N_FAT];
 	$carbs_p	= $product[ProductsModel::FIELD_N_CARBS];
 	$protein_p 	= $product[ProductsModel::FIELD_N_PROTEIN];
@@ -141,6 +143,7 @@ class ProcessconsumptionController {
 	$fiber_p	= $product[ProductsModel::FIELD_N_FIBER];
 
 	$result = array(
+		"Kj"		=> is_null($kj_p)	? 0 : round($c_a * $kj_p, 2),
 		"Fat"		=> is_null($fat_p)	? 0 : round($c_a * $fat_p, 2),
 		"Carbs"		=> is_null($carbs_p)	? 0 : round($c_a * $carbs_p, 2),
 		"Protein"	=> is_null($protein_p)	? 0 : round($c_a * $protein_p, 2),
@@ -162,6 +165,7 @@ class ProcessconsumptionController {
 			if ($p == 0) {
 				$result[$h] = $tmp;
 			} else {
+				$result[$h]["Kj"] += $tmp["Kj"];
 				$result[$h]["Fat"] += $tmp["Fat"];
 				$result[$h]["Carbs"] += $tmp["Carbs"];
 				$result[$h]["Protein"] += $tmp["Protein"];
@@ -170,23 +174,25 @@ class ProcessconsumptionController {
 			}
 			$contribution[$products_arr[$p]] = $tmp;
 		}
-		$result[$h]["Fat"] = round($result[$h]["Fat"], 2);
-                $result[$h]["Carbs"] = round($result[$h]["Carbs"], 2);
-                $result[$h]["Protein"] = round($result[$h]["Protein"], 2);
-                $result[$h]["Salt"] = round($result[$h]["Salt"], 2);
-                $result[$h]["Fiber"] = round($result[$h]["Fiber"], 2);
-		$result[$h]["p_parts"] = $contribution;
+		$result[$h]["Kj"] 	= round($result[$h]["Kj"], 2);
+		$result[$h]["Fat"] 	= round($result[$h]["Fat"], 2);
+                $result[$h]["Carbs"] 	= round($result[$h]["Carbs"], 2);
+                $result[$h]["Protein"] 	= round($result[$h]["Protein"], 2);
+                $result[$h]["Salt"] 	= round($result[$h]["Salt"], 2);
+                $result[$h]["Fiber"] 	= round($result[$h]["Fiber"], 2);
+		$result[$h]["p_parts"] 	= $contribution;
 	}
 	return $result;
     }
 
-    public static function optimizeNutritionDistributionSingle($consumption_groups_nutrition, $fat_percent, $carbs_percent, $protein_percent, $conditions) {
+    public static function optimizeNutritionDistributionSingle($consumption_groups_nutrition, $kj, $fat_percent, $carbs_percent, $protein_percent, $conditions) {
 		$amount_factors = array();
 		$weights = array();
 
 		$products_ct = count($consumption_groups_nutrition["p_parts"]);
 		$products_ids = array_keys($consumption_groups_nutrition["p_parts"]);
 		$total_nutrition = $consumption_groups_nutrition["Fat"] + $consumption_groups_nutrition["Carbs"] + $consumption_groups_nutrition["Protein"] + $consumption_groups_nutrition["Salt"] + $consumption_groups_nutrition["Fiber"];
+		$nutrition_current = $total_nutrition;
 		$distribution_start = array(
 			"Fat" 		=> round($consumption_groups_nutrition["Fat"]/$total_nutrition, 4),
 			"Carbs"		=> round($consumption_groups_nutrition["Carbs"]/$total_nutrition, 4),
@@ -194,21 +200,32 @@ class ProcessconsumptionController {
 			"Salt"         	=> round($consumption_groups_nutrition["Salt"]/$total_nutrition, 4),
 			"Fiber"		=> round($consumption_groups_nutrition["Fiber"]/$total_nutrition, 4)
 		);
-		$distribution_current = $distibution_start;
-		if ($produts_ct == 1) {
-                        return array("amount_factors" => array($products_ids[0] => 1.0), "distribution" => $distribution_current, "nutrition_total" => $total_nutrition, "distribution_start" => $distribution_start);
+		$distribution_current = $distribution_start;
+		$amount_multiplier = round($kj/$consumption_groups_nutrition["Kj"], 2);
+		if ($products_ct == 1) {
+                        return array(
+					"amount_factors" 	=> array($products_ids[0] => $amount_multiplier),
+					"distribution" 		=> $distribution_current,
+					"nutrition"	 	=> $amount_multiplier * $total_nutrition,
+					"distribution_start" 	=> $distribution_start,
+					"nutrition_start" 	=> $total_nutrition);
                 }
 
 		for ($p = 0; $p < $products_ct; $p++) {
-			$amount_factors[$products_ids[$p]] = 1.0;
-			$weights[$products_ids[$p]] = $consumption_groups_nutrition["p_parts"]["Fat"] + $consumption_groups_nutrition["p_parts"]["Carbs"] + $consumption_groups_nutrition["p_parts"]["Protein"] + $consumption_groups_nutrition["p_parts"]["Salt"] + $consumption_groups_nutrition["p_parts"]["Fiber"];
+			$amount_factors[$products_ids[$p]] = $amount_multiplier;
+			$weights[$products_ids[$p]] = $consumption_groups_nutrition["p_parts"][$products_ids[$p]]["Fat"] + $consumption_groups_nutrition["p_parts"][$products_ids[$p]]["Carbs"] + $consumption_groups_nutrition["p_parts"][$products_ids[$p]]["Protein"] + $consumption_groups_nutrition["p_parts"][$products_ids[$p]]["Salt"] + $consumption_groups_nutrition["p_parts"][$products_ids[$p]]["Fiber"];
 			$weights[$products_ids[$p]] /= $total_nutrition;
 		}
 
 		//TODO
 		$optimize = 100;
 
-		return array("amount_factors" => $amount_factors, "distribution" => $distribution_current, "nutrition_total" => $total_nutrition, "distribution_start" => $distibution_start");
+		return array(
+				"amount_factors" 	=> $amount_factors,
+				"distribution" 		=> $distribution_current,
+				"nutrition" 		=> $nutrition_current,
+				"distribution_start" 	=> $distribution_start,
+				"nutrition_start" 	=> $total_nutrition);
     }
 
     public function getAction() {
@@ -235,7 +252,7 @@ class ProcessconsumptionController {
 
 	$result["consumption_groups_nutrition"] = self::getNutritionFromConsumptionGroups($result["consumption_groups"], $result["products"]);
 	foreach ($result["consumption_groups_nutrition"] as $h => $cgn) {
-		$result["consumption_groups_nutrition"][$h]["optimised"] = self::optimizeNutritionDistributionSingle($cgn, $fat_percent, $carbs_percent, $protein_percent);
+		$result["consumption_groups_nutrition"][$h]["optimised"] = self::optimizeNutritionDistributionSingle($cgn, $result["consumption_groups_nutrition"][$h]["Kj"], $fat_percent, $carbs_percent, $protein_percent, null);
 	}
 
 	exit(json_encode($result, JSON_PRETTY_PRINT));
