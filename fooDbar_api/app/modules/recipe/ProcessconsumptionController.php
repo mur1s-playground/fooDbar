@@ -7,6 +7,7 @@ use \Frame\Fields as Fields;
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
 use \Frame\Join as Join;
 use \Frame\Condition as Condition;
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Order.php";
 use \Frame\Order as Order;
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "GroupBy.php";
 use \Frame\GroupBy as GroupBy;
@@ -45,7 +46,7 @@ class ProcessconsumptionController {
 
         $storage_join = new Join(new StorageModel(), "[j1]", array(
                 "[j1]" => [
-                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID],
+                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
                                 Condition::COMPARISON_EQUALS,
                                 [StorageModel::class, StorageModel::FIELD_ID]
                         ]
@@ -88,7 +89,7 @@ class ProcessconsumptionController {
 
         $storage_join = new Join(new StorageModel(), "[j1]", array(
                 "[j1]" => [
-                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID],
+                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
                                 Condition::COMPARISON_EQUALS,
                                 [StorageModel::class, StorageModel::FIELD_ID]
                         ]
@@ -97,22 +98,28 @@ class ProcessconsumptionController {
         $gc_expr_p = new DBFunctionExpression("[e1]", array(
                 "[e1]" => [StorageModel::class, StorageModel::FIELD_PRODUCTS_ID]
         ));
-
         $gc_expr_a = new DBFunctionExpression("[e2]", array(
                 "[e2]" => [StorageConsumptionModel::class, StorageModel::FIELD_AMOUNT]
         ));
 
+        $gc_expr_order = new DBFunctionExpression("[e3]", array(
+                "[e3]" => [StorageModel::class, StorageModel::FIELD_PRODUCTS_ID]
+        ));
+
+
         $fields = new Fields(array());
-        $fields->addFunctionField("ProductsIds", DBFunction::FUNCTION_GROUP_CONCAT, $gc_expr_p);
-        $fields->addFunctionField("Amounts", DBFunction::FUNCTION_GROUP_CONCAT, $gc_expr_a);
+        $fields->addFunctionField("ProductsIds", DBFunction::FUNCTION_GROUP_CONCAT, array($gc_expr_p, $gc_expr_order));
+        $fields->addFunctionField("Amounts", DBFunction::FUNCTION_GROUP_CONCAT, array($gc_expr_a, $gc_expr_order));
         $fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
         $fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_USERS_ID);
 
         $group_by_d = new GroupBy(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
         $group_by_u = new GroupBy(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_USERS_ID);
 
+	$order_by = new Order(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_USERS_ID, Order::ORDER_ASC);
+
         $consumption = new StorageConsumptionModel();
-        $consumption->find($recipe_user_condition, array($storage_join), null, null, $fields, array($group_by_d, $group_by_u));
+        $consumption->find($recipe_user_condition, array($storage_join), $order_by, null, $fields, array($group_by_d, $group_by_u));
 
         $result = new \stdClass();
         while ($consumption->next()) {

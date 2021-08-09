@@ -6,7 +6,7 @@ namespace Frame;
 
 class DBFunctionGroupConcat {
     protected $args_expr = null;
-    protected $argc = 1;
+    protected $argc = 2;
 
     public function getDescription() {
         return array(
@@ -21,9 +21,12 @@ class DBFunctionGroupConcat {
 
     public function getSkeleton() {
         return array(
-            ['str',     "GROUP_CONCAT("  ],
-            ['arg',     0       ],
-            ['str',     " SEPARATOR ';')"     ]
+            ['str',     "GROUP_CONCAT(" 	],
+            ['arg',     0       		],
+	    ['str', 	" ORDER BY "		],
+	    ['arg', 	1			],
+			//TODO: un-TMP
+	    ['str', 	" ASC SEPARATOR ';')"	]
         );
     }
 }
