@@ -27,7 +27,7 @@ class StorageModel extends \Frame\DBTable {
 	/* int(11) */
 	private $ProductsSourceId;
 
-	/* int(11) */
+	/* double */
 	private $Amount;
 
 	/* datetime */
@@ -41,7 +41,7 @@ class StorageModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('storage','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"StoragesId":{"Field":"storages_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsId":{"Field":"products_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsSourceId":{"Field":"products_source_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeInsert":{"Field":"datetime_insert","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeOpen":{"Field":"datetime_open","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeEmpty":{"Field":"datetime_empty","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('storage','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"StoragesId":{"Field":"storages_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsId":{"Field":"products_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsSourceId":{"Field":"products_source_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeInsert":{"Field":"datetime_insert","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"DatetimeOpen":{"Field":"datetime_open","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeEmpty":{"Field":"datetime_empty","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -76,11 +76,11 @@ class StorageModel extends \Frame\DBTable {
 	public function setProductsSourceId($ProductsSourceId) {
 		$this->ProductsSourceId = $ProductsSourceId;
 	}
-	/* @return int(11) $this->Amount */
+	/* @return double $this->Amount */
 	public function getAmount() {
 		return $this->Amount;
 	}
-	/* @param int(11) $Amount */
+	/* @param double $Amount */
 	public function setAmount($Amount) {
 		$this->Amount = $Amount;
 	}

@@ -17,7 +17,6 @@ class ProductsModel extends \Frame\DBTable {
 	const FIELD_N_PROTEIN = 'NProtein';
 	const FIELD_N_FIBER = 'NFiber';
 	const FIELD_N_SALT = 'NSalt';
-	const FIELD_N_CALCIUM = 'NCalcium';
 	const FIELD_A_NOT_VEGETARIAN = 'ANotVegetarian';
 	const FIELD_A_NOT_VEGAN = 'ANotVegan';
 	const FIELD_A_GLUTEN = 'AGluten';
@@ -67,9 +66,6 @@ class ProductsModel extends \Frame\DBTable {
 
 	/* double */
 	private $NSalt;
-
-	/* double */
-	private $NCalcium;
 
 	/* tinyint(4) */
 	private $ANotVegetarian;
@@ -121,7 +117,7 @@ class ProductsModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('products','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Name":{"Field":"name","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"AmountTypeId":{"Field":"amount_type_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"LastSeen":{"Field":"last_seen","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"Kj":{"Field":"kj","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFat":{"Field":"n_fat","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCarbs":{"Field":"n_carbs","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NProtein":{"Field":"n_protein","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFiber":{"Field":"n_fiber","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NSalt":{"Field":"n_salt","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCalcium":{"Field":"n_calcium","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegetarian":{"Field":"a_not_vegetarian","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegan":{"Field":"a_not_vegan","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AGluten":{"Field":"a_gluten","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACrustaceans":{"Field":"a_crustaceans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AEggs":{"Field":"a_eggs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AFish":{"Field":"a_fish","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"APeanuts":{"Field":"a_peanuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASoybeans":{"Field":"a_soybeans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMilk":{"Field":"a_milk","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANuts":{"Field":"a_nuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACeleriac":{"Field":"a_celeriac","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMustard":{"Field":"a_mustard","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASesam":{"Field":"a_sesam","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASulfur":{"Field":"a_sulfur","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ALupins":{"Field":"a_lupins","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMolluscs":{"Field":"a_molluscs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('products','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Name":{"Field":"name","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"AmountTypeId":{"Field":"amount_type_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"LastSeen":{"Field":"last_seen","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"Kj":{"Field":"kj","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFat":{"Field":"n_fat","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NCarbs":{"Field":"n_carbs","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NProtein":{"Field":"n_protein","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NFiber":{"Field":"n_fiber","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"NSalt":{"Field":"n_salt","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegetarian":{"Field":"a_not_vegetarian","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegan":{"Field":"a_not_vegan","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AGluten":{"Field":"a_gluten","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACrustaceans":{"Field":"a_crustaceans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AEggs":{"Field":"a_eggs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AFish":{"Field":"a_fish","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"APeanuts":{"Field":"a_peanuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASoybeans":{"Field":"a_soybeans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMilk":{"Field":"a_milk","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANuts":{"Field":"a_nuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACeleriac":{"Field":"a_celeriac","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMustard":{"Field":"a_mustard","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASesam":{"Field":"a_sesam","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASulfur":{"Field":"a_sulfur","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ALupins":{"Field":"a_lupins","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMolluscs":{"Field":"a_molluscs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -211,14 +207,6 @@ class ProductsModel extends \Frame\DBTable {
 	/* @param double $NSalt */
 	public function setNSalt($NSalt) {
 		$this->NSalt = $NSalt;
-	}
-	/* @return double $this->NCalcium */
-	public function getNCalcium() {
-		return $this->NCalcium;
-	}
-	/* @param double $NCalcium */
-	public function setNCalcium($NCalcium) {
-		$this->NCalcium = $NCalcium;
 	}
 	/* @return tinyint(4) $this->ANotVegetarian */
 	public function getANotVegetarian() {
