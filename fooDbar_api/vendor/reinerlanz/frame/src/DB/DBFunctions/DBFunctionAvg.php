@@ -4,13 +4,13 @@
 namespace Frame;
 
 
-class DBFunctionMax {
+class DBFunctionAvg {
     protected $args_expr = null;
     protected $argc = 1;
 
     public function getDescription() {
         return array(
-            "Field"     => "MAX",
+            "Field"     => "AVG",
             "Type"      => "",
             "Null"      => "NO",
             "Key"       => "",
@@ -21,7 +21,7 @@ class DBFunctionMax {
 
     public function getSkeleton() {
         return array(
-            ['str',     "MAX("  ],
+            ['str',     "AVG("  ],
             ['arg',     0       ],
             ['str',     ")"     ]
         );

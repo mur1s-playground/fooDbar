@@ -9,6 +9,7 @@ class DBFunction {
     const FUNCTION_CONCAT   = "Concat";
     const FUNCTION_COUNT    = "Count";
     const FUNCTION_MAX      = "Max";
+    const FUNCTION_AVG	    = "Avg";
     const FUNCTION_MIN      = "Min";
     const FUNCTION_SUM	    = "Sum";
     const FUNCTION_GROUP_CONCAT = "GroupConcat";

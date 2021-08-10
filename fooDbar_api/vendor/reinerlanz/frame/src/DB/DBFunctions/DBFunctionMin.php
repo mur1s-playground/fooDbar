@@ -11,7 +11,7 @@ class DBFunctionMin {
     public function getDescription() {
         return array(
             "Field"     => "MIN",
-            "Type"      => "int(11)",
+            "Type"      => "",
             "Null"      => "NO",
             "Key"       => "",
             "Default"   => null,

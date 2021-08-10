@@ -24,6 +24,9 @@ require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "St
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAllergiesModel.php";
 
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAggModel.php";
+
+
 class ProcessconsumptionController {
     private $DefaultController = false;
     private $DefaultAction = "get";
@@ -336,6 +339,9 @@ class ProcessconsumptionController {
 
 	$rcga = new RecipeConsumptionGroupAllergiesModel();
 	$rcga->truncate();
+
+	$rcg_agg = new RecipeConsumptionGroupAggModel();
+	$rcg_agg->truncate();
     }
 
     public static function insertConsumptionGroupsWithAllergies($date_from, $date_to) {
@@ -385,6 +391,84 @@ class ProcessconsumptionController {
 	}
     }
 
+    public static function insertConsumptionGroupAgg() {
+	$field_nut = array(
+			RecipeConsumptionGroupModel::FIELD_MJ,
+			RecipeConsumptionGroupModel::FIELD_N_FAT_PERCENT,
+			RecipeConsumptionGroupModel::FIELD_N_CARBS_PERCENT,
+			RecipeConsumptionGroupModel::FIELD_N_PROTEIN_PERCENT,
+			RecipeConsumptionGroupModel::FIELD_N_FIBER_PERCENT,
+			RecipeConsumptionGroupModel::FIELD_N_SALT_PERCENT
+			);
+	$functions = array(
+			"Min" => DBFunction::FUNCTION_MIN,
+			"Avg" => DBFunction::FUNCTION_AVG,
+			"Max" => DBFunction::FUNCTION_MAX
+			);
+
+	$fields = new Fields(array());
+
+	$min_id_expr = new DBFunctionExpression("[e1]", array(
+                                "[e1]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
+                  ));
+	$fields->addFunctionField("RecipeConsumptionGroupId_" . DBFunction::FUNCTION_MIN, DBFunction::FUNCTION_MIN, $min_id_expr);
+	$fields->addFunctionField("RecipeConsumptionGroupCount_" . DBFunction::FUNCTION_COUNT, DBFunction::FUNCTION_COUNT, $min_id_expr);
+
+
+	$min_price_expr = new DBFunctionExpression("Round([e1]/[e2], 4)", array(
+				"[e1]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MIN_PRICE],
+				"[e2]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MJ]
+	));
+
+	$max_price_expr = new DBFunctionExpression("Round([e1]/[e2], 4)", array(
+                                "[e1]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MAX_PRICE],
+				"[e2]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MJ]
+        ));
+
+	$avg_price_expr = new DBFunctionExpression("Round(([e1] + 0.5 * ([e2] - [e1]))/[e3], 4)", array(
+				"[e1]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MIN_PRICE],
+				"[e2]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MAX_PRICE],
+                                "[e3]" => [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_MJ]
+	));
+
+	$fields->addFunctionField("PricePerMjMin", DBFunction::FUNCTION_MIN, array($min_price_expr));
+	$fields->addFunctionField("PricePerMjMax", DBFunction::FUNCTION_MAX, array($max_price_expr));
+	$fields->addFunctionField("PricePerMjAvg", DBFunction::FUNCTION_AVG, array($avg_price_expr));
+
+
+	foreach ($field_nut as $idx => $field) {
+
+		$expr = new DBFunctionExpression("Round([e1], 2)", array(
+                		"[e1]" => [RecipeConsumptionGroupModel::class, $field]
+                	));
+
+
+		foreach ($functions as $idy => $f) {
+		        $fields->addFunctionField($field . "_" . $f, $f, array($expr));
+		}
+	}
+
+	$group_by = new GroupBy(RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS);
+
+	$rcg = new RecipeConsumptionGroupModel();
+	$rcg->find(null, null, null, null, $fields, $group_by);
+	while ($rcg->next()) {
+		$rcg_agg = new RecipeConsumptionGroupAggModel();
+		$rcg_agg->setRecipeConsumptionGroupId($rcg->DBFunctionResult("RecipeConsumptionGroupId_" . DBFunction::FUNCTION_MIN));
+		$rcg_agg->setRecipeConsumptionGroupCount($rcg->DBFunctionResult("RecipeConsumptionGroupCount_" . DBFunction::FUNCTION_COUNT));
+		$rcg_agg->setPricePerMjMin($rcg->DBFunctionResult("PricePerMjMin"));
+		$rcg_agg->setPricePerMjAvg($rcg->DBFunctionResult("PricePerMjAvg"));
+		$rcg_agg->setPricePerMjMax($rcg->DBFunctionResult("PricePerMjMax"));
+		foreach ($field_nut as $idx => $field) {
+			foreach ($functions as $idy => $f) {
+				$setter = "set" . $field . $idy;
+				$rcg_agg->$setter($rcg->DBFunctionResult($field . "_" . $f));
+			}
+		}
+		$rcg_agg->insert();
+	}
+    }
+
     public function updateAction() {
 	$user = LoginController::requireAuth();
 
@@ -399,6 +483,8 @@ class ProcessconsumptionController {
 	self::insertConsumptionGroupsWithAllergies(0, $date_f);
 
 	self::updatePrices(0, $date_f);
+
+	self::insertConsumptionGroupAgg();
 
 	$result = array();
         $result["status"] = true;
@@ -423,7 +509,7 @@ class ProcessconsumptionController {
 
 	$date_now = date_create();
 	$date_f = $date_now->format("Y-m-d H:i:s");
-/*
+
 	$cond = new Condition("[c1] AND [c2]", array(
 		"[c1]" => [
                                 [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
@@ -457,8 +543,27 @@ class ProcessconsumptionController {
 
 		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
 	}
-*/
+
+	$join_rcg = new Join(new RecipeConsumptionGroupModel(), "[j1]", array(
+		"[j1]" => [
+				[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
+				Condition::COMPARISON_EQUALS,
+				[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
+		]
+	));
+
+	$recipe_consumption_group_agg = new RecipeConsumptionGroupAggModel();
+	$recipe_consumption_group_agg->find(null, array($join_rcg));
+	$result["recipe_consumption_group_agg"] = new \stdClass();
+	while ($recipe_consumption_group_agg->next()) {
+		$result["recipe_consumption_group_agg"]->{$recipe_consumption_group_agg->getId()} = $recipe_consumption_group_agg->toArray();
+
+		$rcg = $recipe_consumption_group_agg->joinedModelByClass(RecipeConsumptionGroupModel::class);
+		$result["recipe_consumption_group_agg"]->{$recipe_consumption_group_agg->getId()}["ProductsIds"] = $rcg->getProductsIds();
+	}
+
 	/* TESTING SUB QUERY GETTING RECIPES FOR PRODUCTS IN STORAGE */
+/*
 	$GLOBALS['Boot']->loadModule("storage", "Index");
 	$storage_r = IndexController::getStoragesContent($user);
 	$products_ids_in_storage = array();
@@ -466,7 +571,6 @@ class ProcessconsumptionController {
 		$products_ids_in_storage[] = $s_item[StorageModel::FIELD_PRODUCTS_ID];
 	}
 
-	$products_in_storage_ids = [6, 10, 16];
 	$sub_cond = new Condition("[c1]", array(
 		"[c1]" => [
 			[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
@@ -527,7 +631,7 @@ class ProcessconsumptionController {
                 $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
 		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["FoundProducts"] = $found_products;
         }
-
+*/
 
 /*
 	foreach ($result["consumption_groups_nutrition"] as $h_idx => $cgn) {
