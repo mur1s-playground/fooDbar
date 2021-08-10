@@ -459,12 +459,19 @@ class ProcessconsumptionController {
 	}
 */
 	/* TESTING SUB QUERY GETTING RECIPES FOR PRODUCTS IN STORAGE */
+	$GLOBALS['Boot']->loadModule("storage", "Index");
+	$storage_r = IndexController::getStoragesContent($user);
+	$products_ids_in_storage = array();
+	foreach ($storage_r as $s_id => $s_item) {
+		$products_ids_in_storage[] = $s_item[StorageModel::FIELD_PRODUCTS_ID];
+	}
+
 	$products_in_storage_ids = [6, 10, 16];
 	$sub_cond = new Condition("[c1]", array(
 		"[c1]" => [
 			[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
 			Condition::COMPARISON_IN,
-			[Condition::CONDITION_CONST_ARRAY, $products_in_storage_ids]
+			[Condition::CONDITION_CONST_ARRAY, $products_ids_in_storage]
 		]
 	));
 
@@ -503,12 +510,22 @@ class ProcessconsumptionController {
 
 	$result["recipe_consumption_group"] = new \stdClass();
         while ($recipe_consumption_group->next()) {
+		$products_arr = explode(";", $recipe_consumption_group->getProductsIds());
+		$found_products = 0;
+		foreach ($products_arr as $p_id) {
+			if (in_array($p_id, $products_ids_in_storage)) {
+				$found_products++;
+			}
+		}
+		if ($found_products == 0) continue;
+
                 $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = $recipe_consumption_group->toArray();
                 unset($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["UsersId"]);
 
                 $allergies = $recipe_consumption_group->joinedModelByClass(RecipeConsumptionGroupAllergiesModel::class);
 
                 $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
+		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["FoundProducts"] = $found_products;
         }
 
 

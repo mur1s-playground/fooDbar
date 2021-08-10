@@ -2,19 +2,19 @@
 
 namespace FooDBar;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
 use \Frame\Fields as Fields;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
 use \Frame\Join as Join;
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesMembershipModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesMembershipModel.php";
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsPriceModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsPriceModel.php";
 
 class IndexController {
     private $DefaultController = true;
@@ -58,6 +58,36 @@ class IndexController {
 
 	$result = array("status" => false, "error" => "permission denied");
         exit(json_encode($result, JSON_PRETTY_PRINT));
+    }
+
+    public static function getStoragesContent($user) {
+	$storages = self::getStorages($user);
+        $s_id_array = array();
+        foreach ($storages as $id => $storage_obj) {
+                $s_id_array[] = $id;
+        }
+
+	$storage_cond = new Condition("[c1] AND [c2]", array(
+                "[c1]" => [
+                                [StorageModel::class, StorageModel::FIELD_DATETIME_EMPTY],
+                                Condition::COMPARISON_IS,
+                                [Condition::CONDITION_RESERVED, Condition::RESERVED_NULL]
+                        ],
+                "[c2]" => [
+                                [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+                                Condition::COMPARISON_IN,
+                                [Condition::CONDITION_CONST_ARRAY, $s_id_array]
+                        ]
+	));
+
+	$storage = new StorageModel();
+	$storage->find($storage_cond);
+
+	$result = new \stdClass();
+	while ($storage->next()) {
+		$result->{$storage->getId()} = $storage->toArray();
+	}
+	return $result;
     }
 
     public function getAction() {
