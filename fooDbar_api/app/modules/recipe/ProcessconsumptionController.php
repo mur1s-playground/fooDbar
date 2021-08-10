@@ -423,7 +423,7 @@ class ProcessconsumptionController {
 
 	$date_now = date_create();
 	$date_f = $date_now->format("Y-m-d H:i:s");
-
+/*
 	$cond = new Condition("[c1] AND [c2]", array(
 		"[c1]" => [
                                 [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
@@ -457,6 +457,60 @@ class ProcessconsumptionController {
 
 		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
 	}
+*/
+	/* TESTING SUB QUERY GETTING RECIPES FOR PRODUCTS IN STORAGE */
+	$products_in_storage_ids = [6, 10, 16];
+	$sub_cond = new Condition("[c1]", array(
+		"[c1]" => [
+			[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
+			Condition::COMPARISON_IN,
+			[Condition::CONDITION_CONST_ARRAY, $products_in_storage_ids]
+		]
+	));
+
+	$sub_join = new Join(new StorageModel(), "[j1]", array(
+		"[j1]" => [
+			[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+			Condition::COMPARISON_EQUALS,
+			[StorageModel::class, StorageModel::FIELD_ID]
+		]
+	));
+
+	$sub_field = new Fields(array());
+	$sub_field->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
+
+	$sub_storage_consumption = new StorageConsumptionModel();
+	$sub_query = $sub_storage_consumption->find($sub_cond, array($sub_join), null, null, $sub_field, null, false);
+
+	$rcg_cond = new Condition("[c1]", array(
+		"[c1]" => [
+			[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
+			Condition::COMPARISON_IN,
+			[Condition::CONDITION_QUERY, $sub_query]
+		]
+	));
+
+	$rcg_allergies = new Join(new RecipeConsumptionGroupAllergiesModel(), "[j1]", array(
+		"[j1]" => [
+			[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_RECIPE_CONSUMPTION_GROUP_ALLERGIES_ID],
+			Condition::COMPARISON_EQUALS,
+			[RecipeConsumptionGroupAllergiesModel::class, RecipeConsumptionGroupAllergiesModel::FIELD_ID]
+		]
+	));
+
+	$recipe_consumption_group = new RecipeConsumptionGroupModel();
+	$recipe_consumption_group->find($rcg_cond, array($rcg_allergies));
+
+	$result["recipe_consumption_group"] = new \stdClass();
+        while ($recipe_consumption_group->next()) {
+                $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = $recipe_consumption_group->toArray();
+                unset($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["UsersId"]);
+
+                $allergies = $recipe_consumption_group->joinedModelByClass(RecipeConsumptionGroupAllergiesModel::class);
+
+                $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
+        }
+
 
 /*
 	foreach ($result["consumption_groups_nutrition"] as $h_idx => $cgn) {

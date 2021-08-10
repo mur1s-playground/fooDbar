@@ -94,7 +94,7 @@ class DBTable {
         }
     }
 
-    public function find($condition = null, $joins = null, $orders = null, $limit = null, $fields = null, $group_by = null) {
+    public function find($condition = null, $joins = null, $orders = null, $limit = null, $fields = null, $group_by = null, $execute = true) {
         $error = array();
 
         if (!is_null($joins)) {
@@ -350,6 +350,8 @@ class DBTable {
                         } else {
                             $condition_expr_array[$i] .= "'" . $this->DBO->real_escape_string($replacement[2][1]) . "'";
                         }
+		    } else if ($replacement[2][0] == Condition::CONDITION_QUERY) {
+                        $condition_expr_array[$i] .= "(" . substr($replacement[2][1], 0, strlen($replacement[2][1])-1) . ")";
 		    } else if ($replacement[2][0] == Condition::CONDITION_RESERVED) {
                         $condition_expr_array[$i] .= $replacement[2][1];
                     } else if ($replacement[2][0] == Condition::CONDITION_CONST_ARRAY) {
@@ -476,6 +478,8 @@ class DBTable {
         if (sizeof($error) > 0) {
             die(json_encode(array('status' => false, 'error' => $error)));
         }
+
+	if (!$execute) return $query;
 
         $this->resultSet = $this->DBO->query($query);
     }
