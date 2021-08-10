@@ -40,11 +40,11 @@
 		var recipes = new Recipes(db, null);
 		var storage_consumption = new StorageConsumption(db, null);		
 		var storage = new Storage(db, [storage_consumption]);
-		var products = new Products(db, [storage]);
+		var products = new Products(db, [storage, recipes]);
 		var demand = new Demand(db, null)
 		var user_target = new UserTarget(db, [demand]);
 		var user_state = new UserState(db, [user_target, demand]);
-		var user = new User(db, [user_state, user_target, products, recipes, menu]);
+		var user = new User(db, [user_state, user_target, products, menu]);
 
 		app.component_add(base_element, messagebox);
 		app.component_add(base_element, user);

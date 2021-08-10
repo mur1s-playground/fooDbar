@@ -642,6 +642,11 @@ class DBTable {
         }
     }
 
+    public function truncate() {
+	$query = "TRUNCATE TABLE `{$this->table_name}`";
+	$this->DBO->query($query);
+    }
+
     private function isTextType($type) {
         if (strpos($type, "char") !== false || strpos($type, "text") !== false || strpos($type, "date") !== false) {
             return true;

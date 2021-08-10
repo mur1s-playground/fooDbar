@@ -21,6 +21,9 @@ require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "St
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageConsumptionModel.php";
 //require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
 
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupModel.php";
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAllergiesModel.php";
+
 class ProcessconsumptionController {
     private $DefaultController = false;
     private $DefaultAction = "get";
@@ -143,6 +146,7 @@ class ProcessconsumptionController {
 		if (!isset($result->{$h})) $result->{$h} = array();
 
                 $result->{$h}[] = array(
+			"UsersId"	=> $consumption->getUsersId(),
 			"ProductsIds" 	=> $products_ids,
 			"Amounts"	=> $amounts,
                 	"Datetime" 	=> $consumption->getDatetime()
@@ -212,13 +216,41 @@ class ProcessconsumptionController {
 	return $result;
     }
 
+    public static function getConsumptionGroupsAllergies($consumption_groups, $products) {
+	$GLOBALS['Boot']->loadModule("allergies", "Allergy");
+	$allergy_fields = AllergyController::getAllergyFields(new RecipeConsumptionGroupAllergiesModel());
+
+	$result = array();
+	foreach ($consumption_groups as $h => $cg_arr) {
+		$idx = 0;
+		$cg = $cg_arr[0];
+		if (isset($result[$cg["ProductsIds"]])) continue;
+
+		$result[$cg["ProductsIds"]] = new \stdClass();
+		foreach ($allergy_fields as $a => $field_name_camel) {
+			$result[$cg["ProductsIds"]]->{$field_name_camel} = 0;
+		}
+
+		$products_arr = explode(";", $cg["ProductsIds"]);
+		for ($p = 0; $p < count($products_arr); $p++) {
+			foreach ($allergy_fields as $a => $field_name_camel) {
+				$a_value = $products->{$products_arr[$p]}[$field_name_camel];
+				if (!is_null($a_value) && $a_value == 1) {
+					$result[$cg["ProductsIds"]]->{$field_name_camel} = 1;
+				}
+			}
+		}
+	}
+	return $result;
+    }
+
     public static function optimizeNutritionDistributionSingle($consumption_groups_nutrition, $kj, $fat_percent, $carbs_percent, $protein_percent, $conditions) {
 		$amount_factors = array();
 		$weights = array();
 
 		$products_ct = count($consumption_groups_nutrition["p_parts"]);
 		$products_ids = array_keys($consumption_groups_nutrition["p_parts"]);
-		$total_nutrition = $consumption_groups_nutrition["Fat"] + $consumption_groups_nutrition["Carbs"] + $consumption_groups_nutrition["Protein"] + $consumption_groups_nutrition["Salt"] + $consumption_groups_nutrition["Fiber"];
+		$total_nutrition = round($consumption_groups_nutrition["Fat"] + $consumption_groups_nutrition["Carbs"] + $consumption_groups_nutrition["Protein"] + $consumption_groups_nutrition["Salt"] + $consumption_groups_nutrition["Fiber"], 2);
 		$nutrition_current = $total_nutrition;
 		$distribution_start = array(
 			"Fat" 		=> round($consumption_groups_nutrition["Fat"]/$total_nutrition, 4),
@@ -232,8 +264,9 @@ class ProcessconsumptionController {
 		if ($products_ct == 1) {
                         return array(
 					"amount_factors" 	=> array($products_ids[0] => $amount_multiplier),
+					"weight_factors"	=> array($products_ids[0] => 1.0),
 					"distribution" 		=> $distribution_current,
-					"nutrition"	 	=> $amount_multiplier * $total_nutrition,
+					"nutrition"	 	=> round($amount_multiplier * $total_nutrition, 2),
 					"distribution_start" 	=> $distribution_start,
 					"nutrition_start" 	=> $total_nutrition);
                 }
@@ -249,10 +282,128 @@ class ProcessconsumptionController {
 
 		return array(
 				"amount_factors" 	=> $amount_factors,
+				"weight_factors"	=> $weights,
 				"distribution" 		=> $distribution_current,
-				"nutrition" 		=> $nutrition_current,
+				"nutrition" 		=> round($amount_multiplier * $total_nutrition, 2),
 				"distribution_start" 	=> $distribution_start,
 				"nutrition_start" 	=> $total_nutrition);
+    }
+
+    public static function updatePrices($date_from, $date_to) {
+	$result["products_ids"] = self::getProductsIds($date_from, $date_to);
+
+	$GLOBALS['Boot']->loadModule("products", "Index");
+        $result["products"] = IndexController::getProductsByIdArray($result["products_ids"]);
+
+	$GLOBALS['Boot']->loadModule("products", "Price");
+	$result["products_minmax_prices"] = PriceController::getMinMaxPriceByProductsIdArray($result["products_ids"], $date_to);
+
+	$cond = new Condition("[c1] AND [c2]", array(
+                "[c1]" => [
+                                [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
+                                Condition::COMPARISON_LESS_EQUALS,
+                                [Condition::CONDITION_CONST, $date_to]
+                        ],
+                "[c2]" => [
+                                [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
+                                Condition::COMPARISON_GREATER,
+                                [Condition::CONDITION_CONST, $date_from]
+                        ]
+        ));
+
+        $recipe_consumption_group = new RecipeConsumptionGroupModel();
+        $recipe_consumption_group->find($cond);
+	while ($recipe_consumption_group->next()) {
+		$products_arr = explode(";", $recipe_consumption_group->getProductsIds());
+		$amounts_arr = explode(";", $recipe_consumption_group->getAmounts());
+
+		$min_price = 0;
+		$max_price = 0;
+		foreach ($products_arr as $idx => $p_id) {
+			$min_price += $amounts_arr[$idx] / $result["products"]->{$p_id}[ProductsModel::FIELD_AMOUNT] * $result["products_minmax_prices"]->{$p_id}["MinPrice"];
+			$max_price += $amounts_arr[$idx] / $result["products"]->{$p_id}[ProductsModel::FIELD_AMOUNT] * $result["products_minmax_prices"]->{$p_id}["MaxPrice"];
+		}
+
+		$recipe_consumption_group->setMinPrice(round($min_price, 2));
+		$recipe_consumption_group->setMaxPrice(round($max_price, 2));
+		$recipe_consumption_group->save();
+	}
+    }
+
+    public static function deleteAll() {
+	$rcg = new RecipeConsumptionGroupModel();
+	$rcg->truncate();
+
+	$rcga = new RecipeConsumptionGroupAllergiesModel();
+	$rcga->truncate();
+    }
+
+    public static function insertConsumptionGroupsWithAllergies($date_from, $date_to) {
+	$result["products_ids"] = self::getProductsIds($date_from, $date_to);
+        $result["consumption_groups"] = self::getConsumptionGroups($date_from, $date_to);
+
+	$GLOBALS['Boot']->loadModule("products", "Index");
+        $result["products"] = IndexController::getProductsByIdArray($result["products_ids"]);
+
+        $result["consumption_groups_nutrition"] = self::getNutritionFromConsumptionGroups($result["consumption_groups"], $result["products"]);
+        $result["consumption_groups_allergies"] = self::getConsumptionGroupsAllergies($result["consumption_groups"], $result["products"]);
+
+	$cga_ids = array();
+	foreach ($result["consumption_groups_allergies"] as $productsIds => $cga) {
+                $cga_model = new RecipeConsumptionGroupAllergiesModel();
+                AllergyController::setAllergyValues($cga_model, $cga, false);
+		$cga_model->setProductsIds($productsIds);
+
+                $cga_model->insert();
+
+		$cga_ids[$productsIds] = $cga_model->getId();
+        }
+
+	foreach ($result["consumption_groups"] as $h => $cg_arr) {
+		foreach ($cg_arr as $idx => $cg) {
+			$cgn = $result["consumption_groups_nutrition"][$h . "_" . $idx];
+
+			$cg_model = new RecipeConsumptionGroupModel();
+			$cg_model->setUsersId($cg["UsersId"]);
+			$cg_model->setProductsIds($cg["ProductsIds"]);
+			$cg_model->setAmounts($cg["Amounts"]);
+			$cg_model->setDatetime($cg["Datetime"]);
+
+			$total_nutrition = $cgn["Fat"] + $cgn["Carbs"] + $cgn["Protein"] + $cgn["Fiber"] + $cgn["Salt"];
+
+			$cg_model->setMj(round($cgn["Kj"]/1000, 5));
+			$cg_model->setNFatPercent(round($cgn["Fat"]/$total_nutrition * 100, 2));
+			$cg_model->setNCarbsPercent(round($cgn["Carbs"]/$total_nutrition * 100, 2));
+			$cg_model->setNProteinPercent(round($cgn["Protein"]/$total_nutrition * 100, 2));
+			$cg_model->setNFiberPercent(round($cgn["Fiber"]/$total_nutrition * 100, 2));
+			$cg_model->setNSaltPercent(round($cgn["Salt"]/$total_nutrition * 100, 2));
+
+			$cg_model->setRecipeConsumptionGroupAllergiesId($cga_ids[$cg["ProductsIds"]]);
+
+			$cg_model->insert();
+		}
+	}
+    }
+
+    public function updateAction() {
+	$user = LoginController::requireAuth();
+
+	self::deleteAll();
+
+        $result = array();
+        $result["status"] = true;
+
+	$date_now = date_create();
+        $date_f = $date_now->format("Y-m-d H:i:s");
+
+	self::insertConsumptionGroupsWithAllergies(0, $date_f);
+
+	self::updatePrices(0, $date_f);
+
+	$result = array();
+        $result["status"] = true;
+
+	exit(json_encode($result, JSON_PRETTY_PRINT));
     }
 
     public function getAction() {
@@ -268,20 +419,50 @@ class ProcessconsumptionController {
         $result["status"] = true;
 
 	//TMP
+	$datefrom = 0;
+
 	$date_now = date_create();
 	$date_f = $date_now->format("Y-m-d H:i:s");
 
-	$result["products_ids"] = self::getProductsIds(0, $date_f);
-	$result["consumption_groups"] = self::getConsumptionGroups(0, $date_f);
+	$cond = new Condition("[c1] AND [c2]", array(
+		"[c1]" => [
+                                [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
+                                Condition::COMPARISON_LESS_EQUALS,
+                                [Condition::CONDITION_CONST, $date_f]
+                        ],
+                "[c2]" => [
+                                [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
+                                Condition::COMPARISON_GREATER,
+                                [Condition::CONDITION_CONST, $datefrom]
+                        ]
+	));
 
-	$GLOBALS['Boot']->loadModule("products", "Index");
-	$result["products"] = IndexController::getProductsByIdArray($result["products_ids"]);
+	$join_a = new Join(new RecipeConsumptionGroupAllergiesModel(), "[j1]", array(
+		"[j1]"	=> [
+				[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_RECIPE_CONSUMPTION_GROUP_ALLERGIES_ID],
+				Condition::COMPARISON_EQUALS,
+				[RecipeConsumptionGroupAllergiesModel::class, RecipeConsumptionGroupAllergiesModel::FIELD_ID]
+		]
+	));
 
-	$result["consumption_groups_nutrition"] = self::getNutritionFromConsumptionGroups($result["consumption_groups"], $result["products"]);
+	$recipe_consumption_group = new RecipeConsumptionGroupModel();
+	$recipe_consumption_group->find($cond, array($join_a));
+
+	$result["recipe_consumption_group"] = new \stdClass();
+	while ($recipe_consumption_group->next()) {
+		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = $recipe_consumption_group->toArray();
+		unset($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["UsersId"]);
+
+		$allergies = $recipe_consumption_group->joinedModelByClass(RecipeConsumptionGroupAllergiesModel::class);
+
+		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
+	}
+
+/*
 	foreach ($result["consumption_groups_nutrition"] as $h_idx => $cgn) {
 		$result["consumption_groups_nutrition"][$h_idx]["optimised"] = self::optimizeNutritionDistributionSingle($cgn, $result["consumption_groups_nutrition"][$h_idx]["Kj"], $fat_percent, $carbs_percent, $protein_percent, null);
 	}
-
+*/
 	exit(json_encode($result, JSON_PRETTY_PRINT));
     }
 }

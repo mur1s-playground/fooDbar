@@ -7,9 +7,60 @@ use \Frame\Order as Order;
 
 require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsPriceModel.php";
 
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "GroupBy.php";
+use \Frame\GroupBy as GroupBy;
+
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
+use \Frame\Fields as Fields;
+
+
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
+use \Frame\DBFunction as DBFunction;
+require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
+use \Frame\DBFunctionExpression as DBFunctionExpression;
+
+
 class PriceController {
     private $DefaultController = false;
     private $DefaultAction = "get";
+
+    public static function getMinMaxPriceByProductsIdArray($products_arr, $datetime) {
+	$products_price_cond = new Condition("[c1] AND [c2]", array(
+                "[c1]" => [
+                                [ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME],
+                                Condition::COMPARISON_LESS_EQUALS,
+                                [Condition::CONDITION_CONST, $datetime]
+                        ],
+		"[c2]" => [
+				[ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID],
+				Condition::COMPARISON_IN,
+				[Condition::CONDITION_CONST_ARRAY, $products_arr]
+			]
+        ));
+
+	$minmax_expr = new DBFunctionExpression("[e1]", array(
+                "[e1]" => [ProductsPriceModel::class, ProductsPriceModel::FIELD_PRICE]
+        ));
+
+        $fields = new Fields(array());
+        $fields->addFunctionField("MinPrice", DBFunction::FUNCTION_MIN, array($minmax_expr));
+        $fields->addFunctionField("MaxPrice", DBFunction::FUNCTION_MAX, array($minmax_expr));
+        $fields->addField(ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID);
+
+	$group_by = new GroupBy(ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID);
+
+        $products_price_order = new Order(ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME, Order::ORDER_DESC);
+
+        $products_price = new ProductsPriceModel();
+        $products_price->find($products_price_cond, null, $products_price_order, null, $fields, $group_by);
+	$result = new \stdClass();
+	while ($products_price->next()) {
+		$result->{$products_price->getProductsId()} = array();
+		$result->{$products_price->getProductsId()}["MinPrice"] = $products_price->DBFunctionResult("MinPrice");
+		$result->{$products_price->getProductsId()}["MaxPrice"] = $products_price->DBFunctionResult("MaxPrice");
+	}
+	return $result;
+    }
 
     public static function getPrice($products_id, $products_source_id, $datetime) {
 	$products_price_cond = new Condition("[c1] AND [c2] AND [c3]", array(

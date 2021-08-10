@@ -31,6 +31,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 
 		for (var field in this.fields) {
                         if (!this.fields.hasOwnProperty(field)) continue;
+			if (this.fields[field]["assoc_list"] != null) continue;
 			var col = document.createElement("td");
 			if (this.fields[field]["header"]["type"] == "img") {
 				var img = document.createElement("img");
@@ -151,17 +152,37 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 			col.id = parent.widget.name + "_" + this.id_suffix + "_" + data["Id"] + "_" + field;
 
 			var data_field = null;
-			if (this.fields[field]["join"] == null) {
+			if (this.fields[field]["join"] == null && this.fields[field]["join_list"] == null && this.fields[field]["assoc_list"] == null) {
 				data_field = data[field];
 			} else {
-				data_field = join_opts[this.fields[field]["join"]["model"]][data[field]][this.fields[field]["join"]["field"]];
+				if (this.fields[field]["join"] != null) {
+					data_field = join_opts[this.fields[field]["join"]["model"]][data[field]][this.fields[field]["join"]["field"]];
+				} else if (this.fields[field]["join_list"] != null) {
+					var data_arr = data[field].split(";");
+					data_field = "";
+					for (var idx in data_arr) {
+						var df_div = document.createElement("div");
+						df_div.innerHTML = join_opts[this.fields[field]["join_list"]["model"]][data_arr[idx]][this.fields[field]["join_list"]["field"]];
+						col.appendChild(df_div);
+					}
+				} else if (this.fields[field]["assoc_list"] != null) {
+					data_field = "";
+					var data_arr = data[field].split(";");
+					for (var idx in data_arr) {
+						row_elem.children[this.fields[field]["assoc_list"]["id"]].children[idx].innerHTML += "<span style='font-style: italic; color: #0000ff;'>" + data_arr[idx] + "</span>";
+					}
+				}
 			}
 			if (data_field != null) {
-				col.appendChild(document.createTextNode(data_field));
+				if (this.fields[field]["join_list"] == null && this.fields[field]["assoc_list"] == null) {
+					col.innerHTML = data_field;
+				}
 			} else {
 				col.appendChild(document.createTextNode("n/A"));
 			}
-			row_elem.appendChild(col);
+			if (this.fields[field]["assoc_list"] == null) {
+				row_elem.appendChild(col);
+			}
 		}
 
 		var col = document.createElement("td");

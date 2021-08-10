@@ -37,15 +37,15 @@ class AllergyController {
 	return $result;
     }
 
-    public static function setAllergyValues($db_table, $values) {
+    public static function setAllergyValues($db_table, $values, $save = true) {
 	$allergy_fields = AllergyController::getAllergyFields($db_table);
 
 	foreach ($allergy_fields as $field_name_camel) {
 		$setter = "set" . $field_name_camel;
 		if (isset($values->{$field_name_camel})) {
-			$db_table->$setter($values->{$field_name_camel} === true ? 1 : 0);
+			$db_table->$setter(($values->{$field_name_camel} === true || $values->{$field_name_camel} === 1) ? 1 : 0);
 		}
 	}
-	$db_table->save();
+	if ($save) $db_table->save();
     }
 }

@@ -11,6 +11,8 @@ class Boot {
     private $config = null;
     private $DBO = null;
 
+    private $loadedModules = array();
+
     public function __construct($config_path) {
         $this->config = new Config($config_path);
         $this->DBO = new DBO($this->config);
@@ -22,7 +24,10 @@ class Boot {
     }
 
     public function loadModule($module, $controller) {
-	require $this->config->getConfigValue(array('modules', 'path')) . $module . "/" . $controller . "Controller.php";
+	if (!in_array($module . "/" . $controller, $this->loadedModules)) {
+		$this->loadedModules[] = $module . "/" . $controller;
+		require $this->config->getConfigValue(array('modules', 'path')) . $module . "/" . $controller . "Controller.php";
+	}
     }
 
     public function run() {

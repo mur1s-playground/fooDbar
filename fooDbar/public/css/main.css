@@ -221,6 +221,13 @@ td {
         max-width: 360px;
 }
 
+/* RECIPES */
+
+.recipes_cg_table td {
+	padding: 5px;
+	border-bottom: 1px dashed black;
+}
+
 /* ------- */
 .pal_header td {
 	border-bottom: 1px solid black;

@@ -191,14 +191,28 @@ class IndexController {
 		]
 	));
 
+	$storage_price_join = new Join(new ProductsPriceModel(), "[j2]", array(
+		"[j2]" => [
+				[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
+				Condition::COMPARISON_EQUALS,
+				[ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID]
+		]
+	));
+
 	$storages_membership = new StoragesMembershipModel();
-	$storages_membership->find($storage_cond, array($storage_join));
+	$storages_membership->find($storage_cond, array($storage_join, $storage_price_join));
 
 	$result = array();
 	$result["status"] = true;
 	if ($storages_membership->next()) {
 		$storage = $storages_membership->joinedModelByClass(StorageModel::class);
 		$result["deleted_storage_item"] = array( 'Id' => $storage->getId() );
+
+		$products_price = $storages_membership->joinedModelByClass(ProductsPriceModel::class);
+		if ($products_price->getDatetime() == $storage->getDatetimeInsert()) {
+			$products_price->delete();
+		}
+
 		$storage->delete();
 	} else {
 		$result["status"] = false;
