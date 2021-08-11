@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="css/main.css">
 		<script type="text/javascript" src="js/app.js"></script>
 		<script type="text/javascript" src="js/messagebox.js"></script>
+		<script type="text/javascript" src="js/multislider.js"></script>
 		<script type="text/javascript" src="js/db.js"></script>
 		<script type="text/javascript" src="js/widget.js"></script>
 		<script type="text/javascript" src="js/datatable.js"></script>
@@ -38,10 +39,10 @@
 		var menu = new Menu(db, null);
 		var shopping_list = new ShoppingList(db, null);
 		var recipes = new Recipes(db, null);
-		var storage_consumption = new StorageConsumption(db, null);		
+		var storage_consumption = new StorageConsumption(db, recipes);		
 		var storage = new Storage(db, [storage_consumption]);
 		var products = new Products(db, [storage, recipes]);
-		var demand = new Demand(db, null)
+		var demand = new Demand(db, [recipes])
 		var user_target = new UserTarget(db, [demand]);
 		var user_state = new UserState(db, [user_target, demand]);
 		var user = new User(db, [user_state, user_target, products, menu]);

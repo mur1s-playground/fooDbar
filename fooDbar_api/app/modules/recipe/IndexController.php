@@ -5,7 +5,6 @@ namespace FooDBar;
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
 use \Frame\Join as Join;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Condition.php";
 use \Frame\Condition as Condition;
 
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Order.php";
@@ -14,18 +13,151 @@ use \Frame\Order as Order;
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
 require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersModel.php";
+
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAggModel.php";
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupModel.php";
+
+require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeRequestDailyPresetModel.php";
+
 
 class IndexController {
     private $DefaultController = true;
     private $DefaultAction = "index";
 
+    public function getdailyuserpresetsAction() {
+	$user = LoginController::requireAuth();
+
+	$condition = new Condition("[c1]", array(
+			"[c1]" => [
+				[RecipeRequestDailyPresetModel::class, RecipeRequestDailyPresetModel::FIELD_USERS_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $user->getId()]
+			]
+	));
+
+	$rrdp = new RecipeRequestDailyPresetModel();
+	$rrdp->find($condition);
+
+	$result["status"] = true;
+	$result["recipe_request_daily_preset"] = new \stdClass();
+	while ($rrdp->next()) {
+		$result["recipe_request_daily_preset"]->{$rrdp->getId()} = $rrdp->toArray();
+	}
+
+	exit(json_encode($result, JSON_PRETTY_PRINT));
+    }
+
+    public function insertdailyuserpresetAction() {
+	$user = LoginController::requireAuth();
+
+	$data = $GLOBALS['POST']->{'recipe_request_daily_preset'};
+
+	$rrdp = new RecipeRequestDailyPresetModel();
+	$rrdp->setUsersId($user->getId());
+	$rrdp->setPresetName($data->{RecipeRequestDailyPresetModel::FIELD_PRESET_NAME});
+	$rrdp->setPreset($data->{RecipeRequestDailyPresetModel::FIELD_PRESET});
+	$rrdp->insert();
+
+	$result["status"] = true;
+	$result["Day"] = $data->{'Day'};
+	$result["recipe_request_daily_preset_item"] = $rrdp->toArray();;
+
+	exit(json_encode($result, JSON_PRETTY_PRINT));
+    }
+
+    public function deletedailyuserpresetAction() {
+	$user = LoginController::requireAuth();
+
+        $data = $GLOBALS['POST']->{'recipe_request_daily_preset_id'};
+
+	$condition = new Condition("[c1] AND [c2]", array(
+                        "[c1]" => [
+                                [RecipeRequestDailyPresetModel::class, RecipeRequestDailyPresetModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $user->getId()]
+                        ],
+			"[c2]" => [
+				[RecipeRequestDailyPresetModel::class, RecipeRequestDailyPresetModel::FIELD_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $data]
+			]
+        ));
+
+	$rrdp = new RecipeRequestDailyPresetModel();
+	$rrdp->find($condition);
+
+	$result["status"] = true;
+	if ($rrdp->next()) {
+		$rrdp->delete();
+	} else {
+		$resutl["status"] = false;
+	}
+
+	exit(json_encode($result, JSON_PRETTY_PRINT));
+    }
+
+    public function requestAction() {
+	$user = LoginController::requireAuth();
+
+	$data = $GLOBALS['POST']->{'recipes_request'};
+
+	$demand = $data->{'demand'};
+	$days = $data->{'days'};
+	$parts = $data->{'parts'};
+	//tmp
+	$parts = $parts[0];
+	$threshold = 2;
+
+	rsort($parts);
+
+	$used_rcg_agg_ids = array();
+
+	$result["recipes"] = new \stdClass();
+	$result["recipes_mj_min_total"] = 0;
+	$result["recipes_mj_max_total"] = 0;
+	$result["status"] = true;
+
+	for ($p = 0; $p < count($parts); $p++) {
+		for ($d = 0; $d < $days; $d++) {
+			$rcg_join = new Join(new RecipeConsumptionGroupModel(), "[j1]", array(
+				"[j1]" => [
+						[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
+						Condition::COMPARISON_EQUALS,
+						[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
+				]
+			));
+
+			$rcg_agg = new RecipeConsumptionGroupAggModel();
+			$rcg_agg->find(null, array($rcg_join));
+
+			while ($rcg_agg->next()) {
+				if ($rcg_agg->getMjMax() > $parts[$p] - $threshold && $rcg_agg->getMjMin() < $parts[$p] + $threshold) {
+					if (!in_array($rcg_agg->getId(), $used_rcg_agg_ids)) {
+						$used_rcg_agg_ids[] = $rcg_agg->getId();
+
+						$rcg = $rcg_agg->joinedModelByClass(RecipeConsumptionGroupModel::class);
+
+						$result["recipes"]->{$d . "_" . $p} = $rcg_agg->toArray();
+						$result["recipes"]->{$d . "_" . $p}["ProductsIds"] = $rcg->getProductsIds();
+						$result["recipes_mj_min_total"] += $rcg_agg->getMjMin();
+					 	$result["recipes_mj_max_total"] += $rcg_agg->getMjMax();
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	exit(json_encode($result, JSON_PRETTY_PRINT));
+    }
+
     public function indexAction() {
+/*
 	$recipe = new RecipeModel();
 	$recipe->find();
-
+*/
 	/* USER ALLERGIES */
-	$user_id = @$_GET["user_id"];
+/*	$user_id = @$_GET["user_id"];
 	$user = null;
 
 	$allergy_ct = 0;
@@ -69,9 +201,9 @@ class IndexController {
 				}
 			}
 		}
-	}
+	} */
 	/* END USER ALLERGIES */
-
+/*
 	$result = array();
 
 	$available = @$_GET["available"];
@@ -286,5 +418,6 @@ class IndexController {
 	}
 	$result["products"] = $t_products;
 	exit(json_encode($result, JSON_PRETTY_PRINT));
+*/
     }
 }

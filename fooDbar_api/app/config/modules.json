@@ -60,12 +60,17 @@
             "Index": {
                 "defaultAction": "index",
                 "actions": [
+                    "getdailyuserpresets",
+                    "insertdailyuserpreset",
+                    "deletedailyuserpreset",
+                    "request",
                     "index"
                 ]
             },
             "Processconsumption": {
                 "defaultAction": "get",
                 "actions": [
+                    "update",
                     "get"
                 ]
             }
