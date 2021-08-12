@@ -67,12 +67,12 @@ class PriceController {
 	$products_price_cond = new Condition("[c1] AND [c2] AND [c3]", array(
                 "[c1]" => [
                                 [ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID],
-                                Condition::COMPARISON_LESS_EQUALS,
+                                Condition::COMPARISON_EQUALS,
                                 [Condition::CONDITION_CONST, $products_id]
                         ],
                 "[c2]" => [
                                 [ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_SOURCE_ID],
-                                Condition::COMPARISON_LESS_EQUALS,
+                                Condition::COMPARISON_EQUALS,
                                 [Condition::CONDITION_CONST, $products_source_id]
                         ],
                 "[c3]" => [
