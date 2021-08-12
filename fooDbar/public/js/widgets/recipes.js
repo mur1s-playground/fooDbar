@@ -16,6 +16,7 @@ var Recipes = function(db, change_dependencies) {
 	this.changed = true;
 
 	this.recipes_sub_menu = document.createElement("div");
+	this.recipes_sub_menu.className = "recipes_sub_menu";
 
 	this.on_menu_btn_click = function(action) {
 		var tabs = ["Query", "data_table_Agg", "data_table_Raw"];
@@ -32,28 +33,48 @@ var Recipes = function(db, change_dependencies) {
 		recipes.recipes_sub_menu.innerHTML = "";
 
 		var query_btn = document.createElement("button");
-		query_btn.innerHTML = "Q";
+		query_btn.style.backgroundImage = "linear-gradient(to right, #cccccc, var(--recipes_color))";
+		var search_img = document.createElement("img");
+                search_img.src = "/img/symbol_search.svg";
+                search_img.style.width = "25px";
+                query_btn.appendChild(search_img);
+		var recipe_img = document.createElement("img");
+                recipe_img.src = "/img/symbol_recipe.svg";
+                recipe_img.style.width = "25px";
+                query_btn.appendChild(recipe_img);
 		query_btn.onclick = function() {
 			recipes.on_menu_btn_click("Query");
 		}
 		recipes.recipes_sub_menu.appendChild(query_btn);
 
 		var agg_btn = document.createElement("button");
-		agg_btn.innerHTML = "A";
+		agg_btn.style.backgroundImage = "linear-gradient(to right, var(--recipes_color), var(--storage_color))";
+		var recipe_img = document.createElement("img");
+		recipe_img.src = "/img/symbol_recipe.svg";
+		recipe_img.style.width = "25px";
+		agg_btn.appendChild(recipe_img);
+		var storage_img = document.createElement("img");
+		storage_img.src = "/img/symbol_storage.svg";
+		storage_img.style.width = "25px";
+		agg_btn.appendChild(storage_img);
 		agg_btn.onclick = function() {
 			recipes.on_menu_btn_click("data_table_Agg");
 		}
 		recipes.recipes_sub_menu.appendChild(agg_btn);
-
+/*
 		var raw_btn = document.createElement("button");
 		raw_btn.innerHTML = "R";
 		raw_btn.onclick = function() {
 			recipes.on_menu_btn_click("data_table_Raw");
 		}
 		recipes.recipes_sub_menu.appendChild(raw_btn);
-
+*/
 		var update_btn = document.createElement("button");
-                update_btn.innerHTML = "U";
+		var refresh_img = document.createElement("img");
+		refresh_img.src = "/img/symbol_refresh.svg";
+		refresh_img.style.width = "25px";
+		update_btn.appendChild(refresh_img);
+
                 update_btn.onclick = function() {
                 	var p = { };
                         recipes.db.query_post("recipe/processconsumption/update", p, recipes.on_process_consumption_update_result);
@@ -96,30 +117,38 @@ var Recipes = function(db, change_dependencies) {
 				{ }
 				);
 
+	this.is_product_in_storage = function(product_id) {
+		if (storage.storage_has_product(product_id)) {
+			return "recipes_product_in_storage";
+		}
+		return "";
+	}
+
+
 	this.data_table_agg = new DataTable(this, "recipe_consumption_group",
                                 {
-					"ProductsIds": { "title": "Products", "header": { "type": "text", "text": "Products", "text_class": "datatable_header" },  "join_list": { "model": "products", "field": "Name" } },
-                                        "PricePerMjMin": { "title": "PricePerMjMin", "header": { "type": "text", "text": "PricePerMjMin", "text_class": "datatable_header" } },
-					"PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "text", "text": "PricePerMjAvg", "text_class": "datatable_header" } },
-                                        "PricePerMjMax": { "title": "PricePerMjMax", "header": { "type": "text", "text": "PricePerMjMax", "text_class": "datatable_header" } },
-					"MjMin": { "title": "MjMin", "header": { "type": "text", "text": "MjMin", "text_class": "datatable_header" } },
-					"MjAvg": { "title": "MjAvg", "header": { "type": "text", "text": "MjAvg", "text_class": "datatable_header" } },
-                                        "MjMax": { "title": "MjMax", "header": { "type": "text", "text": "MjMax", "text_class": "datatable_header" } },
-					"NFatPercentMin": { "title": "Fat% Min", "header": { "type": "text", "text": "Fat% Min", "text_class": "datatable_header" } },
-                                        "NFatPercentAvg": { "title": "Fat% Avg", "header": { "type": "text", "text": "Fat% Avg", "text_class": "datatable_header" } },
-					"NFatPercentMax": { "title": "Fat% Max", "header": { "type": "text", "text": "Fat% Max", "text_class": "datatable_header" } },
-					"NCarbsPercentMin": { "title": "Carbs% Min", "header": { "type": "text", "text": "Carbs% Min", "text_class": "datatable_header" } },
-                                        "NCarbsPercentAvg": { "title": "Carbs% Avg", "header": { "type": "text", "text": "Carbs% Avg", "text_class": "datatable_header" } },
-					"NCarbsPercentMax": { "title": "Carbs% Max", "header": { "type": "text", "text": "Carbs% Max", "text_class": "datatable_header" } },
-					"NProteinPercentMin": { "title": "Protein% Min", "header": { "type": "text", "text": "Protein% Min", "text_class": "datatable_header" } },
-                                        "NProteinPercentAvg": { "title": "Protein% Avg", "header": { "type": "text", "text": "Protein% Avg", "text_class": "datatable_header" } },
-					"NProteinPercentMax": { "title": "Protein% Max", "header": { "type": "text", "text": "Protein% Max", "text_class": "datatable_header" } },
-                                        "NFiberPercentMin": { "title": "Fiber% Min", "header": { "type": "text", "text": "Fiber% Min", "text_class": "datatable_header" } },
-					"NFiberPercentAvg": { "title": "Fiber% Avg", "header": { "type": "text", "text": "Fiber% Avg", "text_class": "datatable_header" } },
-					"NFiberPercentMax": { "title": "Fiber% Max", "header": { "type": "text", "text": "Fiber% Max", "text_class": "datatable_header" } },
-					"NSaltPercentMin": { "title": "Salt% Min", "header": { "type": "text", "text": "Salt% Min", "text_class": "datatable_header" } },
-					"NSaltPercentAvg": { "title": "Salt% Avg", "header": { "type": "text", "text": "Salt% Avg", "text_class": "datatable_header" } },
-                                        "NSaltPercentMax": { "title": "Salt% Max", "header": { "type": "text", "text": "Salt% Max", "text_class": "datatable_header" } },
+					"ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
+                                        "PricePerMjMin": { "title": "PricePerMjMin", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "img", "img_src": "/img/symbol_pricepermj.svg", "img_class": "datatable_header_recipes" } },
+                                        "PricePerMjMax": { "title": "PricePerMjMax", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"MjMin": { "title": "MjMin", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"MjAvg": { "title": "MjAvg", "header": { "type": "img", "img_src": "/img/symbol_mj.svg", "img_class": "datatable_header_recipes" } },
+                                        "MjMax": { "title": "MjMax", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NFatPercentMin": { "title": "Fat% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFatPercentAvg": { "title": "Fat% Avg", "header": { "type": "img", "img_src": "/img/symbol_fat.svg", "img_class": "datatable_header_recipes" } },
+					"NFatPercentMax": { "title": "Fat% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NCarbsPercentMin": { "title": "Carbs% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NCarbsPercentAvg": { "title": "Carbs% Avg", "header": { "type": "img", "img_src": "/img/symbol_carbs.svg", "img_class": "datatable_header_recipes" } },
+					"NCarbsPercentMax": { "title": "Carbs% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NProteinPercentMin": { "title": "Protein% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NProteinPercentAvg": { "title": "Protein% Avg", "header": { "type": "img", "img_src": "/img/symbol_muscle.svg", "img_class": "datatable_header_recipes" } },
+					"NProteinPercentMax": { "title": "Protein% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFiberPercentMin": { "title": "Fiber% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"NFiberPercentAvg": { "title": "Fiber% Avg", "header": { "type": "img", "img_src": "/img/symbol_fiber.svg", "img_class": "datatable_header_recipes" } },
+					"NFiberPercentMax": { "title": "Fiber% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NSaltPercentMin": { "title": "Salt% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"NSaltPercentAvg": { "title": "Salt% Avg", "header": { "type": "img", "img_src": "/img/symbol_salt.svg", "img_class": "datatable_header_recipes" } },
+                                        "NSaltPercentMax": { "title": "Salt% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
                                 },
                                 { },
                                 { }
@@ -127,28 +156,28 @@ var Recipes = function(db, change_dependencies) {
 
 	this.data_table_rr = new DataTable(this, "recipe_consumption_group_rr",
                                 {
-                                        "ProductsIds": { "title": "Products", "header": { "type": "text", "text": "Products", "text_class": "datatable_header" },  "join_list": { "model": "products", "field": "Name" } },
-                                        "PricePerMjMin": { "title": "PricePerMjMin", "header": { "type": "text", "text": "PricePerMjMin", "text_class": "datatable_header" } },
-                                        "PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "text", "text": "PricePerMjAvg", "text_class": "datatable_header" } },
-                                        "PricePerMjMax": { "title": "PricePerMjMax", "header": { "type": "text", "text": "PricePerMjMax", "text_class": "datatable_header" } },
-                                        "MjMin": { "title": "MjMin", "header": { "type": "text", "text": "MjMin", "text_class": "datatable_header" } },
-                                        "MjAvg": { "title": "MjAvg", "header": { "type": "text", "text": "MjAvg", "text_class": "datatable_header" } },
-                                        "MjMax": { "title": "MjMax", "header": { "type": "text", "text": "MjMax", "text_class": "datatable_header" } },
-                                        "NFatPercentMin": { "title": "Fat% Min", "header": { "type": "text", "text": "Fat% Min", "text_class": "datatable_header" } },
-                                        "NFatPercentAvg": { "title": "Fat% Avg", "header": { "type": "text", "text": "Fat% Avg", "text_class": "datatable_header" } },
-                                        "NFatPercentMax": { "title": "Fat% Max", "header": { "type": "text", "text": "Fat% Max", "text_class": "datatable_header" } },
-                                        "NCarbsPercentMin": { "title": "Carbs% Min", "header": { "type": "text", "text": "Carbs% Min", "text_class": "datatable_header" } },
-                                        "NCarbsPercentAvg": { "title": "Carbs% Avg", "header": { "type": "text", "text": "Carbs% Avg", "text_class": "datatable_header" } },
-                                        "NCarbsPercentMax": { "title": "Carbs% Max", "header": { "type": "text", "text": "Carbs% Max", "text_class": "datatable_header" } },
-                                        "NProteinPercentMin": { "title": "Protein% Min", "header": { "type": "text", "text": "Protein% Min", "text_class": "datatable_header" } },
-                                        "NProteinPercentAvg": { "title": "Protein% Avg", "header": { "type": "text", "text": "Protein% Avg", "text_class": "datatable_header" } },
-                                        "NProteinPercentMax": { "title": "Protein% Max", "header": { "type": "text", "text": "Protein% Max", "text_class": "datatable_header" } },
-                                        "NFiberPercentMin": { "title": "Fiber% Min", "header": { "type": "text", "text": "Fiber% Min", "text_class": "datatable_header" } },
-                                        "NFiberPercentAvg": { "title": "Fiber% Avg", "header": { "type": "text", "text": "Fiber% Avg", "text_class": "datatable_header" } },
-                                        "NFiberPercentMax": { "title": "Fiber% Max", "header": { "type": "text", "text": "Fiber% Max", "text_class": "datatable_header" } },
-                                        "NSaltPercentMin": { "title": "Salt% Min", "header": { "type": "text", "text": "Salt% Min", "text_class": "datatable_header" } },
-                                        "NSaltPercentAvg": { "title": "Salt% Avg", "header": { "type": "text", "text": "Salt% Avg", "text_class": "datatable_header" } },
-                                        "NSaltPercentMax": { "title": "Salt% Max", "header": { "type": "text", "text": "Salt% Max", "text_class": "datatable_header" } },
+                                        "ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
+                                        "PricePerMjMin": { "title": "PricePerMjMin", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "img", "img_src": "/img/symbol_pricepermj.svg", "img_class": "datatable_header_recipes" } },
+                                        "PricePerMjMax": { "title": "PricePerMjMax", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "MjMin": { "title": "MjMin", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "MjAvg": { "title": "MjAvg", "header": { "type": "img", "img_src": "/img/symbol_mj.svg", "img_class": "datatable_header_recipes" } },
+                                        "MjMax": { "title": "MjMax", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFatPercentMin": { "title": "Fat% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFatPercentAvg": { "title": "Fat% Avg", "header": { "type": "img", "img_src": "/img/symbol_fat.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFatPercentMax": { "title": "Fat% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NCarbsPercentMin": { "title": "Carbs% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NCarbsPercentAvg": { "title": "Carbs% Avg", "header": { "type": "img", "img_src": "/img/symbol_carbs.svg", "img_class": "datatable_header_recipes" } },
+                                        "NCarbsPercentMax": { "title": "Carbs% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NProteinPercentMin": { "title": "Protein% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NProteinPercentAvg": { "title": "Protein% Avg", "header": { "type": "img", "img_src": "/img/symbol_muscle.svg", "img_class": "datatable_header_recipes" } },
+                                        "NProteinPercentMax": { "title": "Protein% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFiberPercentMin": { "title": "Fiber% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFiberPercentAvg": { "title": "Fiber% Avg", "header": { "type": "img", "img_src": "/img/symbol_fiber.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFiberPercentMax": { "title": "Fiber% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NSaltPercentMin": { "title": "Salt% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NSaltPercentAvg": { "title": "Salt% Avg", "header": { "type": "img", "img_src": "/img/symbol_salt.svg", "img_class": "datatable_header_recipes" } },
+                                        "NSaltPercentMax": { "title": "Salt% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
                                 },
                                 { },
                                 { }
@@ -337,7 +366,7 @@ var Recipes = function(db, change_dependencies) {
 							[0, 100],
 							p100,
 							true,
-							["#ff0000", "#00ff00", "#0000ff"],
+							["var(--fat_color)", "var(--carbs_color)", "var(--muscle_color)"],
 							["Fat", "Carbs", "Protein"],
 							["/img/symbol_fat.svg", "/img/symbol_carbs.svg", "/img/symbol_muscle.svg"]
 							);
@@ -419,31 +448,8 @@ var Recipes = function(db, change_dependencies) {
 	this.get_recipes_query = function() {
 		this.recipe_consumption_group_query.innerHTML = "";
 
-		var q_btn = document.createElement("button");
-		q_btn.innerHTML = "&#x1F50E;";
-		q_btn.style.fontSize = "15px";
-		q_btn.onclick = function() {
-			var demand_value = document.getElementById(recipes.widget.name + "_request_mj_info").value.split(' ')[0];
-			var parts = [];
-			var n_dist = [];
-			for (var d = 0; d < recipes.recipe_consumption_group_query_days; d++) {
-				var mpd_elem = document.getElementById("recipes_csize_range_" + d);
-				parts.push(mpd_elem.get_values());
-				var ndist_elem = document.getElementById("recipes_n_dist_range_" + d);
-				n_dist.push(ndist_elem.get_values());
-			}
-
-			var p = {
-				"recipes_request": {
-					"demand": demand_value,
-					"days": recipes.recipe_consumption_group_query_days,
-					"parts": parts,
-					"n_dist": n_dist
-				}
-			};
-			recipes.db.query_post("recipe/index/request", p, recipes.on_recipe_request_response);
-		}
-
+		var row0 = document.createElement("tr");
+		var td0 = document.createElement("td");
 		var select_daycount = document.createElement("select");
 		for (var d = 1; d < 8; d++) {
 			var option = document.createElement("option");
@@ -460,13 +466,46 @@ var Recipes = function(db, change_dependencies) {
 			recipes.get_recipes_query();
 			recipes.recipe_query_demand_info();
 		};
-		this.recipe_consumption_group_query.appendChild(select_daycount);
+		td0.appendChild(select_daycount);
+		row0.appendChild(td0);
+		var td00 = document.createElement("td");
+                td00.colSpan = 6;
+		row0.appendChild(td00);
+		this.recipe_consumption_group_query.appendChild(row0);
 
 		this.recipe_consumption_group_query_get_days();
 
 		var row = document.createElement("tr");
 		var td1 = document.createElement("td");
 		td1.colSpan = 7;
+
+		var q_btn = document.createElement("button");
+		var search_img = document.createElement("img");
+		search_img.src = "/img/symbol_search.svg";
+		search_img.style.width = "25px";
+		q_btn.appendChild(search_img);
+                q_btn.onclick = function() {
+                        var demand_value = document.getElementById(recipes.widget.name + "_request_mj_info").value.split(' ')[0];
+                        var parts = [];
+                        var n_dist = [];
+                        for (var d = 0; d < recipes.recipe_consumption_group_query_days; d++) {
+                                var mpd_elem = document.getElementById("recipes_csize_range_" + d);
+                                parts.push(mpd_elem.get_values());
+                                var ndist_elem = document.getElementById("recipes_n_dist_range_" + d);
+                                n_dist.push(ndist_elem.get_values());
+                        }
+
+                        var p = {
+                                "recipes_request": {
+                                        "demand": demand_value,
+                                        "days": recipes.recipe_consumption_group_query_days,
+                                        "parts": parts,
+                                        "n_dist": n_dist
+                                }
+                        };
+                        recipes.db.query_post("recipe/index/request", p, recipes.on_recipe_request_response);
+                }
+
 		td1.appendChild(q_btn);
 		row.appendChild(td1);
 		this.recipe_consumption_group_query.appendChild(row);
@@ -484,7 +523,7 @@ var Recipes = function(db, change_dependencies) {
 	this.recipe_consumption_group_query.className = "recipes_query";
 
 	this.recipe_consumption_group_rr = document.createElement("table");
-	this.recipe_consumption_group_rr.className = "recipes_cg_table";
+	this.recipe_consumption_group_rr.className = "recipes_cg_agg_table";
 
 	this.recipe_consumption_group = document.createElement("table");
 	this.recipe_consumption_group.id = this.widget.name + "_data_table_Raw";
@@ -493,7 +532,7 @@ var Recipes = function(db, change_dependencies) {
 
 	this.recipe_consumption_group_agg = document.createElement("table");
 	this.recipe_consumption_group_agg.id = this.widget.name + "_data_table_Agg";
-	this.recipe_consumption_group_agg.className = "recipes_cg_table";
+	this.recipe_consumption_group_agg.className = "recipes_cg_agg_table";
 	this.recipe_consumption_group_agg.style.display = "none";
 
 	this.changed_f = function() {

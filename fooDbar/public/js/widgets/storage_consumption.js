@@ -6,11 +6,11 @@ var StorageConsumption = function(db, change_dependencies) {
 
 	this.data_table = new DataTable(this, "consumption",
                                 {
-					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "Storage", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
-					"ProductsId": { "title": "Product", "header": { "type": "text", "text": "Product", "text_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
-					"Amount": { "title": "Amount", "header": { "type": "text", "text": "Amount", "text_class": "datatable_header" } },
-					"Datetime": { "title": "Consumption", "header": { "type": "text", "text": "Consumption", "text_class": "datatable_header" } },
-					"User": { "title": "User", "header": { "type": "text", "text": "User", "text_class": "datatable_header" } }
+					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
+					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "/img/symbol_storage.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "/img/symbol_weight.svg", "img_class": "datatable_header" } },
+					"Datetime": { "title": "Consumption", "header": { "type": "img", "img_src": "/img/symbol_person.svg", "img_class": "datatable_header" } },
+					"User": { "title": "User", "header": { "type": "text", "text": "", "text_class": "datatable_header" } }
                                 },
                                 {
 					"StoragesId": { "placeholder": "Storage", "join": "storages", "onchange": function() { storage_consumption.on_select_storage_insert_change(); } },

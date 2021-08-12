@@ -163,6 +163,9 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 					for (var idx in data_arr) {
 						var df_div = document.createElement("div");
 						df_div.innerHTML = join_opts[this.fields[field]["join_list"]["model"]][data_arr[idx]][this.fields[field]["join_list"]["field"]];
+						if (this.fields[field]["join_list"]["classname_callback"] != null) {
+							df_div.className = this.fields[field]["join_list"]["classname_callback"](data_arr[idx]);
+						}
 						col.appendChild(df_div);
 					}
 				} else if (this.fields[field]["assoc_list"] != null) {

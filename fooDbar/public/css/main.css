@@ -9,6 +9,9 @@
 	--products_color: #bfece2;
 	--recipes_color: #0bdeee;
 	--shopping_list_color: #ff6fc0;
+	--fat_color: #ff5d6d;
+	--carbs_color: #44b3a6;
+	--muscle_color: #2e6e90;
 }
 
 
@@ -208,6 +211,10 @@ td {
 	background: var(--products_color);
 }
 
+#Storage_storage_ProductsSourceId {
+	background: var(--shopping_list_color);
+}
+
 /* PRODUCTS */
 .products input {
         height: 45px;
@@ -226,6 +233,63 @@ td {
 .recipes_cg_table td {
 	padding: 5px;
 	border-bottom: 1px dashed black;
+}
+
+.datatable_header_recipes {
+	width: 30px;
+}
+
+#wg_Recipes_content div {
+	text-align: center;
+}
+
+.recipes_sub_menu button {
+	width: 100px;
+}
+
+.recipes_cg_agg_table td {
+        padding: 5px;
+        border-bottom: 2px solid black;
+}
+
+.recipes_cg_agg_table tr:first-child td:nth-child(-n+22) {
+	background: #ffffff;
+}
+
+.recipes_cg_agg_table tr:first-child td:nth-child(-n+16) {
+        background: var(--muscle_color);
+}
+
+.recipes_cg_agg_table tr:first-child td:nth-child(-n+13) {
+        background: var(--carbs_color);
+}
+
+.recipes_cg_agg_table tr:first-child td:nth-child(-n+10) {
+        background: var(--fat_color);
+}
+
+.recipes_cg_agg_table tr:first-child td:nth-child(-n+7) {
+        background: #ffffff;
+}
+
+.recipes_cg_agg_table tr:first-child td:nth-child(-n+1) {
+	background: var(--products_color);
+}
+
+.recipes_cg_agg_table td:first-child {
+        background: var(--products_color);
+}
+
+.recipes_cg_agg_table td:nth-child(3n+1) {
+        border-right: 2px solid black;
+}
+
+.recipes_cg_agg_table td:nth-child(3n+3) {
+        background: #dddddd;
+}
+
+div.recipes_product_in_storage {
+	background: var(--storage_color) !important;
 }
 
 /* ------- */

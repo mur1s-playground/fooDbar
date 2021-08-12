@@ -7,15 +7,28 @@ var Storage = function(db, change_dependencies) {
 	this.products_source = null;
 	this.join_opts = null;
 
+	this.storage_has_product = function(product_id) {
+		if (this.storage_data == null) return false;
+		for (var s in this.storage_data) {
+			if (this.storage_data.hasOwnProperty(s)) {
+				if (this.storage_data[s]["DatetimeEmpty"] != null) continue;
+				if (this.storage_data[s]["ProductsId"] == product_id) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	this.data_table = new DataTable(this, "storage",
                                 {
-					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "Storage", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
-					"ProductsId": { "title": "Product", "header": { "type": "text", "text": "Product", "text_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
-					"ProductsSourceId": { "title": "Source", "header": { "type": "text", "text": "Source", "text_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
-					"Amount": { "title": "Amount", "header": { "type": "text", "text": "Amount", "text_class": "datatable_header" } },
-					"Price": { "title": "Price", "header": { "type": "text", "text": "Price", "text_class": "datatable_header" } },
-					"DatetimeInsert": { "title": "Insert", "header": { "type": "text", "text": "Insert", "text_class": "datatable_header" } },
-					"DatetimeOpen": { "title": "Open", "header": { "type": "text", "text": "Open", "text_class": "datatable_header" } },
+					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
+					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"ProductsSourceId": { "title": "Source", "header": { "type": "img", "img_src": "/img/symbol_shopping_list.svg", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
+					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "/img/symbol_weight.svg", "img_class": "datatable_header" } },
+					"Price": { "title": "Price", "header": { "type": "img", "img_src": "/img/symbol_price.svg", "img_class": "datatable_header" } },
+					"DatetimeInsert": { "title": "Insert", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
+					"DatetimeOpen": { "title": "Open", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
 //                                        "DatetimeEmpty": { "title": "Empty", "header": { "type": "text", "text": "Empty", "text_class": "datatable_header" } }
                                 },
                                 {
