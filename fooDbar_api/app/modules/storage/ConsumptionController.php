@@ -1,27 +1,36 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Storage;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
-use \Frame\Fields as Fields;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
-use \Frame\Join as Join;
-use \Frame\Condition as Condition;
-use \Frame\Order as Order;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "GroupBy.php";
-use \Frame\GroupBy as GroupBy;
+use \FooDBar\Users\LoginController as LoginController;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
-use \Frame\DBFunction as DBFunction;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
+$GLOBALS['Boot']->loadDBExt("Fields");
+$GLOBALS['Boot']->loadDBExt("Join");
+$GLOBALS['Boot']->loadDBExt("GroupBy");
+$GLOBALS['Boot']->loadDBExt("DBFunction");
+$GLOBALS['Boot']->loadDBExt("DBFunctionExpression");
+
+use \Frame\Fields 		as Fields;
+use \Frame\Join 		as Join;
+use \Frame\Condition 		as Condition;
+use \Frame\Order 		as Order;
+use \Frame\GroupBy 		as GroupBy;
+use \Frame\DBFunction 		as DBFunction;
 use \Frame\DBFunctionExpression as DBFunctionExpression;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesMembershipModel.php";
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageConsumptionModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
+$GLOBALS['Boot']->loadModel("StorageModel");
+$GLOBALS['Boot']->loadModel("StoragesModel");
+$GLOBALS['Boot']->loadModel("StoragesMembershipModel");
+$GLOBALS['Boot']->loadModel("StorageConsumptionModel");
+$GLOBALS['Boot']->loadModel("ProductsModel");
+
+use \FooDBar\StorageModel 		as StorageModel;
+use \FooDBar\StoragesModel 		as StoragesModel;
+use \FooDBar\StoragesMembershipModel	as StoragesMembershipModel;
+use \FooDBar\StorageConsumptionModel 	as StorageConsumptionModel;
+use \FooDBar\ProductsModel 		as ProductsModel;
+use \FooDBar\UsersModel			as UsersModel;
 
 class ConsumptionController {
     private $DefaultController = false;

@@ -1,21 +1,25 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Users;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
+$GLOBALS['Boot']->loadDBExt("Fields");
+$GLOBALS['Boot']->loadDBExt("Join");
+$GLOBALS['Boot']->loadDBExt("DBFunction");
+$GLOBALS['Boot']->loadDBExt("DBFunctionExpression");
+
 use \Frame\Fields as Fields;
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
 use \Frame\Join as Join;
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
-
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
 use \Frame\DBFunction as DBFunction;
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
 use \Frame\DBFunctionExpression as DBFunctionExpression;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersProductsSourcesModel.php";
+
+$GLOBALS['Boot']->loadModel("ProductsSourceModel");
+$GLOBALS['Boot']->loadModel("UsersProductsSourcesModel");
+
+use \FooDBar\ProductsSourceModel as ProductsSourceModel;
+use \FooDBar\UsersProductsSourcesModel as UsersProductsSourcesModel;
 
 class ProductssourceController {
     private $DefaultController = true;

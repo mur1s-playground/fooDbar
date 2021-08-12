@@ -1,15 +1,21 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Demand;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
-use \Frame\Join as Join;
+use \FooDBar\Users\LoginController as LoginController;
 
-use \Frame\Condition as Condition;
-use \Frame\Order as Order;
+$GLOBALS['Boot']->loadDBExt("Join");
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersStateModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersTargetModel.php";
+use \Frame\Join 	as Join;
+use \Frame\Condition 	as Condition;
+use \Frame\Order 	as Order;
+
+
+$GLOBALS['Boot']->loadModel("UsersStateModel");
+$GLOBALS['Boot']->loadModel("UsersTargetModel");
+
+use \FooDBar\UsersStateModel as UsersStateModel;
+use \FooDBar\UsersTargetModel as UsersTargetModel;
 
 class IndexController {
     private $DefaultController = true;

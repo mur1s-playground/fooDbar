@@ -1,11 +1,15 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Users;
 
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersStateModel.php";
+
+$GLOBALS['Boot']->loadModel("UsersStateModel");
+
+use \FooDBar\UsersStateModel as UsersStateModel;
+
 
 class StateController {
     private $DefaultController = false;

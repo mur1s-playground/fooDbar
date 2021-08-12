@@ -1,20 +1,32 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Storage;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
-use \Frame\Fields as Fields;
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
-use \Frame\Join as Join;
-use \Frame\Condition as Condition;
-use \Frame\Order as Order;
+use \FooDBar\Users\LoginController as LoginController;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesModel.php";
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StoragesMembershipModel.php";
+$GLOBALS['Boot']->loadDBExt("Fields");
+$GLOBALS['Boot']->loadDBExt("Join");
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsPriceModel.php";
+use \Frame\Fields 	as Fields;
+use \Frame\Join 	as Join;
+use \Frame\Condition 	as Condition;
+use \Frame\Order 	as Order;
+
+
+$GLOBALS['Boot']->loadModel("StorageModel");
+$GLOBALS['Boot']->loadModel("StoragesModel");
+$GLOBALS['Boot']->loadModel("StoragesMembershipModel");
+$GLOBALS['Boot']->loadModel("ProductsSourceModel");
+$GLOBALS['Boot']->loadModel("ProductsPriceModel");
+
+use \FooDBar\StorageModel 		as StorageModel;
+use \FooDBar\StoragesModel 		as StoragesModel;
+use \FooDBar\StoragesMembershipModel 	as StoragesMembershipModel;
+use \FooDBar\ProductsSourceModel 	as ProductsSourceModel;
+use \FooDBar\ProductsPriceModel 	as ProductsPriceModel;
+
+use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
+use \FooDBar\Products\PriceController 		as PriceController;
 
 class IndexController {
     private $DefaultController = true;

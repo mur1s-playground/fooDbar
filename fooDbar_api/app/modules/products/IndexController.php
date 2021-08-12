@@ -1,14 +1,21 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Products;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
-use \Frame\Join as Join;
-use \Frame\Condition as Condition;
-use \Frame\Order as Order;
+use \FooDBar\Users\LoginController as LoginController;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "AmountTypeModel.php";
+$GLOBALS['Boot']->loadDBExt("Join");
+
+use \Frame\Join 	as Join;
+use \Frame\Condition 	as Condition;
+use \Frame\Order 	as Order;
+
+
+$GLOBALS['Boot']->loadModel("ProductsModel");
+$GLOBALS['Boot']->loadModel("AmountTypeModel");
+
+use \FooDBar\ProductsModel 	as ProductsModel;
+use \FooDBar\AmountTypeModel 	as AmountTypeModel;
 
 class IndexController {
     private $DefaultController = true;

@@ -1,11 +1,18 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Products;
+
+use \FooDBar\Users\LoginController as LoginController;
 
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsSourceModel.php";
+
+$GLOBALS['Boot']->loadModel("ProductsSourceModel");
+
+use \FooDBar\ProductsSourceModel as ProductsSourceModel;
+
+use \FooDBar\Users\ProductssourceController as ProductssourceController;
 
 class SourceController {
     private $DefaultController = false;

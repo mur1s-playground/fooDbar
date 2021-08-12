@@ -1,11 +1,18 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Users;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Condition.php";
+$GLOBALS['Boot']->loadDBExt("Condition");
+
 use \Frame\Condition as Condition;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersModel.php";
+
+$GLOBALS['Boot']->loadModel("UsersModel");
+
+use \FooDBar\UsersModel as UsersModel;
+
+
+use \FooDBar\Allergies\AllergyController as AllergyController;
 
 class LoginController {
     private $DefaultController = true;
@@ -105,10 +112,10 @@ class LoginController {
 	$values = $GLOBALS['POST']->{'allergies'};
 
 	$GLOBALS['Boot']->loadModule("allergies", "Allergy");
-	AllergyController::setAllergyValues($user, $values);
+	Allergies\AllergyController::setAllergyValues($user, $values);
 
 	$result["status"] = true;
-	$result["allergies"] = AllergyController::getAllergyValues($user);
+	$result["allergies"] = Allergies\AllergyController::getAllergyValues($user);
         exit(json_encode($result, JSON_PRETTY_PRINT));
     }
 

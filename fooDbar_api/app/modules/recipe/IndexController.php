@@ -1,24 +1,38 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Recipe;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
-use \Frame\Join as Join;
+use \FooDBar\Users\LoginController as LoginController;
 
-use \Frame\Condition as Condition;
+$GLOBALS['Boot']->loadDBExt("Join");
+$GLOBALS['Boot']->loadDBExt("Fields");
+$GLOBALS['Boot']->loadDBExt("Order");
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Order.php";
-use \Frame\Order as Order;
+use \Frame\Join 	as Join;
+use \Frame\Fields	as Fields;
+use \Frame\Condition 	as Condition;
+use \Frame\Order 	as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
+$GLOBALS['Boot']->loadModel("RecipeModel");
+$GLOBALS['Boot']->loadModel("StorageModel");
+$GLOBALS['Boot']->loadModel("StorageConsumptionModel");
+$GLOBALS['Boot']->loadModel("ProductsModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAllergiesModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAggModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupModel");
+$GLOBALS['Boot']->loadModel("RecipeRequestDailyPresetModel");
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAggModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupModel.php";
+use \FooDBar\RecipeModel 				as RecipeModel;
+use \FooDBar\StorageModel 				as StorageModel;
+use \FooDBar\StorageConsumptionModel           		as StorageConsumptionModel;
+use \FooDBar\ProductsModel 				as ProductsModel;
+use \FooDBar\RecipeConsumptionGroupAllergiesModel     	as RecipeConsumptionGroupAllergiesModel;
+use \FooDBar\RecipeConsumptionGroupAggModel		as RecipeConsumptionGroupAggModel;
+use \FooDBar\RecipeConsumptionGroupModel 		as RecipeConsumptionGroupModel;
+use \FooDBar\RecipeRequestDailyPresetModel		as RecipeRequestDailyPresetModel;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeRequestDailyPresetModel.php";
-
+use \FooDBar\Allergies\AllergyController	as AllergyController;
+use \FooDBar\Storage 				as Storage;
 
 class IndexController {
     private $DefaultController = true;
@@ -104,46 +118,216 @@ class IndexController {
 	$demand = $data->{'demand'};
 	$days = $data->{'days'};
 	$parts = $data->{'parts'};
-	//tmp
-	$parts = $parts[0];
+	$n_dist = $data->{'n_dist'};
 	$threshold = 2;
 
-	rsort($parts);
+
+	$rcg_agg_ids_with_found_products = array();
+        $rcg_agg_by_found_products_in_storage = array();
+
+
+	/* USER ALLERGIES CONDITION */
+	$GLOBALS['Boot']->loadModule("allergies", "Allergy");
+        $user_allergies = AllergyController::getAllergyValues($user);
+        unset($user_allergies->{'has_unset_allergies'});
+
+        $conds_a_ct = 0;
+        $conds_a_str = "";
+        $conds_a = array();
+        foreach ($user_allergies as $field_name_camel => $value) {
+                if ($value > 0) {
+                        $desc = "[a" . $conds_a_ct . "]";
+
+                        if ($conds_a_ct != 0) {
+                                $conds_a_str .= " AND ";
+                        }
+                        $conds_a_str .= $desc;
+
+                        $conds_a[$desc] = [
+                                [RecipeConsumptionGroupAllergiesModel::class, $field_name_camel],
+                                Condition::COMPARISON_LESS,
+                                [Condition::CONDITION_CONST, 1]
+                        ];
+                        $conds_a_ct++;
+                }
+        }
+
+	/* RCG_AGG WITH PRODUCTS IN STORAGE */
+	$GLOBALS['Boot']->loadModule("storage", "Index");
+        $storage_r = Storage\IndexController::getStoragesContent($user);
+        $products_ids_to_amount = array();
+        foreach ($storage_r as $s_id => $s_item) {
+                $products_ids_to_amount[$s_item[StorageModel::FIELD_PRODUCTS_ID]] = $s_item[StorageModel::FIELD_AMOUNT];
+        }
+	$products_ids_in_storage = array_keys($products_ids_to_amount);
+
+	$conds_0_str = "";
+	$conds_0 = array();
+	if (count($products_ids_in_storage) > 0) {
+	        $sub_cond = new Condition("[c1]", array(
+        	        "[c1]" => [
+	                        [StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
+                	        Condition::COMPARISON_IN,
+        	                [Condition::CONDITION_CONST_ARRAY, $products_ids_in_storage]
+	                ]
+        	));
+
+	        $sub_join = new Join(new StorageModel(), "[j1]", array(
+        	        "[j1]" => [
+	                        [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+                        	Condition::COMPARISON_EQUALS,
+                	        [StorageModel::class, StorageModel::FIELD_ID]
+        	        ]
+	        ));
+
+	        $sub_field = new Fields(array());
+	        $sub_field->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
+
+        	$sub_storage_consumption = new StorageConsumptionModel();
+	        $sub_query = $sub_storage_consumption->find($sub_cond, array($sub_join), null, null, $sub_field, null, false);
+
+		$conds_0 = array(
+			"[c0]" => [
+                        	[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
+	                        Condition::COMPARISON_IN,
+        	                [Condition::CONDITION_QUERY, $sub_query]
+	                ]
+		);
+
+		$f_str = "[c0]";
+		if ($conds_a_ct > 0) {
+			$f_str .= " AND " . $conds_a_str;
+			$conds_0 = array_merge($conds_0, $conds_a);
+		}
+
+		$rcg_cond = new Condition($f_str, $conds_0);
+
+		$rcg_join = new Join(new RecipeConsumptionGroupModel(), "[j0]", array(
+                		"[j0]" => [
+		                        [RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
+	        	                Condition::COMPARISON_EQUALS,
+                	        	[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
+		       	        ]
+		        ));
+
+	        $rcg_allergies = new Join(new RecipeConsumptionGroupAllergiesModel(), "[j1]", array(
+        		        "[j1]" => [
+	                	        [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_RECIPE_CONSUMPTION_GROUP_ALLERGIES_ID],
+                        		Condition::COMPARISON_EQUALS,
+	                	        [RecipeConsumptionGroupAllergiesModel::class, RecipeConsumptionGroupAllergiesModel::FIELD_ID]
+        		        ]
+		        ));
+
+		$rcg_agg = new RecipeConsumptionGroupAggModel();
+	        $rcg_agg->find($rcg_cond, array($rcg_join, $rcg_allergies));
+
+		while ($rcg_agg->next()) {
+                	$recipe_consumption_group = $rcg_agg->joinedModelByClass(RecipeConsumptionGroupModel::class);
+
+	                $products_arr = explode(";", $recipe_consumption_group->getProductsIds());
+        	        $found_products = 0;
+                	foreach ($products_arr as $p_id) {
+	                        if (in_array($p_id, $products_ids_in_storage)) {
+        	                        $found_products++;
+                	        }
+	                }
+        	        if ($found_products == 0) continue;
+
+	                if (!isset($rcg_agg_by_found_products_in_storage[$found_products])) $rcg_agg_by_found_products_in_storage[$found_products] = array();
+
+        	        $rcg_agg_by_found_products_in_storage[$found_products][] = $rcg_agg->toArray(true);
+                	$rcg_agg_ids_with_found_products[] = $rcg_agg->getId();
+	        }
+
+	}
+
+	$conds_1_str = "";
+	$conds_1 = array();
+
+	$rcg_cond = null;
+	if (count($rcg_agg_ids_with_found_products) > 0) {
+		$conds_1_str = "[c1]";
+		$conds_1["[c1]"] = [
+					[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_ID],
+					Condition::COMPARISON_NOT_IN,
+					[Condition::CONDITION_CONST_ARRAY, $rcg_agg_ids_with_found_products]
+				];
+	}
+
+	if ($conds_a_ct > 0) {
+        	if (count($conds_1) > 0) $conds_1_str .= " AND ";
+		$conds_1_str .= $conds_a_str;
+		$conds_1 = array_merge($conds_1, $conds_a);
+        }
+
+	if (count($conds_1) > 0) {
+		$rcg_cond = new Condition($conds_1_str, $conds_1);
+	}
+
+	$rcg_join = new Join(new RecipeConsumptionGroupModel(), "[j0]", array(
+        		"[j0]" => [
+                        	[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
+                        ]
+		));
+
+	$rcg_allergies = new Join(new RecipeConsumptionGroupAllergiesModel(), "[j1]", array(
+        	"[j1]" => [
+                                        [RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_RECIPE_CONSUMPTION_GROUP_ALLERGIES_ID],
+                                        Condition::COMPARISON_EQUALS,
+                                        [RecipeConsumptionGroupAllergiesModel::class, RecipeConsumptionGroupAllergiesModel::FIELD_ID]
+                                ]
+                        ));
+
+        $rcg_agg = new RecipeConsumptionGroupAggModel();
+        $rcg_agg->find($rcg_cond, array($rcg_join, $rcg_allergies));
+
+	$rcg_agg_by_found_products_in_storage[0] = array();
+	while ($rcg_agg->next()) {
+		$rcg_agg_by_found_products_in_storage[0][] = $rcg_agg->toArray(true);
+	}
+	krsort($rcg_agg_by_found_products_in_storage);
 
 	$used_rcg_agg_ids = array();
 
+	$result["status"] = true;
 	$result["recipes"] = new \stdClass();
 	$result["recipes_mj_min_total"] = 0;
 	$result["recipes_mj_max_total"] = 0;
-	$result["status"] = true;
 
-	for ($p = 0; $p < count($parts); $p++) {
-		for ($d = 0; $d < $days; $d++) {
-			$rcg_join = new Join(new RecipeConsumptionGroupModel(), "[j1]", array(
-				"[j1]" => [
-						[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
-						Condition::COMPARISON_EQUALS,
-						[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
-				]
-			));
+	for ($d = 0; $d < $days; $d++) {
+		for ($p = 0; $p < count($parts[$d]); $p++) {
+			$found_one = false;
+			foreach ($rcg_agg_by_found_products_in_storage as $products_used => $rcg_agg_deep_arrs) {
+				foreach ($rcg_agg_deep_arrs as $idx => $rcg_agg_deep_arr) {
+					$rcg_agg_arr = $rcg_agg_deep_arr[RecipeConsumptionGroupAggModel::class];
 
-			$rcg_agg = new RecipeConsumptionGroupAggModel();
-			$rcg_agg->find(null, array($rcg_join));
+					if (in_array($rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID], $used_rcg_agg_ids)) continue;
+					if ($rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MAX] > $parts[$d][$p] - $threshold && $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MIN] < $parts[$d][$p] + $threshold) {
+/*
+						 $n_dist_fit = array(
+								$rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_N_FAT_PERCENT_AVG] 	- $n_dist[$d][0],
+								$rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_N_CARBS_PERCENT_AVG] - $n_dist[$d][1],
+								$rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_N_CARBS_PERCENT_AVG] - $n_dist[$d][2]
+							);
+*/
+						 $amount_multiplier = $parts[$d][$p] / $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_AVG];
 
-			while ($rcg_agg->next()) {
-				if ($rcg_agg->getMjMax() > $parts[$p] - $threshold && $rcg_agg->getMjMin() < $parts[$p] + $threshold) {
-					if (!in_array($rcg_agg->getId(), $used_rcg_agg_ids)) {
-						$used_rcg_agg_ids[] = $rcg_agg->getId();
 
-						$rcg = $rcg_agg->joinedModelByClass(RecipeConsumptionGroupModel::class);
+						 $used_rcg_agg_ids[] = $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID];
 
-						$result["recipes"]->{$d . "_" . $p} = $rcg_agg->toArray();
-						$result["recipes"]->{$d . "_" . $p}["ProductsIds"] = $rcg->getProductsIds();
-						$result["recipes_mj_min_total"] += $rcg_agg->getMjMin();
-					 	$result["recipes_mj_max_total"] += $rcg_agg->getMjMax();
-						break;
+ 						 $rcg = $rcg_agg_deep_arr[Join::class][RecipeConsumptionGroupModel::class];
+                                        	 $result["recipes"]->{$d . "_" . $p} = $rcg_agg_arr;
+                                	         $result["recipes"]->{$d . "_" . $p}["ProductsIds"] = $rcg[RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS];
+						 $result["recipes"]->{$d . "_" . $p}["amount_multiplier"] = $amount_multiplier;
+                        	                 $result["recipes_mj_min_total"] += $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MIN];
+                	                         $result["recipes_mj_max_total"] += $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MAX];
+						 $found_one = true;
+        	                                 break;
 					}
 				}
+				if ($found_one) break;
 			}
 		}
 	}

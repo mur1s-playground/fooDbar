@@ -1,6 +1,6 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Allergies;
 
 use \Frame\Condition as Condition;
 

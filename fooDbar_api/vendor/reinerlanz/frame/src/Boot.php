@@ -23,10 +23,18 @@ class Boot {
         return $this->DBO;
     }
 
+    public function loadDBExt($ext) {
+	require_once $this->config->getConfigValue(array('dbmodel', 'parentpath')) . $ext . ".php";
+    }
+
+    public function loadModel($model) {
+	require_once $this->config->getConfigValue(array('dbmodel', 'path')) . $model . ".php";
+    }
+
     public function loadModule($module, $controller) {
 	if (!in_array($module . "/" . $controller, $this->loadedModules)) {
 		$this->loadedModules[] = $module . "/" . $controller;
-		require $this->config->getConfigValue(array('modules', 'path')) . $module . "/" . $controller . "Controller.php";
+		require_once $this->config->getConfigValue(array('modules', 'path')) . $module . "/" . ucwords($controller) . "Controller.php";
 	}
     }
 
@@ -67,7 +75,7 @@ class Boot {
 
         if ($controller_name != null) {
             require $this->config->getConfigValue(array('modules', 'path')) . $module_name . '/' . $controller_name . 'Controller.php';
-            $controller_full_name = "\\" . $this->config->getConfigValue(array('modules', 'namespace')) . "\\" . $controller_name . 'Controller';
+            $controller_full_name = "\\" . $this->config->getConfigValue(array('modules', 'namespace')) . "\\" . ucwords($module_name) . "\\" . $controller_name . 'Controller';
             $controller_instance = new $controller_full_name();
             $controller_action = null;
             if (sizeof($request_params) > 2 && strlen($request_params[2]) > 0) {
@@ -89,7 +97,7 @@ class Boot {
 		$GLOBALS['AUTH'] = null;
 		require_once $this->config->getConfigValue(array('modules', 'path')) . $this->config->getConfigValue(array('modules', 'authModule')) . '/' . $this->config->getConfigValue(array('modules', 'authController')) . 'Controller.php';
                 if (isset($post_data->{"login_data"})) {
-			$auth_controller_full_name = "\\" . $this->config->getConfigValue(array('modules', 'namespace')) . "\\" . $this->config->getConfigValue(array('modules', 'authController')) . 'Controller';
+			$auth_controller_full_name = "\\" . $this->config->getConfigValue(array('modules', 'namespace')) . "\\" . ucwords($this->config->getConfigValue(array('modules', 'authModule'))) . "\\" . $this->config->getConfigValue(array('modules', 'authController')) . 'Controller';
 			$auth_function_name = $this->config->getConfigValue(array('modules', 'authFunction'));
 			$GLOBALS['AUTH'] = $auth_controller_full_name::$auth_function_name($post_data->{"login_data"});
 		}

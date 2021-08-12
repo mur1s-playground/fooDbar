@@ -1,11 +1,14 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Users;
 
 use \Frame\Condition as Condition;
 use \Frame\Order as Order;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "UsersTargetModel.php";
+
+$GLOBALS['Boot']->loadModel("UsersTargetModel");
+
+use \FooDBar\UsersTargetModel as UsersTargetModel;
 
 class TargetController {
     private $DefaultController = false;

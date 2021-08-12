@@ -1,31 +1,41 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Recipe;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
-use \Frame\Fields as Fields;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Join.php";
-use \Frame\Join as Join;
-use \Frame\Condition as Condition;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Order.php";
-use \Frame\Order as Order;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "GroupBy.php";
-use \Frame\GroupBy as GroupBy;
+use \FooDBar\Users\LoginController as LoginController;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
-use \Frame\DBFunction as DBFunction;
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
+$GLOBALS['Boot']->loadDBExt("Fields");
+$GLOBALS['Boot']->loadDBExt("Join");
+$GLOBALS['Boot']->loadDBExt("Order");
+$GLOBALS['Boot']->loadDBExt("GroupBy");
+$GLOBALS['Boot']->loadDBExt("DBFunction");
+$GLOBALS['Boot']->loadDBExt("DBFunctionExpression");
+
+use \Frame\Fields 		as Fields;
+use \Frame\Join 		as Join;
+use \Frame\Condition 		as Condition;
+use \Frame\Order 		as Order;
+use \Frame\GroupBy 		as GroupBy;
+use \Frame\DBFunction 		as DBFunction;
 use \Frame\DBFunctionExpression as DBFunctionExpression;
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "StorageConsumptionModel.php";
-//require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsModel.php";
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupModel.php";
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAllergiesModel.php";
+$GLOBALS['Boot']->loadModel("StorageModel");
+$GLOBALS['Boot']->loadModel("StorageConsumptionModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAllergiesModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAggModel");
 
-require $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "RecipeConsumptionGroupAggModel.php";
+use \FooDBar\StorageModel 				as StorageModel;
+use \FooDBar\StorageConsumptionModel 			as StorageConsumptionModel;
+use \FooDBar\RecipeConsumptionGroupModel 		as RecipeConsumptionGroupModel;
+use \FooDBar\RecipeConsumptionGroupAllergiesModel 	as RecipeConsumptionGroupAllergiesModel;
+use \FooDBar\RecipeConsumptionGroupAggModel 		as RecipeConsumptionGroupAggModel;
+use \FooDBar\ProductsModel				as ProductsModel;
 
+use \FooDBar\Allergies\AllergyController as AllergyController;
+use \FooDBar\Products as Products;
+use \FooDBar\Storage as Storage;
 
 class ProcessconsumptionController {
     private $DefaultController = false;
@@ -296,10 +306,10 @@ class ProcessconsumptionController {
 	$result["products_ids"] = self::getProductsIds($date_from, $date_to);
 
 	$GLOBALS['Boot']->loadModule("products", "Index");
-        $result["products"] = IndexController::getProductsByIdArray($result["products_ids"]);
+        $result["products"] = Products\IndexController::getProductsByIdArray($result["products_ids"]);
 
 	$GLOBALS['Boot']->loadModule("products", "Price");
-	$result["products_minmax_prices"] = PriceController::getMinMaxPriceByProductsIdArray($result["products_ids"], $date_to);
+	$result["products_minmax_prices"] = Products\PriceController::getMinMaxPriceByProductsIdArray($result["products_ids"], $date_to);
 
 	$cond = new Condition("[c1] AND [c2]", array(
                 "[c1]" => [
@@ -349,7 +359,7 @@ class ProcessconsumptionController {
         $result["consumption_groups"] = self::getConsumptionGroups($date_from, $date_to);
 
 	$GLOBALS['Boot']->loadModule("products", "Index");
-        $result["products"] = IndexController::getProductsByIdArray($result["products_ids"]);
+        $result["products"] = Products\IndexController::getProductsByIdArray($result["products_ids"]);
 
         $result["consumption_groups_nutrition"] = self::getNutritionFromConsumptionGroups($result["consumption_groups"], $result["products"]);
         $result["consumption_groups_allergies"] = self::getConsumptionGroupsAllergies($result["consumption_groups"], $result["products"]);
@@ -562,82 +572,6 @@ class ProcessconsumptionController {
 		$result["recipe_consumption_group_agg"]->{$recipe_consumption_group_agg->getId()}["ProductsIds"] = $rcg->getProductsIds();
 	}
 
-	/* TESTING SUB QUERY GETTING RECIPES FOR PRODUCTS IN STORAGE */
-/*
-	$GLOBALS['Boot']->loadModule("storage", "Index");
-	$storage_r = IndexController::getStoragesContent($user);
-	$products_ids_in_storage = array();
-	foreach ($storage_r as $s_id => $s_item) {
-		$products_ids_in_storage[] = $s_item[StorageModel::FIELD_PRODUCTS_ID];
-	}
-
-	$sub_cond = new Condition("[c1]", array(
-		"[c1]" => [
-			[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID],
-			Condition::COMPARISON_IN,
-			[Condition::CONDITION_CONST_ARRAY, $products_ids_in_storage]
-		]
-	));
-
-	$sub_join = new Join(new StorageModel(), "[j1]", array(
-		"[j1]" => [
-			[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
-			Condition::COMPARISON_EQUALS,
-			[StorageModel::class, StorageModel::FIELD_ID]
-		]
-	));
-
-	$sub_field = new Fields(array());
-	$sub_field->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
-
-	$sub_storage_consumption = new StorageConsumptionModel();
-	$sub_query = $sub_storage_consumption->find($sub_cond, array($sub_join), null, null, $sub_field, null, false);
-
-	$rcg_cond = new Condition("[c1]", array(
-		"[c1]" => [
-			[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_DATETIME],
-			Condition::COMPARISON_IN,
-			[Condition::CONDITION_QUERY, $sub_query]
-		]
-	));
-
-	$rcg_allergies = new Join(new RecipeConsumptionGroupAllergiesModel(), "[j1]", array(
-		"[j1]" => [
-			[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_RECIPE_CONSUMPTION_GROUP_ALLERGIES_ID],
-			Condition::COMPARISON_EQUALS,
-			[RecipeConsumptionGroupAllergiesModel::class, RecipeConsumptionGroupAllergiesModel::FIELD_ID]
-		]
-	));
-
-	$recipe_consumption_group = new RecipeConsumptionGroupModel();
-	$recipe_consumption_group->find($rcg_cond, array($rcg_allergies));
-
-	$result["recipe_consumption_group"] = new \stdClass();
-        while ($recipe_consumption_group->next()) {
-		$products_arr = explode(";", $recipe_consumption_group->getProductsIds());
-		$found_products = 0;
-		foreach ($products_arr as $p_id) {
-			if (in_array($p_id, $products_ids_in_storage)) {
-				$found_products++;
-			}
-		}
-		if ($found_products == 0) continue;
-
-                $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = $recipe_consumption_group->toArray();
-                unset($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["UsersId"]);
-
-                $allergies = $recipe_consumption_group->joinedModelByClass(RecipeConsumptionGroupAllergiesModel::class);
-
-                $result["recipe_consumption_group"]->{$recipe_consumption_group->getId()} = array_merge($result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}, $allergies->toArray());
-		$result["recipe_consumption_group"]->{$recipe_consumption_group->getId()}["FoundProducts"] = $found_products;
-        }
-*/
-
-/*
-	foreach ($result["consumption_groups_nutrition"] as $h_idx => $cgn) {
-		$result["consumption_groups_nutrition"][$h_idx]["optimised"] = self::optimizeNutritionDistributionSingle($cgn, $result["consumption_groups_nutrition"][$h_idx]["Kj"], $fat_percent, $carbs_percent, $protein_percent, null);
-	}
-*/
 	exit(json_encode($result, JSON_PRETTY_PRINT));
     }
 }

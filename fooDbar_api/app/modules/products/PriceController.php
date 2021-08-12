@@ -1,24 +1,25 @@
 <?php
 
-namespace FooDBar;
+namespace FooDBar\Products;
 
-use \Frame\Condition as Condition;
-use \Frame\Order as Order;
+use \FooDBar\Users\LoginController as LoginController;
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'path')) . "ProductsPriceModel.php";
+$GLOBALS['Boot']->loadDBExt("GroupBy");
+$GLOBALS['Boot']->loadDBExt("Fields");
+$GLOBALS['Boot']->loadDBExt("DBFunction");
+$GLOBALS['Boot']->loadDBExt("DBFunctionExpression");
 
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "GroupBy.php";
-use \Frame\GroupBy as GroupBy;
-
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "Fields.php";
-use \Frame\Fields as Fields;
-
-
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunction.php";
-use \Frame\DBFunction as DBFunction;
-require_once $GLOBALS['Boot']->config->getConfigValue(array('dbmodel', 'parentpath')) . "DBFunctionExpression.php";
+use \Frame\Condition 		as Condition;
+use \Frame\Order 		as Order;
+use \Frame\GroupBy 		as GroupBy;
+use \Frame\Fields 		as Fields;
+use \Frame\DBFunction 		as DBFunction;
 use \Frame\DBFunctionExpression as DBFunctionExpression;
 
+
+$GLOBALS['Boot']->loadModel("ProductsPriceModel");
+
+use \FooDBar\ProductsPriceModel as ProductsPriceModel;
 
 class PriceController {
     private $DefaultController = false;
