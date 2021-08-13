@@ -293,13 +293,14 @@ class IndexController {
 
 	$result["status"] = true;
 	$result["recipes"] = new \stdClass();
-	$result["recipes_mj_min_total"] = 0;
-	$result["recipes_mj_max_total"] = 0;
+
+	$product_demand = array();
 
 	for ($d = 0; $d < $days; $d++) {
 		for ($p = 0; $p < count($parts[$d]); $p++) {
 			$found_one = false;
 			foreach ($rcg_agg_by_found_products_in_storage as $products_used => $rcg_agg_deep_arrs) {
+				$idxs = range(0, count($rcg_agg_deep_arrs)-1);
 				foreach ($rcg_agg_deep_arrs as $idx => $rcg_agg_deep_arr) {
 					$rcg_agg_arr = $rcg_agg_deep_arr[RecipeConsumptionGroupAggModel::class];
 
@@ -317,12 +318,43 @@ class IndexController {
 
 						 $used_rcg_agg_ids[] = $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID];
 
+						 $result["recipes"]->{$d . "_" . $p} = array();
  						 $rcg = $rcg_agg_deep_arr[Join::class][RecipeConsumptionGroupModel::class];
-                                        	 $result["recipes"]->{$d . "_" . $p} = $rcg_agg_arr;
+
+						 $products_ids = $rcg[RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS];
+						 $amounts = $rcg[RecipeConsumptionGroupModel::FIELD_AMOUNTS];
+
+						 $products_arr = explode(";", $products_ids);
+						 $amounts_arr = explode(";", $amounts);
+						 $result["recipes"]->{$d . "_" . $p}["Amounts"] = "";
+						 for ($pr = 0; $pr < count($products_arr); $pr++) {
+							$pr_id = $products_arr[$pr];
+							$pr_d = $amount_multiplier * $amounts_arr[$pr];
+
+							$result["recipes"]->{$d . "_" . $p}["Amounts"] .= round($pr_d, 2);
+							if ($pr + 1 < count($products_arr)) $result["recipes"]->{$d . "_" . $p}["Amounts"] .= ";";
+
+							if (isset($products_ids_to_amount[$products_arr[$pr]])) {
+								if ($products_ids_to_amount[$pr_id] >= $pr_d) {
+									$products_ids_to_amount[$pr_id] -= $pr_d;
+								} else {
+									$pr_d -= $products_ids_to_amount[$pr_id];
+									$products_ids_to_amount[$pr_id] = 0;
+									if (!isset($product_demand[$pr_id])) $product_demand[$pr_id] = 0;
+									$product_demand[$pr_id] += $pr_d;
+								}
+							} else {
+								if (!isset($product_demand[$pr_id])) $product_demand[$pr_id] = 0;
+								$product_demand[$pr_id] += $pr_d;
+							}
+						 }
+
+
                                 	         $result["recipes"]->{$d . "_" . $p}["ProductsIds"] = $rcg[RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS];
-						 $result["recipes"]->{$d . "_" . $p}["amount_multiplier"] = $amount_multiplier;
-                        	                 $result["recipes_mj_min_total"] += $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MIN];
-                	                         $result["recipes_mj_max_total"] += $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MAX];
+						 $result["recipes"]->{$d . "_" . $p}["Mj"] = round($rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_AVG] * $amount_multiplier, 2);
+						 $result["recipes"]->{$d . "_" . $p}[RecipeConsumptionGroupModel::FIELD_N_FAT_PERCENT] = $rcg[RecipeConsumptionGroupModel::FIELD_N_FAT_PERCENT];
+						 $result["recipes"]->{$d . "_" . $p}[RecipeConsumptionGroupModel::FIELD_N_CARBS_PERCENT] = $rcg[RecipeConsumptionGroupModel::FIELD_N_CARBS_PERCENT];
+						 $result["recipes"]->{$d . "_" . $p}[RecipeConsumptionGroupModel::FIELD_N_PROTEIN_PERCENT] = $rcg[RecipeConsumptionGroupModel::FIELD_N_PROTEIN_PERCENT];
 						 $found_one = true;
         	                                 break;
 					}
@@ -331,7 +363,7 @@ class IndexController {
 			}
 		}
 	}
-
+	$result["product_demand"] = $product_demand;
 	exit(json_encode($result, JSON_PRETTY_PRINT));
     }
 

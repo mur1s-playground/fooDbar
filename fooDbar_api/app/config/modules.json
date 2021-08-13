@@ -77,6 +77,25 @@
         },
         "defaultController": "Index"
     },
+    "shopping": {
+        "controllers": {
+            "Index": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "remove"
+                ]
+            },
+            "Order": {
+                "defaultAction": "all",
+                "actions": [
+                    "all"
+                ]
+            }
+        },
+        "defaultController": "Order"
+    },
     "storage": {
         "controllers": {
             "Consumption": {

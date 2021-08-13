@@ -41,7 +41,7 @@
 		var recipes = new Recipes(db, null);
 		var storage_consumption = new StorageConsumption(db, recipes);		
 		var storage = new Storage(db, [storage_consumption]);
-		var products = new Products(db, [storage, recipes]);
+		var products = new Products(db, [storage, recipes, shopping_list]);
 		var demand = new Demand(db, [recipes])
 		var user_target = new UserTarget(db, [demand]);
 		var user_state = new UserState(db, [user_target, demand]);

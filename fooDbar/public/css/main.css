@@ -292,6 +292,26 @@ div.recipes_product_in_storage {
 	background: var(--storage_color) !important;
 }
 
+/* SHOPPING LIST */
+
+.shopping_list tr:nth-child(2n+0) {
+	background: #dddddd;
+}
+
+.shopping_list tr:first-child td:nth-child(-n+5) {
+        background: var(--products_color);
+}
+
+.shopping_list tr:first-child td:nth-child(-n+3) {
+        background: var(--shopping_list_color);
+}
+
+.shopping_list tr:first-child td:nth-child(-n+1) {
+        background: #ffffff;
+}
+
+
+
 /* ------- */
 .pal_header td {
 	border-bottom: 1px solid black;

@@ -27,6 +27,7 @@ use \FooDBar\ProductsPriceModel 	as ProductsPriceModel;
 
 use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
 use \FooDBar\Products\PriceController 		as PriceController;
+use \FooDBar\Shopping				as Shopping;
 
 class IndexController {
     private $DefaultController = true;
@@ -189,7 +190,7 @@ class IndexController {
         $date_now = $today->format("Y-m-d H:i:s");
 
 	$GLOBALS['Boot']->loadModule("products", "Price");
-	$products_price = PriceController::addPriceOnDemand($data->{'ProductsId'}, $data->{'ProductsSourceId'},$date_now, $data->{'Price'});
+	$products_price = PriceController::addPriceOnDemand($data->{'ProductsId'}, $data->{'ProductsSourceId'}, $date_now, $data->{'Price'});
 
 	$storage = new StorageModel();
 	$storage->setStoragesId($data->{'StoragesId'});
@@ -203,6 +204,11 @@ class IndexController {
 	$result["status"] = true;
 	$result["new_storage_item"] = $storage->toArray();
 	$result["new_storage_item"]["Price"] = $data->{'Price'};
+
+	if (isset($data->{'ShoppingListId'})) {
+		$GLOBALS['Boot']->loadModule("shopping", "Index");
+		$result["removed_shopping_list_item"] = Shopping\IndexController::removeItem($user, $data->{'ShoppingListId'});
+	}
 
 	exit(json_encode($result, JSON_PRETTY_PRINT));
     }
