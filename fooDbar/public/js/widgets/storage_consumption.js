@@ -69,9 +69,7 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.widget.content.appendChild(this.consumption);
 
 	this.set_consumption_circle = function(table_data) {
-		console.log(table_data);
-
-		var today = table_data["7d"];
+		var today = table_data["Today"];
 		var d31 = table_data["31d"];
 
 		var mj_clip = 100 - ((today["MJPerDay"]/parseFloat(demand.demand_data["MJPerDay"]["target"]) * 75));
