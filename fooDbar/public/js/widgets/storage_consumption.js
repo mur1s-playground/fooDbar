@@ -119,10 +119,6 @@ var StorageConsumption = function(db, change_dependencies) {
 		var n_protein_box = document.getElementById("consumption_circle_nutrition_protein_box");
                 n_protein_box.innerHTML = today["ProteinPercent"] + " %";
 
-		//tmp fat 27.5%, carbs 50%, protein 22.5%
-
-		//tgt 62%
-		//ind 33%
 		var fat_ind = (today["FatPercent"]/27.5) * 29;
 		if (fat_ind > 37) fat_ind = 37;
 
