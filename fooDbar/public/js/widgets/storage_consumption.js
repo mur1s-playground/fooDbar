@@ -68,7 +68,9 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.consumption.className = "consumption";
 	this.widget.content.appendChild(this.consumption);
 
-	this.set_consumption_circle = function(table_data) {
+	this.set_consumption_circle = function() {
+		var table_data = storage_consumption.consumption_calc_table_data;
+
 		var today = table_data["Today"];
 		var d31 = table_data["31d"];
 
@@ -361,6 +363,8 @@ var StorageConsumption = function(db, change_dependencies) {
 		return [time_diff, price_r, kj_r, fat_r, carbs_r, protein_r, salt_r, fiber_r];
 	}
 
+	this.consumption_calc_table_data = null;
+
 	this.get_consumption_calc_default = function() {
 		var ccd_row = document.createElement("tr");
 		ccd_row.id = storage_consumption.widget.name + "ccd_row";
@@ -434,7 +438,7 @@ var StorageConsumption = function(db, change_dependencies) {
 			"Today": get_data_row(result_t)
 		};
 
-		storage_consumption.set_consumption_circle(table_data);
+		storage_consumption.consumption_calc_table_data = table_data;
 
 		var rows = ["Today", "24h", "7d", "31d"];
 
@@ -704,6 +708,8 @@ var StorageConsumption = function(db, change_dependencies) {
 
 			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc());
 			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc_default());
+
+			storage_consumption.set_consumption_circle();
 
 			storage_consumption.consumption.appendChild(storage_consumption.data_table.get_header_row());
 

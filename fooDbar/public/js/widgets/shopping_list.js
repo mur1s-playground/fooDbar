@@ -97,6 +97,10 @@ var ShoppingList = function(db, change_dependencies) {
 		var to_storage_table = document.createElement("table");
 		var i_row = storage.data_table.get_insert_row(null,  storage.join_opts );
 
+
+		i_row.children[1].removeChild(i_row.children[1].children[0]);
+		i_row.children[1].appendChild(document.createElement("input"));
+
 		i_row.children[0].children[0].id = shopping_list.widget.name + "_to_storage_StoragesId_" + sli;
 		i_row.children[1].children[0].id = shopping_list.widget.name + "_to_storage_ProductsId_" + sli;
 		i_row.children[2].children[0].id = shopping_list.widget.name + "_to_storage_ProductsSourceId_" + sli;
@@ -106,19 +110,27 @@ var ShoppingList = function(db, change_dependencies) {
 		i_row.children[6].children[0].id = shopping_list.widget.name + "_to_storage_dto_" + sli;
 		i_row.children[7].children[0].id = shopping_list.widget.name + "_to_storage_add_btn_" + sli;
 
-		for (var v in i_row.children[1].children[0].children) {
-			if (shopping_list.shopping_list_data[sli]["ProductsId"] == i_row.children[1].children[0].children[v].value) {
-				i_row.children[1].children[0].selectedIndex = v;
-				break;
-			}
-		}
+		i_row.children[1].children[0].value = shopping_list.shopping_list_data[sli]["ProductsId"];
 		i_row.children[1].children[0].disabled = true;
 		i_row.children[1].children[0].style.display = "none";
 
 		i_row.children[2].children[0].sli = sli;
 		i_row.children[2].children[0].prices = prices;
 		i_row.children[2].children[0].onchange = function() {
-			document.getElementById(shopping_list.widget.name + "_to_storage_Price_" + sli).value = this.prices[this.selectedIndex];
+			var ps_arr = shopping_list.shopping_list_data[this.sli]["ProductsSourceIds"].split(";");
+			var prices_arr = shopping_list.shopping_list_data[this.sli]["Prices"].split(";");
+
+			var found = false;
+			for (var ps in ps_arr) {
+				if (ps_arr[ps] == this.options[this.selectedIndex].value) {
+					document.getElementById(shopping_list.widget.name + "_to_storage_Price_" + sli).value = prices_arr[ps];
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				document.getElementById(shopping_list.widget.name + "_to_storage_Price_" + sli).value = "";
+			}
 		}
 
 		i_row.children[3].children[0].value = packet_count * products_amount;
@@ -128,13 +140,13 @@ var ShoppingList = function(db, change_dependencies) {
 		i_row.children[7].children[0].sli = sli;
 		i_row.children[7].children[0].onclick = function() {
 			var storage_select = document.getElementById(shopping_list.widget.name + "_to_storage_StoragesId_" + this.sli);
-			var products_select = document.getElementById(shopping_list.widget.name + "_to_storage_ProductsId_" + this.sli);
+			var products_input = document.getElementById(shopping_list.widget.name + "_to_storage_ProductsId_" + this.sli);
 			var source_select = document.getElementById(shopping_list.widget.name + "_to_storage_ProductsSourceId_" + this.sli);
 
 			var p = {
                         	"storage_item" : {
 							"StoragesId": storage_select.options[storage_select.selectedIndex].value,
-							"ProductsId": products_select.options[products_select.selectedIndex].value,
+							"ProductsId": products_input.value,
 							"ProductsSourceId": source_select.options[source_select.selectedIndex].value,
 							"Amount": document.getElementById(shopping_list.widget.name + "_to_storage_Amount_" + this.sli).value,
 							"Price": document.getElementById(shopping_list.widget.name + "_to_storage_Price_" + this.sli).value,
