@@ -247,7 +247,7 @@ td {
 	background: black;
 }
 
-#consumption_circle_price {
+.consumption_circle_price {
         position: absolute;
         top: var(--circle_radius);
         left: 0px;

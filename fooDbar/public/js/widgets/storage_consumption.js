@@ -72,14 +72,14 @@ var StorageConsumption = function(db, change_dependencies) {
 		var today = table_data["Today"];
 		var d31 = table_data["31d"];
 
-		var mj_clip = 100 - ((today["MJPerDay"]/parseFloat(demand.demand_data["MJPerDay"]["target"]) * 75));
+		var mj_clip = 90 - ((today["MJPerDay"]/parseFloat(demand.demand_data["MJPerDay"]["target"]) * 65));
 		if (mj_clip < 0) {
 			mj_clip = 0;
 		}
 		var cc_mj = document.getElementById("consumption_circle_mj");
 		cc_mj.style.clipPath = "inset(0 " + mj_clip + "% 0 0)";
 
-		var price_clip = 100 - ((today["PricePerDay"]/d31["PricePerDay"]) * 75);
+		var price_clip = 90 - ((today["PricePerDay"]/d31["PricePerDay"]) * 65);
 		if (price_clip < 0) {
 			price_clip = 0;
 		}
@@ -163,7 +163,6 @@ var StorageConsumption = function(db, change_dependencies) {
                 var cc_mj               = document.createElement("div");
                 cc_mj.id                = "consumption_circle_mj";
                 cc_mj.className         = "consumption_circle_mj";
-                //style clip-path: inset(0 50% 0 0);
                 cc.appendChild(cc_mj);
 
 
@@ -173,8 +172,7 @@ var StorageConsumption = function(db, change_dependencies) {
 
                 var cc_price            = document.createElement("div");
                 cc_price.id             = "consumption_circle_price";
-                cc_price.classNam       = "consumption_circle_price";
-                //style clip-path: clip-path: inset(0 25% 0);
+                cc_price.className      = "consumption_circle_price";
                 cc.appendChild(cc_price);
 
 

@@ -94,7 +94,7 @@ class OrderController {
 	$result["status"] = false;
 	if (count($ordered_sl_ids) > 0) {
 /*
-		if (!mail($user->getEmail(), "Shopping List", $message, "From: mur1_@web.de")) {
+		if (!mail($user->getEmail(), "Shopping List", $message, "From: mur1s.playground@root.de")) {
 			$result["error"] = "email not sent";
 		} else {
 */
