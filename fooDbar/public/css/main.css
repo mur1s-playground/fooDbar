@@ -9,9 +9,20 @@
 	--products_color: #bfece2;
 	--recipes_color: #0bdeee;
 	--shopping_list_color: #ff6fc0;
+	/*
 	--fat_color: #ff5d6d;
 	--carbs_color: #44b3a6;
 	--muscle_color: #2e6e90;
+	*/
+	
+	--fat_color: #e98b8b;
+	--carbs_color: #42b3a7;
+	--muscle_color: #2d6f8e;
+	
+	--circle_diameter: 400px;	
+	--circle_radius: 200px;
+	--circle_box_font_small: 10px;
+	--circle_box_background: #cdcdcd;
 }
 
 
@@ -191,6 +202,234 @@ td {
 #Consumption_consumption_ProductsId {
 	background: var(--storage_color);
 }
+
+/* CONSUMPTION CIRCLE */
+
+#consumption_circle {
+	position: relative;
+	width: var(--circle_diameter);
+	height: var(--circle_diameter);
+}
+
+#consumption_circle_bg {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+.consumption_circle_mj {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: var(--circle_radius);
+        border-top-left-radius: var(--circle_radius);
+        border-top-right-radius: var(--circle_radius);
+}
+
+.consumption_circle_cbg {
+	background: #c3c3c8;
+}
+
+#consumption_circle_mj {
+	background: linear-gradient(to right, green, red);
+}
+
+#consumption_circle_mj_price_target_line {
+        position: absolute;
+	top: 0px;
+        left: 0px;
+        width: 100%;
+        height: var(--circle_diameter);
+        border-radius: var(--circle_radius);
+	background: black;
+}
+
+#consumption_circle_price {
+        position: absolute;
+        top: var(--circle_radius);
+        left: 0px;
+        width: 100%;
+        height: var(--circle_radius);
+        border-bottom-left-radius: var(--circle_radius);
+        border-bottom-right-radius: var(--circle_radius);
+}
+
+#consumption_circle_price {
+        background: linear-gradient(to right, green, red);
+}
+
+#consumption_circle_mj_box {
+	position: absolute;
+	top: 16.5%;
+	left: 40%;
+	width: 20%;
+	text-align: center;
+	margin: 0px;
+	font-weight: bold;
+}
+
+#consumption_circle_price_box {
+        position: absolute;
+        bottom: 16.5%;
+        left: 40%;
+        width: 20%;
+        text-align: center;
+	margin: 0px;
+	font-weight: bold;
+}
+
+.consumption_circle_nutrition_box {
+	position: absolute;
+	width: 10%;
+	text-align: center;
+	padding: 1%;
+	margin: 0px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	font-size: var(--circle_box_font_small);
+	font-weight: bold;
+	background: var(--circle_box_background);
+}
+
+.consumption_circle_nutrition_box_tgt {
+	position: absolute;
+	width: 10%;
+	text-align: center;
+	padding: 1%;
+	margin: 0px;
+	font-size: var(--circle_box_font_small);
+	font-weight: bold;
+}
+
+#consumption_circle_nutrition_fat_box {
+	bottom: 28%;
+	left: 29%;
+}
+
+#consumption_circle_nutrition_fat_box_tgt {
+		bottom: 62%;
+		left: 29%;
+}
+
+#consumption_circle_nutrition_carbs_box {
+        bottom: 28%;
+        left: 44%;
+}
+
+#consumption_circle_nutrition_carbs_box_tgt {
+		bottom: 62%;
+		left: 44%;
+}
+
+#consumption_circle_nutrition_protein_box {
+        bottom: 28%;
+        left: 59%;
+}
+
+#consumption_circle_nutrition_protein_box_tgt {
+		bottom: 62%;
+		left: 59%;
+}
+
+.consumption_circle_nutrition_ind {
+	position: absolute;
+	width: 10%;
+	padding: 1%;
+	border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+}
+
+#consumption_circle_nutrition_fat_box_ind {
+	bottom: 33%;
+	left: 29%;
+	background: var(--fat_color);
+}
+
+#consumption_circle_nutrition_carbs_box_ind {
+        bottom: 33%;
+        left: 44%;
+	background: var(--carbs_color);
+}
+
+#consumption_circle_nutrition_protein_box_ind {
+        bottom: 33%;
+        left: 59%;
+	background: var(--muscle_color);
+}
+
+.consumption_circle_nutrition_img {
+	position: absolute;
+	width: 10%;
+	height: 10%;
+	padding: 1%;
+}
+
+#consumption_circle_nutrition_fat_img {
+	top: 45%;
+	left: 29%;
+}
+
+#consumption_circle_nutrition_carbs_img {
+        top: 45%;
+        left: 44%;
+}
+
+#consumption_circle_nutrition_protein_img {
+        top: 45%;
+        left: 59%;
+}
+
+#consumption_circle_nutrition_target_line {
+	position: absolute;
+	left: 25%;
+	bottom: 62%;
+	width: 49%;
+	height: 1px;
+	border: 2px solid black;
+	background: #000000;
+}
+
+.consumption_circle_box_l {
+	position: absolute;
+	right: 80%;
+	font-size: var(--circle_box_font_small);
+	font-weight: bold;
+}
+
+.consumption_circle_box_r {
+	position: absolute;
+	left: 80%;
+	font-size: var(--circle_box_font_small);
+	font-weight: bold;
+}
+
+#consumption_circle_dprice_box {
+	top: 38.5%;
+}
+
+#consumption_circle_dmj_box {
+	top: 38.5%;
+}
+
+#consumption_circle_avgprice_box {
+	top: 48.5%;
+}
+
+#consumption_circle_avgmj_box {
+	top: 48.5%;
+}
+
+#consumption_circle_tprice_box {
+	top: 58.5%;
+}
+
+#consumption_circle_tmj_box {
+	top: 58.5%;
+}
+
 
 /* STORAGE */
 .storage input {
