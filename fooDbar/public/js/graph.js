@@ -54,12 +54,20 @@ var Graph = function(wh) {
 	}
 
 	this.draw_scale = function(scale_id, position, scale_margin = 0) {
+		var min_val = "n/A";
+		var max_val = "n/A";
+		if (this.value_scales[scale_id]["min"] != null) {
+			min_val = this.value_scales[scale_id]["min"];
+		}
+		if (this.value_scales[scale_id]["max"] != null) {
+			max_val = this.value_scales[scale_id]["max"];
+		}
 		if (position == "left") {
-			this.draw_text([scale_margin, -10]			, this.value_scales[scale_id]["min"] + " " + scale_id, "graph_scale_text");
-			this.draw_text([scale_margin, -10 + this.height]	, this.value_scales[scale_id]["max"] + " " + scale_id, "graph_scale_text");
+			this.draw_text([scale_margin, -10]			, min_val + " " + scale_id, "graph_scale_text");
+			this.draw_text([scale_margin, -10 + this.height]	, max_val + " " + scale_id, "graph_scale_text");
 		} else if (position == "right") {
-			this.draw_text([this.width-scale_margin, -10]                 , this.value_scales[scale_id]["min"] + " " + scale_id, "graph_scale_text");
-                        this.draw_text([this.width-scale_margin, -10 + this.height]   , this.value_scales[scale_id]["max"] + " " + scale_id, "graph_scale_text");
+			this.draw_text([this.width-scale_margin, -10]                 , min_val + " " + scale_id, "graph_scale_text");
+                        this.draw_text([this.width-scale_margin, -10 + this.height]   , max_val + " " + scale_id, "graph_scale_text");
 		}
 	}
 

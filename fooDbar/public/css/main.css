@@ -73,6 +73,31 @@ td {
 	border-radius: 5px;
 }
 
+/* NUMBER ENTRY */
+
+.number_entry {
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.number_entry tr {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.number_entry td {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.number_entry button {
+	width: 100% !important;
+	height: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: 1px groove grey;
+}
+
 /* MENU */
 
 .circle_menu_img {

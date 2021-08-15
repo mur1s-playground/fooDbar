@@ -66,12 +66,74 @@ var UserState = function(db, change_dependencies) {
                 "BMI": null
         };
 
+	this.add_entry_state = {};
+
+	this.add_entry_next = function(state_nr, number) {
+		if (state_nr == 0) {
+			user_state.add_entry_state["Height"] = number;
+			var ne = new NumberEntry([196, 196], user_state.add_entry_next, 1, "> Weight");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+			menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+		} else if (state_nr == 1) {
+			user_state.add_entry_state["Weight"] = number;
+			var ne = new NumberEntry([196, 196], user_state.add_entry_next, 2, "> Fat %");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+		} else if (state_nr == 2) {
+			user_state.add_entry_state["FatPercent"] = number;
+                        var ne = new NumberEntry([196, 196], user_state.add_entry_next, 3, "> Muscle %");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+		} else if (state_nr == 3) {
+			user_state.add_entry_state["MusclePercent"] = number;
+                        var ne = new NumberEntry([196, 196], user_state.add_entry_next, 4, "> Bone %");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+		} else if (state_nr == 4) {
+			user_state.add_entry_state["BonePercent"] = number;
+                        var ne = new NumberEntry([196, 196], user_state.add_entry_next, 5, "> Water %");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+		} else if (state_nr == 5) {
+			user_state.add_entry_state["WaterPercent"] = number;
+                        var ne = new NumberEntry([196, 196], user_state.add_entry_next, 6, "> PAL");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+		} else if (state_nr == 6) {
+			user_state.add_entry_state["Pal"] = number;
+			menu.circle_view["box_center"].children[0].innerHTML = "";
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Height: " + user_state.add_entry_state["Height"] + " m"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Weight: " + user_state.add_entry_state["Weight"] + " KG"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Fat: " + user_state.add_entry_state["FatPercent"] + " %"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Muscle: " + user_state.add_entry_state["MusclePercent"] + " %"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Bone: " + user_state.add_entry_state["BonePercent"] + " %"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Water: " + user_state.add_entry_state["WaterPercent"] + " %"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("PAL: " + user_state.add_entry_state["Pal"]));
+			menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+			var submit = document.createElement("button");
+			submit.innerHTML = "&#10003;";
+			submit.onclick = function() {
+				var p = {
+                                	"state" : user_state.add_entry_state
+                                };
+                                user_state.db.query_post("users/state/insert", p, user_state.on_state_add_response);
+			}
+			menu.circle_view["box_center"].children[0].appendChild(submit);
+		}
+	}
+
 	this.set_circle_view = function() {
 		if (user_state.state != null) {
 			menu.circle_view["box_top"].innerHTML 			= user_state.circle_view_interface["BMI"] + " BMI";
 
 			menu.circle_view["progressbar_target_line"].style.display       = "block";
-	                menu.circle_view["progressbar_target_line"].style.clipPath      = "inset(0 49% 0 49%)";	
+	                menu.circle_view["progressbar_target_line"].style.clipPath      = "inset(0 49% 0 49%)";
 
 			menu.circle_view["progressbar_top"].style.background    = "linear-gradient(90deg, red 0%, yellow 40%, green 50%, yellow 60%, red 100%)";
 
@@ -178,6 +240,23 @@ var UserState = function(db, change_dependencies) {
 
 			graph_container.appendChild(graph.elem);
 			menu.circle_view["box_center"].appendChild(graph_container);
+
+			menu.circle_view["box_left_0"].innerHTML = "";
+
+			var add_entry = document.createElement("a");
+			add_entry.innerHTML = "&#xFF0B;";
+			add_entry.onclick = function() {
+				menu.circle_view["box_center"].innerHTML = "";
+
+				user_state.add_entry_state = {};
+	                        var ne_container = document.createElement("div");
+				ne_container.style.width = "196px";
+				ne_container.style.height = "196px";
+				var ne = new NumberEntry([196, 196], user_state.add_entry_next, 0, "> Height", user_state.newest_height);
+				ne_container.appendChild(ne.elem);
+				menu.circle_view["box_center"].appendChild(ne_container);
+			}
+			menu.circle_view["box_left_0"].appendChild(add_entry);
 		}
 	}
 
