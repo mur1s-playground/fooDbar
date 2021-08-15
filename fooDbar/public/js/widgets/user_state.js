@@ -62,6 +62,16 @@ var UserState = function(db, change_dependencies) {
 		}
 	}
 
+	this.circle_view_interface = {
+		"BMI": null
+	};
+
+	this.set_circle_view = function() {
+		if (user_state.state != null) {
+			menu.circle_view["box_top"].innerHTML = user_state.circle_view_interface["BMI"];
+		}
+	}
+
 	this.user_state = document.createElement("table");
 	this.user_state.className = "user_state";
 	this.widget.content.appendChild(this.user_state);
@@ -337,7 +347,11 @@ var UserState = function(db, change_dependencies) {
 					var state_elem = user_state.get_state_node(user_state.state[idx[i]]);
                                         user_state.user_state.appendChild(state_elem);
                                         user_state.on_insert_bmi_factors_change();
+					if (i == 0) {
+						user_state.circle_view_interface["BMI"] = state_elem.children[0].innerHTML;
+					}
 				}
+
 				user_state.changed_f();
 				user_state.changed = false;
 			}
@@ -349,7 +363,6 @@ var UserState = function(db, change_dependencies) {
 			this.changed = false;
 
 			if (user.login_data != null) {
-				user_state.elem.style.display = "block";
 				var p = {};
 				user_state.db.query_post("users/state", p, user_state.on_user_state_response);
 			} else {

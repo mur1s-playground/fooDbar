@@ -11,6 +11,7 @@ var Widget = function(name) {
 	this.header = document.createElement("div");
 	this.header.id = "wg_" + name + "_header";
 	this.header.className = "widget_header";
+	this.header.style.display = "none";
 
 	this.header_content = document.createElement("div");
 

@@ -1,5 +1,6 @@
 :root {
-	--table_bg: #cccccc;
+	--table_bg: #dddddd;
+	--table_row_2n_bg: #eeeeee;
 
 	--state_color: #1eb080;
 	--target_color: #ff445f;
@@ -9,11 +10,6 @@
 	--products_color: #bfece2;
 	--recipes_color: #0bdeee;
 	--shopping_list_color: #ff6fc0;
-	/*
-	--fat_color: #ff5d6d;
-	--carbs_color: #44b3a6;
-	--muscle_color: #2e6e90;
-	*/
 	
 	--fat_color: #e98b8b;
 	--carbs_color: #42b3a7;
@@ -67,21 +63,17 @@ td {
 	width: 60px;
 }
 
-.user_state input {
-	height: 45px;
-	max-width: 60px;
-	text-align: center;
-	vertical-align: middle;
-}
-
-.user_target input {
-	height: 45px;
-	max-width: 60px;
-	text-align: center;
-	vertical-align: middle;
-}
-
 /* MENU */
+
+.circle_menu_img {
+	margin-top: -3px;
+	width: 20px;
+}
+
+.circle_menu_img_tb_corr {
+	margin-top: -1px;
+}
+
 .menu_user_state {
 	background: var(--state_color) !important;
 }
@@ -114,6 +106,153 @@ td {
         background: var(--shopping_list_color);
 }
 
+/* CIRCLE VIEW */
+
+#circle_view {
+	position: relative;
+	width: var(--circle_diameter);
+	height: var(--circle_diameter);
+	margin: auto;
+}
+
+#circle_view_bg {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+.circle_view_progressbar_top {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: var(--circle_radius);
+        border-top-left-radius: var(--circle_radius);
+        border-top-right-radius: var(--circle_radius);
+}
+
+.circle_view_progressbar_bottom {
+        position: absolute;
+        top: var(--circle_radius);
+        left: 0px;
+        width: 100%;
+        height: var(--circle_radius);
+        border-bottom-left-radius: var(--circle_radius);
+        border-bottom-right-radius: var(--circle_radius);
+}
+
+.circle_view_progressbar_bg {
+		background: #c3c3c8;
+}
+
+#circle_view_progressbar_target_line {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: var(--circle_diameter);
+	border-radius: var(--circle_radius);
+	background: black;
+}
+
+#circle_view_box_top {
+	position: absolute;
+	top: 16.5%;
+	left: 40%;
+	width: 20%;
+	text-align: center;
+	margin: 0px;
+	font-weight: bold;
+}
+
+#circle_view_box_bottom {
+	position: absolute;
+	bottom: 16.5%;
+	left: 40%;
+	width: 20%;
+	text-align: center;
+	margin: 0px;
+	font-weight: bold;
+}
+
+#circle_view_box_center {
+	position: absolute;
+	left: 102px;
+	top: 102px;
+	width: 196px;
+	height: 196px;
+	display: table;
+}
+
+.circle_view_box_left {
+	position: absolute;
+	right: 80%;
+	font-size: var(--circle_box_font_small);
+	font-weight: bold;
+}
+
+.circle_view_box_right {
+	position: absolute;
+	left: 80%;
+	font-size: var(--circle_box_font_small);
+	font-weight: bold;
+}
+
+#circle_view_box_left_0 {
+	top: 38.5%;
+}
+
+#circle_view_box_right_0 {
+	top: 38.5%;
+}
+
+#circle_view_box_left_1 {
+	top: 48.5%;
+}
+
+#circle_view_box_right_1 {
+	top: 48.5%;
+}
+
+#circle_view_box_left_2 {
+	top: 58.5%;
+}
+
+#circle_view_box_right_2 {
+	top: 58.5%;
+}
+
+/* USER STATE */
+
+.user_state input {
+        height: 45px;
+        max-width: 60px;
+        text-align: center;
+        vertical-align: middle;
+}
+
+.user_target input {
+        height: 45px;
+        max-width: 60px;
+        text-align: center;
+        vertical-align: middle;
+}
+
+.user_state tr:nth-child(2n+4) {
+	background: var(--table_row_2n_bg);
+}
+
+.pal_table tr:nth-child(2n+2) {
+	background: var(--table_bg);
+}
+
+/* USER TARGET */
+
+.user_target tr:nth-child(2n+3) {
+	background: var(--table_row_2n_bg);
+}
 
 /* CONSUMPTION */
 .consumption select {
@@ -203,235 +342,131 @@ td {
 	background: var(--storage_color);
 }
 
+.consumption tr:nth-child(2n+5) {
+        background: var(--table_row_2n_bg);
+}
+
 /* CONSUMPTION CIRCLE */
 
-#consumption_circle {
-	position: relative;
-	width: var(--circle_diameter);
-	height: var(--circle_diameter);
-}
-
-#consumption_circle_bg {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-}
-
-.consumption_circle_mj {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: var(--circle_radius);
-        border-top-left-radius: var(--circle_radius);
-        border-top-right-radius: var(--circle_radius);
-}
-
-.consumption_circle_cbg {
-	background: #c3c3c8;
-}
-
-#consumption_circle_mj {
-	background: linear-gradient(90deg, red 0%, red 10%, yellow 40%, green 75%, yellow 82.5%, red 87%);
-}
-
-#consumption_circle_mj_price_target_line {
-        position: absolute;
-	top: 0px;
-        left: 0px;
-        width: 100%;
-        height: var(--circle_diameter);
-        border-radius: var(--circle_radius);
-	background: black;
-}
-
-.consumption_circle_price {
-        position: absolute;
-        top: var(--circle_radius);
-        left: 0px;
-        width: 100%;
-        height: var(--circle_radius);
-        border-bottom-left-radius: var(--circle_radius);
-        border-bottom-right-radius: var(--circle_radius);
-}
-
-#consumption_circle_price {
-        background: linear-gradient(90deg, green 0%, green 40%, yellow 82.5%, red 87%);
-}
-
-#consumption_circle_mj_box {
-	position: absolute;
-	top: 16.5%;
-	left: 40%;
-	width: 20%;
-	text-align: center;
-	margin: 0px;
-	font-weight: bold;
-}
-
-#consumption_circle_price_box {
-        position: absolute;
-        bottom: 16.5%;
-        left: 40%;
-        width: 20%;
-        text-align: center;
-	margin: 0px;
-	font-weight: bold;
+#consumption_circle_nutrition_container {
+		postiion: relavive;
 }
 
 .consumption_circle_nutrition_box {
-	position: absolute;
-	width: 10%;
-	text-align: center;
-	padding: 1%;
-	margin: 0px;
-	border-bottom-left-radius: 10px;
-	border-bottom-right-radius: 10px;
-	font-size: var(--circle_box_font_small);
-	font-weight: bold;
-	background: var(--circle_box_background);
-	border: 1px solid black;
+        position: absolute;
+        width: 20%;
+        text-align: center;
+        padding: 1%;
+        margin: 0px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        font-size: var(--circle_box_font_small);
+        font-weight: bold;
+        background: var(--circle_box_background);
+        border: 1px solid black;
 }
 
 .consumption_circle_nutrition_box_tgt {
-	position: absolute;
-	width: 10%;
-	text-align: center;
-	padding: 1%;
-	margin: 0px;
-	font-size: var(--circle_box_font_small);
-	font-weight: bold;
+        position: absolute;
+        width: 20%;
+        text-align: center;
+        padding: 1%;
+        margin: 0px;
+        font-size: var(--circle_box_font_small);
+        font-weight: bold;
+		border-radius: 10px;
+		border: 1px solid black;
+		background: var(--circle_box_background);
 }
 
 #consumption_circle_nutrition_fat_box {
-	bottom: 28%;
-	left: 29%;
+        bottom: 5%;
+        left: 10%;
 }
 
 #consumption_circle_nutrition_fat_box_tgt {
-	bottom: 62%;
-	left: 29%;
+        bottom: 75%;
+        left: 10%;
 }
 
 #consumption_circle_nutrition_carbs_box {
-        bottom: 28%;
-        left: 44%;
+        bottom: 5%;
+        left: 40%;
 }
 
 #consumption_circle_nutrition_carbs_box_tgt {
-	bottom: 62%;
-	left: 44%;
+        bottom: 75%;
+        left: 40%;
 }
 
 #consumption_circle_nutrition_protein_box {
-        bottom: 28%;
-        left: 59%;
+        bottom: 5%;
+        left: 70%;
 }
 
 #consumption_circle_nutrition_protein_box_tgt {
-	bottom: 62%;
-	left: 59%;
+        bottom: 75%;
+        left: 70%;
 }
 
 .consumption_circle_nutrition_ind {
 	position: absolute;
-	width: 10%;
+	width: 20%;
 	padding: 1%;
 	border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+    border-top-right-radius: 10px;
 	border: 1px solid black;
 }
 
 #consumption_circle_nutrition_fat_box_ind {
-	bottom: 33%;
-	left: 29%;
+	bottom: 13%;
+	left: 10%;
 	background: var(--fat_color);
 }
 
 #consumption_circle_nutrition_carbs_box_ind {
-        bottom: 33%;
-        left: 44%;
+    bottom: 13%;
+    left: 40%;
 	background: var(--carbs_color);
 }
 
 #consumption_circle_nutrition_protein_box_ind {
-        bottom: 33%;
-        left: 59%;
+    bottom: 13%;
+    left: 70%;
 	background: var(--muscle_color);
 }
 
 .consumption_circle_nutrition_img {
 	position: absolute;
-	width: 10%;
-	height: 10%;
+	width: 20%;
+	height: 20%;
 	padding: 1%;
 }
 
 #consumption_circle_nutrition_fat_img {
 	top: 45%;
-	left: 29%;
+	left: 10%;
 }
 
 #consumption_circle_nutrition_carbs_img {
-        top: 45%;
-        left: 44%;
+    top: 45%;
+    left: 40%;
 }
 
 #consumption_circle_nutrition_protein_img {
-        top: 45%;
-        left: 59%;
+    top: 45%;
+    left: 70%;
 }
 
 #consumption_circle_nutrition_target_line {
 	position: absolute;
-	left: 25%;
-	bottom: 62%;
-	width: 49%;
+	left: -1px;
+	bottom: 78%;
+	width: 100%;
 	height: 1px;
 	border: 2px solid black;
 	background: #000000;
 }
-
-.consumption_circle_box_l {
-	position: absolute;
-	right: 80%;
-	font-size: var(--circle_box_font_small);
-	font-weight: bold;
-}
-
-.consumption_circle_box_r {
-	position: absolute;
-	left: 80%;
-	font-size: var(--circle_box_font_small);
-	font-weight: bold;
-}
-
-#consumption_circle_dprice_box {
-	top: 38.5%;
-}
-
-#consumption_circle_dmj_box {
-	top: 38.5%;
-}
-
-#consumption_circle_avgprice_box {
-	top: 48.5%;
-}
-
-#consumption_circle_avgmj_box {
-	top: 48.5%;
-}
-
-#consumption_circle_tprice_box {
-	top: 58.5%;
-}
-
-#consumption_circle_tmj_box {
-	top: 58.5%;
-}
-
 
 /* STORAGE */
 .storage input {
@@ -456,6 +491,11 @@ td {
 	background: var(--shopping_list_color);
 }
 
+.storage tr:nth-child(2n+3) {
+        background: var(--table_row_2n_bg);
+}
+
+
 /* PRODUCTS */
 .products input {
         height: 45px;
@@ -468,6 +508,11 @@ td {
         min-width: 300px;
         max-width: 360px;
 }
+
+.products tr:nth-child(2n+3) {
+        background: var(--table_row_2n_bg);
+}
+
 
 /* RECIPES */
 
@@ -526,7 +571,7 @@ td {
 }
 
 .recipes_cg_agg_table td:nth-child(3n+3) {
-        background: #dddddd;
+        background: var(--table_row_2n_bg);
 }
 
 div.recipes_product_in_storage {
@@ -536,7 +581,7 @@ div.recipes_product_in_storage {
 /* SHOPPING LIST */
 
 .shopping_list tr:nth-child(2n+0) {
-	background: #dddddd;
+	background: var(--table_row_2n_bg);;
 }
 
 .shopping_list tr:first-child td:nth-child(-n+5) {
@@ -550,8 +595,6 @@ div.recipes_product_in_storage {
 .shopping_list tr:first-child td:nth-child(-n+1) {
         background: #ffffff;
 }
-
-
 
 /* ------- */
 .pal_header td {

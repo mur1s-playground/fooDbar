@@ -21,7 +21,7 @@
                 <script type="text/javascript" src="js/widgets/shopping_list.js"></script>
 		<script type="text/javascript" src="js/widgets/menu.js"></script>
 	</head>
-	<body>
+	<body style="overflow-y: scroll;">
 	<div id="app"></div>
 	<div id="app_backend"></div>
 	
@@ -36,7 +36,6 @@
 
         	var db = new DB("Main");
 
-		var menu = new Menu(db, null);
 		var shopping_list = new ShoppingList(db, null);
 		var recipes = new Recipes(db, null);
 		var storage_consumption = new StorageConsumption(db, recipes);		
@@ -45,6 +44,7 @@
 		var demand = new Demand(db, [recipes])
 		var user_target = new UserTarget(db, [demand]);
 		var user_state = new UserState(db, [user_target, demand]);
+		var menu = new Menu(db, null);
 		var user = new User(db, [user_state, user_target, products, menu]);
 
 		app.component_add(base_element, messagebox);

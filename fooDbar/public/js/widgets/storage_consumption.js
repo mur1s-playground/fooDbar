@@ -68,230 +68,145 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.consumption.className = "consumption";
 	this.widget.content.appendChild(this.consumption);
 
-	this.set_consumption_circle = function() {
+	this.set_circle_view = function() {
 		var table_data = storage_consumption.consumption_calc_table_data;
 
 		var today = table_data["Today"];
-		var d31 = table_data["31d"];
+                var d31 = table_data["31d"];
 
 		var mj_clip = 90 - ((today["MJPerDay"]/parseFloat(demand.demand_data["MJPerDay"]["target"]) * 65));
-		if (mj_clip < 0) {
-			mj_clip = 0;
-		}
-		var cc_mj = document.getElementById("consumption_circle_mj");
-		cc_mj.style.clipPath = "inset(0 " + mj_clip + "% 0 0)";
+                if (mj_clip < 0) {
+                        mj_clip = 0;
+                }
+
+		menu.circle_view["progressbar_top"].style.background 		= "linear-gradient(90deg, red 0%, red 10%, yellow 40%, green 75%, yellow 82.5%, red 87%)";
+		menu.circle_view["progressbar_top"].style.clipPath 		= "inset(0 " + mj_clip + "% 0 0)";
 
 		var price_clip = 90 - ((today["PricePerDay"]/d31["PricePerDay"]) * 65);
-		if (price_clip < 0) {
-			price_clip = 0;
-		}
-		var cc_price = document.getElementById("consumption_circle_price");
-		cc_price.style.clipPath = "inset(0 " + price_clip + "% 0 0)";
+                if (price_clip < 0) {
+                        price_clip = 0;
+                }
+		menu.circle_view["progressbar_bottom"].style.background 	= "linear-gradient(90deg, green 0%, green 40%, yellow 82.5%, red 87%)";
+                menu.circle_view["progressbar_bottom"].style.clipPath 		= "inset(0 " + price_clip + "% 0 0)";
 
-		var mj_box = document.getElementById("consumption_circle_mj_box");
-		mj_box.innerHTML = today["MJPerDay"] + " MJ";
+		menu.circle_view["progressbar_target_line"].style.display	= "block";
+		menu.circle_view["progressbar_target_line"].style.clipPath 	= "inset(0 23% 0 75%)";
 
-		var price_box = document.getElementById("consumption_circle_price_box");
-		price_box.innerHTML = today["PricePerDay"] + " &euro;";
+		menu.circle_view["box_top"].innerHTML 		= today["MJPerDay"] + " MJ";
+		menu.circle_view["box_bottom"].innerHTML	= today["PricePerDay"] + " &euro;";
 
-		var dmj_box = document.getElementById("consumption_circle_dmj_box");
-		dmj_box.innerHTML = "&#x394; " + Math.round((parseFloat(demand.demand_data["MJPerDay"]["target"]) - today["MJPerDay"]) * 100)/100 + " MJ";
+		menu.circle_view["box_left_0"].innerHTML	= "&#x394; " + Math.round((d31["PricePerDay"] - today["PricePerDay"]) * 100)/100 + " &euro;";
+		menu.circle_view["box_left_1"].innerHTML	= "&#216; " + Math.round(d31["PricePerDay"] * 100)/100 + " &euro;";
+		menu.circle_view["box_left_2"].innerHTML	= "&#8721; " + Math.round(d31["Price"]) + " &euro;";
 
-		var avgmj_box = document.getElementById("consumption_circle_avgmj_box");
-		avgmj_box.innerHTML = "&#216; " + Math.round(d31["MJPerDay"] * 100)/100 + " MJ";
+		menu.circle_view["box_right_0"].innerHTML	= "&#x394; " + Math.round((parseFloat(demand.demand_data["MJPerDay"]["target"]) - today["MJPerDay"]) * 100)/100 + " MJ";
+		menu.circle_view["box_right_1"].innerHTML	= "&#216; " + Math.round(d31["MJPerDay"] * 100)/100 + " MJ";
+		menu.circle_view["box_right_2"].innerHTML	= "&#8721; " +  Math.round(d31["MJ"]) + " MJ";
 
-		var tmj_box = document.getElementById("consumption_circle_tmj_box");
-		tmj_box.innerHTML = "&#8721; " +  Math.round(d31["MJ"]) + " MJ";
+		menu.circle_view["box_center"].innerHTML	= "";
 
-		var dprice_box = document.getElementById("consumption_circle_dprice_box");
-		dprice_box.innerHTML = "&#x394; " + Math.round((d31["PricePerDay"] - today["PricePerDay"]) * 100)/100 + " &euro;";
+		var nutrition_container 			= document.createElement("div");
+		nutrition_container.id 				= "consumption_circle_nutrition_container";
 
-		var avgprice_box = document.getElementById("consumption_circle_avgprice_box");
-		avgprice_box.innerHTML = "&#216; " + Math.round(d31["PricePerDay"] * 100)/100 + " &euro;";
+		var n_fat_box 					= document.createElement("span");
+                n_fat_box.id 					= "consumption_circle_nutrition_fat_box";
+		n_fat_box.className 				= "consumption_circle_nutrition_box";
+                n_fat_box.innerHTML 				= today["FatPercent"] + " %";
+                nutrition_container.appendChild(n_fat_box);
 
-		var tprice_box = document.getElementById("consumption_circle_tprice_box");
-		tprice_box.innerHTML = "&#8721; " + Math.round(d31["Price"]) + " &euro;";
+                var n_carbs_box 				= document.createElement("span");
+                n_carbs_box.id 					= "consumption_circle_nutrition_carbs_box";
+		n_carbs_box.className				= "consumption_circle_nutrition_box";
+                n_carbs_box.innerHTML 				= today["CarbsPercent"] + " %";
+                nutrition_container.appendChild(n_carbs_box);
 
-		var n_fat_box = document.getElementById("consumption_circle_nutrition_fat_box");
-		n_fat_box.innerHTML = today["FatPercent"] + " %";
+                var n_protein_box 				= document.createElement("span");
+                n_protein_box.id				= "consumption_circle_nutrition_protein_box";
+		n_protein_box.className				= "consumption_circle_nutrition_box";
+                n_protein_box.innerHTML 			= today["ProteinPercent"] + " %";
+                nutrition_container.appendChild(n_protein_box);
 
-		var n_carbs_box = document.getElementById("consumption_circle_nutrition_carbs_box");
-		n_carbs_box.innerHTML = today["CarbsPercent"] + " %";
 
-		var n_protein_box = document.getElementById("consumption_circle_nutrition_protein_box");
-                n_protein_box.innerHTML = today["ProteinPercent"] + " %";
+					//TMP
+		var fat_target 		= 27.5;
+		var carbs_target 	= 50.0;
+		var protein_target 	= 22.5;
 
-		var fat_ind = (today["FatPercent"]/27.5) * 29;
-		if (fat_ind > 37) fat_ind = 37;
+		var fat_ind = (today["FatPercent"]/fat_target) * 65;
+                if (fat_ind > 91) fat_ind = 91;
 
-		var n_fat_ind = document.getElementById("consumption_circle_nutrition_fat_box_ind");
+		var n_fat_ind					= document.createElement("div");
+		n_fat_ind.id					= "consumption_circle_nutrition_fat_box_ind";
+		n_fat_ind.className				= "consumption_circle_nutrition_ind";
 		n_fat_ind.style.height = fat_ind + "%";
+		nutrition_container.appendChild(n_fat_ind);
 
-		var carbs_ind = (today["CarbsPercent"]/50.0) * 29;
-		if (carbs_ind > 37) carbs_ind = 37;
+		var carbs_ind = (today["CarbsPercent"]/carbs_target) * 65;
+                if (carbs_ind > 91) carbs_ind = 91;
 
-		var n_carbs_ind = document.getElementById("consumption_circle_nutrition_carbs_box_ind");
-		n_carbs_ind.style.height = carbs_ind + "%";
+                var n_carbs_ind                                 = document.createElement("div");
+                n_carbs_ind.id                                  = "consumption_circle_nutrition_carbs_box_ind";
+                n_carbs_ind.className                           = "consumption_circle_nutrition_ind";
+                n_carbs_ind.style.height = carbs_ind + "%";
+                nutrition_container.appendChild(n_carbs_ind);
 
-		var protein_ind = (today["ProteinPercent"]/22.5) * 29;
-		if (protein_ind > 37) protein_ind = 37;
+		var protein_ind = (today["ProteinPercent"]/protein_target) * 65;
+                if (protein_ind > 91) protein_ind = 91;
 
-		var n_protein_ind = document.getElementById("consumption_circle_nutrition_protein_box_ind");
-		n_protein_ind.style.height = protein_ind + "%";
+                var n_protein_ind                                = document.createElement("div");
+                n_protein_ind.id                                 = "consumption_circle_nutrition_protein_box_ind";
+                n_protein_ind.className                          = "consumption_circle_nutrition_ind";
+                n_protein_ind.style.height = protein_ind + "%";
+                nutrition_container.appendChild(n_protein_ind);
 
-		var n_fat_tgt = document.getElementById("consumption_circle_nutrition_fat_box_tgt");
-                n_fat_tgt.innerHTML = "27.5%";
+		var n_target_line                               = document.createElement("div");
+                n_target_line.id                                = "consumption_circle_nutrition_target_line";
+                nutrition_container.appendChild(n_target_line);
 
-		var n_carbs_tgt = document.getElementById("consumption_circle_nutrition_carbs_box_tgt");
-                n_carbs_tgt.innerHTML = "50.0%";
+	 	var n_fat_tgt 					= document.createElement("span")
+		n_fat_tgt.id					= "consumption_circle_nutrition_fat_box_tgt";
+		n_fat_tgt.className				= "consumption_circle_nutrition_box_tgt";
+                n_fat_tgt.innerHTML 				= "27.5 %";
+		nutrition_container.appendChild(n_fat_tgt);
 
-		var n_protein_tgt = document.getElementById("consumption_circle_nutrition_protein_box_tgt");
-		n_protein_tgt.innerHTML = "22.5%";
+                var n_carbs_tgt					= document.createElement("span");
+		n_carbs_tgt.id 					= "consumption_circle_nutrition_carbs_box_tgt";
+		n_carbs_tgt.className                           = "consumption_circle_nutrition_box_tgt";
+                n_carbs_tgt.innerHTML 				= "50.0 %";
+		nutrition_container.appendChild(n_carbs_tgt);
+
+                var n_protein_tgt				= document.createElement("span");
+		n_protein_tgt.id				= "consumption_circle_nutrition_protein_box_tgt";
+		n_protein_tgt.className                         = "consumption_circle_nutrition_box_tgt";
+                n_protein_tgt.innerHTML 			= "22.5 %";
+		nutrition_container.appendChild(n_protein_tgt);
+
+
+		var n_fat_box_img   		         	= document.createElement("img");
+                n_fat_box_img.id             			= "consumption_circle_nutrition_fat_img";
+                n_fat_box_img.className      			= "consumption_circle_nutrition_img";
+                n_fat_box_img.src            			= "/img/symbol_fat.svg";
+                nutrition_container.appendChild(n_fat_box_img);
+
+		var n_carbs_box_img            			= document.createElement("img");
+                n_carbs_box_img.id             			= "consumption_circle_nutrition_carbs_img";
+                n_carbs_box_img.className      			= "consumption_circle_nutrition_img";
+                n_carbs_box_img.src            			= "/img/symbol_carbs.svg";
+                nutrition_container.appendChild(n_carbs_box_img);
+
+		var n_protein_box_img                           = document.createElement("img");
+                n_protein_box_img.id                            = "consumption_circle_nutrition_protein_img";
+                n_protein_box_img.className                     = "consumption_circle_nutrition_img";
+                n_protein_box_img.src                           = "/img/symbol_muscle.svg";
+                nutrition_container.appendChild(n_protein_box_img);
+
+		menu.circle_view["box_center"].appendChild(nutrition_container);
 	}
 
-
-	this.get_consumption_circle = function() {
-                var cc = document.createElement("div");
-		cc.id = "consumption_circle";
-
-                var cc_mj_cbg           = document.createElement("div");
-                cc_mj_cbg.className     = "consumption_circle_mj consumption_circle_cbg";
-                cc.appendChild(cc_mj_cbg);
-
-                var cc_mj               = document.createElement("div");
-                cc_mj.id                = "consumption_circle_mj";
-                cc_mj.className         = "consumption_circle_mj";
-                cc.appendChild(cc_mj);
-
-
-                var cc_price_cbg        = document.createElement("div");
-                cc_price_cbg.className  = "consumption_circle_price consumption_circle_cbg";
-                cc.appendChild(cc_price_cbg);
-
-                var cc_price            = document.createElement("div");
-                cc_price.id             = "consumption_circle_price";
-                cc_price.className      = "consumption_circle_price";
-                cc.appendChild(cc_price);
-
-
-		var cc_target_line		= document.createElement("div");
-		cc_target_line.id		= "consumption_circle_mj_price_target_line";
-		cc_target_line.style.clipPath 	= "inset(0 25% 0 74%)";
-		cc.appendChild(cc_target_line);
-
-		var cc_img	= document.createElement("img");
-		cc_img.id	= "consumption_circle_bg";
-		cc_img.src	= "/img/consumption_circle.png";
-		cc.appendChild(cc_img);
-
-		var cc_mj_box	= document.createElement("span");
-		cc_mj_box.id	= "consumption_circle_mj_box";
-		cc.appendChild(cc_mj_box);
-
-		var cc_price_box   = document.createElement("span");
-                cc_price_box.id    = "consumption_circle_price_box";
-                cc.appendChild(cc_price_box);
-
-
-		var cc_n_fat_box	= document.createElement("span");
-		cc_n_fat_box.id		= "consumption_circle_nutrition_fat_box";
-		cc_n_fat_box.className	= "consumption_circle_nutrition_box";
-		cc.appendChild(cc_n_fat_box);
-
-		var cc_n_fat_box_ind    	= document.createElement("div");
-                cc_n_fat_box_ind.id         	= "consumption_circle_nutrition_fat_box_ind";
-                cc_n_fat_box_ind.className  	= "consumption_circle_nutrition_ind";
-		cc.appendChild(cc_n_fat_box_ind);
-
-		var cc_n_fat_box_img		= document.createElement("img");
-		cc_n_fat_box_img.id		= "consumption_circle_nutrition_fat_img";
-		cc_n_fat_box_img.className	= "consumption_circle_nutrition_img";
-		cc_n_fat_box_img.src		= "/img/symbol_fat.svg";
-		cc.appendChild(cc_n_fat_box_img);
-
-		var cc_n_fat_box_tgt            = document.createElement("span");
-                cc_n_fat_box_tgt.id             = "consumption_circle_nutrition_fat_box_tgt";
-                cc_n_fat_box_tgt.className      = "consumption_circle_nutrition_box_tgt";
-                cc.appendChild(cc_n_fat_box_tgt);
-
-		var cc_n_carbs_box        = document.createElement("span");
-                cc_n_carbs_box.id         = "consumption_circle_nutrition_carbs_box";
-                cc_n_carbs_box.className  = "consumption_circle_nutrition_box";
-                cc.appendChild(cc_n_carbs_box);
-
-                var cc_n_carbs_box_ind            = document.createElement("div");
-                cc_n_carbs_box_ind.id             = "consumption_circle_nutrition_carbs_box_ind";
-                cc_n_carbs_box_ind.className      = "consumption_circle_nutrition_ind";
-                cc.appendChild(cc_n_carbs_box_ind);
-
-                var cc_n_carbs_box_img            = document.createElement("img");
-                cc_n_carbs_box_img.id             = "consumption_circle_nutrition_carbs_img";
-                cc_n_carbs_box_img.className      = "consumption_circle_nutrition_img";
-		cc_n_carbs_box_img.src		  = "/img/symbol_carbs.svg";
-                cc.appendChild(cc_n_carbs_box_img);
-
-		var cc_n_carbs_box_tgt            = document.createElement("span");
-                cc_n_carbs_box_tgt.id             = "consumption_circle_nutrition_carbs_box_tgt";
-                cc_n_carbs_box_tgt.className      = "consumption_circle_nutrition_box_tgt";
-                cc.appendChild(cc_n_carbs_box_tgt);
-
-		var cc_n_protein_box        = document.createElement("span");
-                cc_n_protein_box.id         = "consumption_circle_nutrition_protein_box";
-                cc_n_protein_box.className  = "consumption_circle_nutrition_box";
-                cc.appendChild(cc_n_protein_box);
-
-                var cc_n_protein_box_ind            = document.createElement("div");
-                cc_n_protein_box_ind.id             = "consumption_circle_nutrition_protein_box_ind";
-                cc_n_protein_box_ind.className      = "consumption_circle_nutrition_ind";
-                cc.appendChild(cc_n_protein_box_ind);
-
-                var cc_n_protein_box_img            = document.createElement("img");
-                cc_n_protein_box_img.id             = "consumption_circle_nutrition_protein_img";
-                cc_n_protein_box_img.className      = "consumption_circle_nutrition_img";
-		cc_n_protein_box_img.src	    = "/img/symbol_muscle.svg";
-                cc.appendChild(cc_n_protein_box_img);
-
-		var cc_n_protein_box_tgt	    = document.createElement("span");
-		cc_n_protein_box_tgt.id		    = "consumption_circle_nutrition_protein_box_tgt";
-		cc_n_protein_box_tgt.className	    = "consumption_circle_nutrition_box_tgt";
-		cc.appendChild(cc_n_protein_box_tgt);
-
-		var cc_n_target_line		= document.createElement("div");
-		cc_n_target_line.id		= "consumption_circle_nutrition_target_line";
-		cc.appendChild(cc_n_target_line);
-
-		var cc_dprice_box		= document.createElement("div");
-		cc_dprice_box.id		= "consumption_circle_dprice_box";
-                cc_dprice_box.className         = "consumption_circle_box_l";
-		cc.appendChild(cc_dprice_box);
-
-		var cc_avgprice_box               = document.createElement("div");
-                cc_avgprice_box.id                = "consumption_circle_avgprice_box";
-                cc_avgprice_box.className         = "consumption_circle_box_l";
-                cc.appendChild(cc_avgprice_box);
-
-		var cc_tprice_box               = document.createElement("div");
-                cc_tprice_box.id                = "consumption_circle_tprice_box";
-                cc_tprice_box.className         = "consumption_circle_box_l";
-                cc.appendChild(cc_tprice_box);
-
-
-		var cc_dmj_box               = document.createElement("div");
-                cc_dmj_box.id                = "consumption_circle_dmj_box";
-                cc_dmj_box.className         = "consumption_circle_box_r";
-                cc.appendChild(cc_dmj_box);
-
-                var cc_avgmj_box               = document.createElement("div");
-                cc_avgmj_box.id                = "consumption_circle_avgmj_box";
-                cc_avgmj_box.className         = "consumption_circle_box_r";
-                cc.appendChild(cc_avgmj_box);
-
-                var cc_tmj_box               = document.createElement("div");
-                cc_tmj_box.id                = "consumption_circle_tmj_box";
-                cc_tmj_box.className         = "consumption_circle_box_r";
-                cc.appendChild(cc_tmj_box);
-
-		return cc;
+	this.set_consumption_circle = function() {
+		if (menu.active_widget == storage_consumption.widget.name) {
+			storage_consumption.set_circle_view();
+		}
 	}
 
 	this.do_consumption_calc = function(date_f, date_t, username) {
@@ -698,13 +613,6 @@ var StorageConsumption = function(db, change_dependencies) {
 		if (resp["status"] == true) {
 			storage_consumption.consumption_data = resp["consumption"];
 			storage_consumption.consumption.innerHTML = "";
-
-			var cc_row = document.createElement("tr");
-			var consumption_circle = document.createElement("td");
-	                consumption_circle.colSpan = "6";
-        	        consumption_circle.appendChild(storage_consumption.get_consumption_circle());
-                	cc_row.appendChild(consumption_circle);
-			storage_consumption.consumption.appendChild(cc_row);
 
 			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc());
 			storage_consumption.consumption.appendChild(storage_consumption.get_consumption_calc_default());
