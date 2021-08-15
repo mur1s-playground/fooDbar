@@ -63,12 +63,121 @@ var UserState = function(db, change_dependencies) {
 	}
 
 	this.circle_view_interface = {
-		"BMI": null
-	};
+                "BMI": null
+        };
 
 	this.set_circle_view = function() {
 		if (user_state.state != null) {
-			menu.circle_view["box_top"].innerHTML = user_state.circle_view_interface["BMI"];
+			menu.circle_view["box_top"].innerHTML 			= user_state.circle_view_interface["BMI"] + " BMI";
+
+			menu.circle_view["progressbar_target_line"].style.display       = "block";
+	                menu.circle_view["progressbar_target_line"].style.clipPath      = "inset(0 49% 0 49%)";	
+
+			menu.circle_view["progressbar_top"].style.background    = "linear-gradient(90deg, red 0%, yellow 40%, green 50%, yellow 60%, red 100%)";
+
+			var bmi_clip = 50 + (parseFloat(user_state.circle_view_interface["BMI"]) - parseFloat(user_target.bmi_current))*(2.0/3.0) * 50;
+	                if (bmi_clip < 0) {
+        	                bmi_clip = 0;
+                	}
+			if (bmi_clip > 100) {
+				bmi_clip = 100;
+			}
+			if (bmi_clip < 50) {
+	        	        menu.circle_view["progressbar_top"].style.clipPath              = "inset(0 50% 0 " + bmi_clip  + "%)";
+			} else {
+				menu.circle_view["progressbar_top"].style.clipPath              = "inset(0 " + (100-bmi_clip) + "% 0 50%)";
+			}
+
+
+			menu.circle_view["progress_bar_top"]
+
+			menu.circle_view["box_center"].innerHTML = "";
+
+			var graph_container = document.createElement("div");
+			graph_container.style.display = "table-cell";
+			graph_container.style.verticalAlign = "middle";
+			graph_container.style.paddingLeft = "16px";
+
+			var graph = new Graph([164, 164]);
+			graph.add_value_scale("KG");
+			graph.add_field("Weight", "KG");
+
+			graph.add_value_scale("%");
+			graph.add_field("Fat", "%");
+			graph.fields["Fat"]["color"] = "var(--fat_color)";
+			graph.add_field("Muscle", "%");
+			graph.fields["Muscle"]["color"] = "var(--muscle_color)";
+
+			var idx = [];
+                        for (var state in user_state.state) {
+                        	if (user_state.state.hasOwnProperty(state)) {
+                                	idx.push(state);
+                                }
+                        }
+                        idx.sort(function(a, b) {return a-b});
+                        for (var i = 0; i < idx.length; i++) {
+				var t = new Date(user_state.state[idx[i]]["DatetimeInsert"].replace(" ", "T"));
+				var ts = t.getTime();
+				graph.add_field_value("Weight", ts, parseFloat(user_state.state[idx[i]]["Weight"]));
+				if (user_state.state[idx[i]]["FatPercent"] != null) {
+					graph.add_field_value("Fat", ts, parseFloat(user_state.state[idx[i]]["FatPercent"]));
+				}
+				if (user_state.state[idx[i]]["MusclePercent"] != null) {
+					graph.add_field_value("Muscle", ts, parseFloat(user_state.state[idx[i]]["MusclePercent"]));
+				}
+				if (i == idx.length - 1) {
+					menu.circle_view["box_right_0"].innerHTML = "";
+					if (user_state.state[idx[i]]["Weight"] != null) {
+						menu.circle_view["box_right_0"].appendChild(document.createTextNode(user_state.state[idx[i]]["Weight"] + " KG "));
+					} else {
+						menu.circle_view["box_right_0"].appendChild(document.createTextNode("n/A KG "));
+					}
+					var kg_img = document.createElement("img");
+                                        kg_img.src = "/img/symbol_person_weight.svg";
+                                        kg_img.style.width = "15px";
+                                        kg_img.style.padding = "1px";
+                                        kg_img.style.borderRadius = "4px";
+                                        kg_img.style.verticalAlign = "middle";
+                                        menu.circle_view["box_right_0"].appendChild(kg_img);
+
+					menu.circle_view["box_right_1"].innerHTML = "";
+					if (user_state.state[idx[i]]["FatPercent"] != null) {
+						menu.circle_view["box_right_1"].appendChild(document.createTextNode(user_state.state[idx[i]]["FatPercent"] + " % "));
+					} else {
+						menu.circle_view["box_right_1"].appendChild(document.createTextNode("n/A % "));
+					}
+					var fat_img = document.createElement("img");
+                                        fat_img.src = "/img/symbol_fat.svg";
+                                        fat_img.style.width = "15px";
+                                        fat_img.style.background = "var(--fat_color)";
+                                        fat_img.style.padding = "1px";
+                                        fat_img.style.borderRadius = "4px";
+					fat_img.style.verticalAlign = "middle";
+                                        menu.circle_view["box_right_1"].appendChild(fat_img);
+
+					menu.circle_view["box_right_2"].innerHTML = "";
+					if (user_state.state[idx[i]]["MusclePercent"] != null) {
+						menu.circle_view["box_right_2"].appendChild(document.createTextNode(user_state.state[idx[i]]["MusclePercent"] + " % "));
+					} else {
+						menu.circle_view["box_right_2"].appendChild(document.createTextNode("n/A % "));
+					}
+					var muscle_img = document.createElement("img");
+                                        muscle_img.src = "/img/symbol_muscle.svg";
+                                        muscle_img.style.width = "15px";
+                                        muscle_img.style.background = "var(--muscle_color)";
+                                        muscle_img.style.padding = "1px";
+                                        muscle_img.style.borderRadius = "4px";
+					muscle_img.style.verticalAlign = "middle";
+                                        menu.circle_view["box_right_2"].appendChild(muscle_img);
+				}
+			}
+
+			graph.draw_graph();
+			graph.draw_scale("KG", "left", 10);
+			graph.draw_scale("%", "right", 50);
+
+			graph_container.appendChild(graph.elem);
+			menu.circle_view["box_center"].appendChild(graph_container);
 		}
 	}
 
@@ -275,6 +384,7 @@ var UserState = function(db, change_dependencies) {
 		if (resp["status"] == true) {
 			var to_delete_element = document.getElementById(user_state.widget.name + "_state_" + resp["deleted_state"]["Id"]);
 			user_state.user_state.removeChild(to_delete_element);
+			delete user_state.state[resp["deleted_state"]["Id"]];
 			user_state.changed_f();
 		}
 	}
@@ -300,7 +410,6 @@ var UserState = function(db, change_dependencies) {
 				user_state.user_state.appendChild(user_state.get_state_node(resp["new_state"]));
 			}
 			user_state.changed_f();
-			user_state.changed = false;
 		}
 	}
 
@@ -348,10 +457,12 @@ var UserState = function(db, change_dependencies) {
                                         user_state.user_state.appendChild(state_elem);
                                         user_state.on_insert_bmi_factors_change();
 					if (i == 0) {
-						user_state.circle_view_interface["BMI"] = state_elem.children[0].innerHTML;
-					}
+                                                user_state.circle_view_interface["BMI"] = state_elem.children[0].innerHTML;
+                                        }
 				}
-
+				if (menu.active_widget == user_state.widget.name) {
+					user_state.set_circle_view();
+				}
 				user_state.changed_f();
 				user_state.changed = false;
 			}

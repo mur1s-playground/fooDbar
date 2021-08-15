@@ -21,6 +21,9 @@
 	--circle_box_background: #cdcdcd;
 }
 
+body {
+	background: #f9f9f9;
+}
 
 span {
 	margin: 5px;
@@ -61,6 +64,13 @@ td {
 
 .datatable_header {
 	width: 60px;
+}
+
+.graph_scale_text {
+	font-size: 15px;
+	padding: 2px;
+	background: #eeeeee;
+	border-radius: 5px;
 }
 
 /* MENU */

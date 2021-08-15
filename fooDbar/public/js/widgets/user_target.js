@@ -3,6 +3,7 @@ var UserTarget = function(db, change_dependencies) {
 	this.change_dependencies = change_dependencies;
 
 	this.target = null;
+	this.bmi_current = null;
 
 	this.data_table = new DataTable(this, "target",
                                 {       "Bmi": { "title": "BMI", "header": { "type": "img", "img_src": "/img/symbol_bmi.svg", "img_class": "datatable_header" } },
@@ -126,6 +127,7 @@ var UserTarget = function(db, change_dependencies) {
 				for (var i = 0; i < idx.length; i++) {
 					if (i == 0) {
                                                 user_target.user_target.appendChild(user_target.data_table.get_insert_row(user_target.target[idx[i]]));
+						user_target.bmi_current = user_target.target[idx[i]]["Bmi"];
 					}
 					var target_elem = user_target.get_target_node(user_target.target[idx[i]]);
                                         user_target.user_target.appendChild(target_elem);

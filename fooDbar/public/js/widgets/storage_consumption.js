@@ -133,7 +133,7 @@ var StorageConsumption = function(db, change_dependencies) {
 		var protein_target 	= 22.5;
 
 		var fat_ind = (today["FatPercent"]/fat_target) * 65;
-                if (fat_ind > 91) fat_ind = 91;
+                if (fat_ind > 78) fat_ind = 78;
 
 		var n_fat_ind					= document.createElement("div");
 		n_fat_ind.id					= "consumption_circle_nutrition_fat_box_ind";
@@ -142,7 +142,7 @@ var StorageConsumption = function(db, change_dependencies) {
 		nutrition_container.appendChild(n_fat_ind);
 
 		var carbs_ind = (today["CarbsPercent"]/carbs_target) * 65;
-                if (carbs_ind > 91) carbs_ind = 91;
+                if (carbs_ind > 78) carbs_ind = 78;
 
                 var n_carbs_ind                                 = document.createElement("div");
                 n_carbs_ind.id                                  = "consumption_circle_nutrition_carbs_box_ind";
@@ -151,7 +151,7 @@ var StorageConsumption = function(db, change_dependencies) {
                 nutrition_container.appendChild(n_carbs_ind);
 
 		var protein_ind = (today["ProteinPercent"]/protein_target) * 65;
-                if (protein_ind > 91) protein_ind = 91;
+                if (protein_ind > 78) protein_ind = 78;
 
                 var n_protein_ind                                = document.createElement("div");
                 n_protein_ind.id                                 = "consumption_circle_nutrition_protein_box_ind";
