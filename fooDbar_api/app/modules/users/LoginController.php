@@ -23,7 +23,7 @@ class LoginController {
         $result = array("status" => false);
         if (is_null($user)) {
                 $result["error"] = "permission denied";
-                exit(json_encode($result, JSON_PRETTY_PRINT));
+                exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
         }
 	return $user;
     }
@@ -31,7 +31,7 @@ class LoginController {
     public static function validateLogin($login_data) {
 	$email = $login_data->{"email"};
 	$token = $login_data->{"token"};
-	if (!is_null($email) && !is_null($token)) {
+	if (!empty($email) && !empty($token)) {
 		$condition = new Condition("[c1] AND [c2]", array(
                     "[c1]" =>   [
                                     [UsersModel::class, UsersModel::FIELD_EMAIL],
@@ -62,7 +62,7 @@ class LoginController {
 
 	$result = array();
 	$result["status"] = false;
-	if (!is_null($email) && !is_null($password)) {
+	if (!empty($email) && !empty($password)) {
 		$condition = new Condition("[c1] AND [c2]", array(
 	            "[c1]" =>   [
 	                            [UsersModel::class, UsersModel::FIELD_EMAIL],
@@ -94,7 +94,7 @@ class LoginController {
 		}
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function logoutAction() {
@@ -103,7 +103,7 @@ class LoginController {
 	$user->setToken("");
 	$result["status"] = true;
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function updateAction() {
@@ -116,7 +116,7 @@ class LoginController {
 
 	$result["status"] = true;
 	$result["allergies"] = Allergies\AllergyController::getAllergyValues($user);
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function updatepasswordAction() {
@@ -150,7 +150,7 @@ class LoginController {
 	        $result["error"] = "wrong password";
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function registerAction() {
@@ -187,6 +187,6 @@ class LoginController {
 		}
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

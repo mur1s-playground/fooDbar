@@ -499,7 +499,7 @@ class ProcessconsumptionController {
 	$result = array();
         $result["status"] = true;
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function getAction() {
@@ -572,6 +572,6 @@ class ProcessconsumptionController {
 		$result["recipe_consumption_group_agg"]->{$recipe_consumption_group_agg->getId()}["ProductsIds"] = $rcg->getProductsIds();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

@@ -58,7 +58,7 @@ class IndexController {
 		$result["recipe_request_daily_preset"]->{$rrdp->getId()} = $rrdp->toArray();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertdailyuserpresetAction() {
@@ -76,7 +76,7 @@ class IndexController {
 	$result["Day"] = $data->{'Day'};
 	$result["recipe_request_daily_preset_item"] = $rrdp->toArray();;
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function deletedailyuserpresetAction() {
@@ -107,7 +107,7 @@ class IndexController {
 		$resutl["status"] = false;
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function requestAction() {
@@ -364,7 +364,7 @@ class IndexController {
 		}
 	}
 	$result["product_demand"] = $product_demand;
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function indexAction() {
@@ -633,7 +633,7 @@ class IndexController {
 		}
 	}
 	$result["products"] = $t_products;
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
 */
     }
 }

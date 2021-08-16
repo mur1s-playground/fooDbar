@@ -55,7 +55,7 @@ class SourceController {
 		$result["products_source"]->{$products_source->getId()} = $products_source->toArray();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -78,7 +78,7 @@ class SourceController {
         $result["status"] = true;
 	$result["new_products_source"] = $products_source->toArray();
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -87,6 +87,6 @@ class SourceController {
 	$result = array();
         $result["status"] = false;
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

@@ -101,7 +101,7 @@ class ConsumptionController {
 		$result["consumption"]->{$consumption->getId()}["ProductsId"] = $storage_model->getProductsId();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function addAction() {
@@ -238,7 +238,7 @@ class ConsumptionController {
 		}
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function undoAction() {
@@ -310,6 +310,6 @@ class ConsumptionController {
                 $result["error"] = "item not found/accessible";
 	}
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

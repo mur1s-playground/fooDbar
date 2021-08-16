@@ -40,7 +40,7 @@ class StateController {
 		$result["state"]->{$users_state->getId()} = $users_state->toArray();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -76,7 +76,7 @@ class StateController {
 	$result["status"] = true;
 	$result["new_state"] = $user_state->toArray();
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -108,6 +108,6 @@ class StateController {
 		$users_state->delete();
 	}
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

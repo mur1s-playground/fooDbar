@@ -2,8 +2,8 @@
 
 namespace Frame;
 
-require "Config.php";
-require "DB/DBO.php";
+require (__DIR__ . "/Config.php");
+require (__DIR__ . "/DB/DBO.php");
 
 $GLOBALS['Boot'] = null;
 
@@ -14,7 +14,7 @@ class Boot {
     private $loadedModules = array();
 
     public function __construct($config_path) {
-        $this->config = new Config($config_path);
+	$this->config = new Config($config_path);
         $this->DBO = new DBO($this->config);
         $GLOBALS['Boot'] = &$this;
     }

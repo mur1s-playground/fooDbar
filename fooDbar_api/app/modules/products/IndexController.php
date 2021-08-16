@@ -49,6 +49,7 @@ class IndexController {
 
         $products = new ProductsModel();
         $products->find();
+
 	$result["products"] = new \stdClass();
 	while ($products->next()) {
 		$result["products"]->{$products->getId()} = $products->toArray();
@@ -56,12 +57,13 @@ class IndexController {
 
 	$amount_type = new AmountTypeModel();
 	$amount_type->find();
+
 	$result["amount_type"] = new \stdClass();
 	while ($amount_type->next()) {
 		$result["amount_type"]->{$amount_type->getId()} = $amount_type->toArray();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -98,7 +100,7 @@ class IndexController {
 	$result["status"] = true;
 	$result["new_product"] = $product->toArray();
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -125,6 +127,6 @@ class IndexController {
 		$product->delete();
 	}
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

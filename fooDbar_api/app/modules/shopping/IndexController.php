@@ -109,7 +109,7 @@ class IndexController {
 		$result["shopping_list"]->{$sl->getId()}["ProductsSourceIds"] = implode(';', $ps_ids);
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -129,7 +129,7 @@ class IndexController {
 		$result["new_shopping_list_items"]->{$sl->getId()} = $sl->toArray();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -139,6 +139,6 @@ class IndexController {
 
 	$result = self::removeItem($user, $data);
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

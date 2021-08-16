@@ -39,7 +39,7 @@ class TargetController {
 		$result["target"]->{$users_target->getId()} = $users_target->toArray();
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -67,7 +67,7 @@ class TargetController {
 	$result["status"] = true;
 	$result["new_target"] = $user_target->toArray();
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -99,6 +99,6 @@ class TargetController {
 		$users_target->delete();
 	}
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

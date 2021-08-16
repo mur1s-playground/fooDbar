@@ -122,7 +122,7 @@ class PriceController {
 	$result = array();
         $result["status"] = false;
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -131,7 +131,7 @@ class PriceController {
         $result = array();
         $result["status"] = false;
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -140,6 +140,6 @@ class PriceController {
 	$result = array();
         $result["status"] = false;
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

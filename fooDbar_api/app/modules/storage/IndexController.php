@@ -70,7 +70,7 @@ class IndexController {
         }
 
 	$result = array("status" => false, "error" => "permission denied");
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public static function getStoragesContent($user) {
@@ -176,7 +176,7 @@ class IndexController {
 	}
 	$result["storages"] = $storages;
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -210,7 +210,7 @@ class IndexController {
 		$result["removed_shopping_list_item"] = Shopping\IndexController::removeItem($user, $data->{'ShoppingListId'});
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -267,6 +267,6 @@ class IndexController {
 		$result["error"] = "item not found/accessible";
 	}
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

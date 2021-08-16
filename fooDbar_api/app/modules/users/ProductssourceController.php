@@ -86,7 +86,7 @@ class ProductssourceController {
         $result["status"] = true;
         $result["products_source"] = self::getUsersProductsSources($user);
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function insertAction() {
@@ -105,7 +105,7 @@ class ProductssourceController {
 		$result["error"] = "Products source already in list";
 	}
 
-	exit(json_encode($result, JSON_PRETTY_PRINT));
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
     public function removeAction() {
@@ -114,6 +114,6 @@ class ProductssourceController {
 	$result = array();
 	$result["status"] = false;
 
-        exit(json_encode($result, JSON_PRETTY_PRINT));
+        exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }
