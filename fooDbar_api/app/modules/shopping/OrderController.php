@@ -16,9 +16,11 @@ use \Frame\Limit	as Limit;
 
 $GLOBALS['Boot']->loadModel("ShoppingListModel");
 $GLOBALS['Boot']->loadModel("ProductsModel");
+$GLOBALS['Boot']->loadModel("AmountTypeModel");
 
 use \FooDBar\ShoppingListModel		as ShoppingListModel;
 use \FooDBar\ProductsModel		as ProductsModel;
+use \FooDBar\AmountTypeModel		as AmountTypeModel;
 
 use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
 use \FooDBar\Products\PriceController 		as PriceController;
@@ -59,10 +61,18 @@ class OrderController {
 		]
 	));
 
+	$sl_join_amount = new Join(new AmountTypeModel(), "[j2]", array(
+		"[j2]" => [
+				[ProductsModel::class, ProductsModel::FIELD_AMOUNT_TYPE_ID],
+				Condition::COMPARISON_EQUALS,
+				[AmountTypeModel::class, AmountTypeModel::FIELD_ID]
+		]
+	));
+
 	$sl_order = new Order(ShoppingListModel::class, ShoppingListModel::FIELD_ID, Order::ORDER_DESC);
 
 	$sl = new ShoppingListModel();
-	$sl->find($sl_cond, array($sl_join), $sl_order);
+	$sl->find($sl_cond, array($sl_join, $sl_join_amount), $sl_order);
 
 	$today = date_create();
         $date_now = $today->format("Y-m-d H:i:s");
@@ -75,29 +85,29 @@ class OrderController {
 
 	while ($sl->next()) {
 		$product = $sl->joinedModelByClass(ProductsModel::class);
+		$amount_type = $sl->joinedModelByClass(AmountTypeModel::class);
 
 		$product_count = ceil($sl->getAmount() / $product->getAmount());
 
-		$message .= $sl->getAmount() . "\t" . $product->getName() . "\t" . $product_count . " x " . $product->getAmount() . "\n";
-
+		$message .= $product_count . " x " . $product->getAmount() . $amount_type->getName() . " (" . round($sl->getAmount(), 2) . $amount_type->getName() . ") " . $product->getName() . "\r\n";
 
 		foreach ($result['products_source'] as $ps_id => $name_concat) {
 			$price = PriceController::getPrice($sl->getProductsId(), $ps_id, $date_now);
 			if ($price->next()) {
-				$message .= $name_concat["Name"] . "\t" . $price->getPrice();
+				$message .= $price->getPrice() . " EUR - " . $name_concat["Name"] . "\r\n";
 			}
 		}
 
+		$message .= "\r\n\r\n";
 		$ordered_sl_ids[] = $sl->getId();
 	}
 
 	$result["status"] = false;
 	if (count($ordered_sl_ids) > 0) {
-/*
 		if (!mail($user->getEmail(), "Shopping List", $message, "From: mur1s.playground@root.de")) {
 			$result["error"] = "email not sent";
 		} else {
-*/
+
 			$sl_max_id_cond = new Condition("[c1] AND [c2]", array(
 		                "[c1]" => [
                 		                [ShoppingListModel::class, ShoppingListModel::FIELD_USERS_ID],
@@ -138,7 +148,7 @@ class OrderController {
 			$result["status"] = true;
 			$result["order_shopping_list_ids"] = $ordered_sl_ids;
 			$result["OrderId"] = $max_id + 1;
-//		}
+		}
 	} else {
 		$result["status"] = true;
 	}
