@@ -170,6 +170,10 @@ var UserState = function(db, change_dependencies) {
 			graph.add_field("Muscle", "%");
 			graph.fields["Muscle"]["color"] = "var(--muscle_color)";
 
+			menu.circle_view["box_right_0"].innerHTML = "n/A KG ";
+			menu.circle_view["box_right_1"].innerHTML = "n/A % ";
+			menu.circle_view["box_right_2"].innerHTML = "n/A % ";
+
 			var idx = [];
                         for (var state in user_state.state) {
                         	if (user_state.state.hasOwnProperty(state)) {
@@ -188,51 +192,36 @@ var UserState = function(db, change_dependencies) {
 					graph.add_field_value("Muscle", ts, parseFloat(user_state.state[idx[i]]["MusclePercent"]));
 				}
 				if (i == idx.length - 1) {
-					menu.circle_view["box_right_0"].innerHTML = "";
 					if (user_state.state[idx[i]]["Weight"] != null) {
-						menu.circle_view["box_right_0"].appendChild(document.createTextNode(user_state.state[idx[i]]["Weight"] + " KG "));
-					} else {
-						menu.circle_view["box_right_0"].appendChild(document.createTextNode("n/A KG "));
+						menu.circle_view["box_right_0"].innerHTML = user_state.state[idx[i]]["Weight"] + " KG ";
 					}
-					var kg_img = document.createElement("img");
-                                        kg_img.src = "/img/symbol_person_weight.svg";
-                                        kg_img.style.width = "15px";
-                                        kg_img.style.padding = "1px";
-                                        kg_img.style.borderRadius = "4px";
-                                        kg_img.style.verticalAlign = "middle";
-                                        menu.circle_view["box_right_0"].appendChild(kg_img);
-
-					menu.circle_view["box_right_1"].innerHTML = "";
 					if (user_state.state[idx[i]]["FatPercent"] != null) {
-						menu.circle_view["box_right_1"].appendChild(document.createTextNode(user_state.state[idx[i]]["FatPercent"] + " % "));
-					} else {
-						menu.circle_view["box_right_1"].appendChild(document.createTextNode("n/A % "));
+						menu.circle_view["box_right_1"].innerHTML = user_state.state[idx[i]]["FatPercent"] + " % ";
 					}
-					var fat_img = document.createElement("img");
-                                        fat_img.src = "/img/symbol_fat.svg";
-                                        fat_img.style.width = "15px";
-                                        fat_img.style.background = "var(--fat_color)";
-                                        fat_img.style.padding = "1px";
-                                        fat_img.style.borderRadius = "4px";
-					fat_img.style.verticalAlign = "middle";
-                                        menu.circle_view["box_right_1"].appendChild(fat_img);
-
-					menu.circle_view["box_right_2"].innerHTML = "";
 					if (user_state.state[idx[i]]["MusclePercent"] != null) {
-						menu.circle_view["box_right_2"].appendChild(document.createTextNode(user_state.state[idx[i]]["MusclePercent"] + " % "));
-					} else {
-						menu.circle_view["box_right_2"].appendChild(document.createTextNode("n/A % "));
+						menu.circle_view["box_right_2"].innerHTML = user_state.state[idx[i]]["MusclePercent"] + " % ";
 					}
-					var muscle_img = document.createElement("img");
-                                        muscle_img.src = "/img/symbol_muscle.svg";
-                                        muscle_img.style.width = "15px";
-                                        muscle_img.style.background = "var(--muscle_color)";
-                                        muscle_img.style.padding = "1px";
-                                        muscle_img.style.borderRadius = "4px";
-					muscle_img.style.verticalAlign = "middle";
-                                        menu.circle_view["box_right_2"].appendChild(muscle_img);
 				}
 			}
+
+			var fat_img = document.createElement("img");
+                        fat_img.src = "/img/symbol_fat.svg";
+                        fat_img.style.width = "15px";
+                        fat_img.style.background = "var(--fat_color)";
+                        fat_img.style.padding = "1px";
+                        fat_img.style.borderRadius = "4px";
+                        fat_img.style.verticalAlign = "middle";
+                        menu.circle_view["box_right_1"].appendChild(fat_img);
+
+			var muscle_img = document.createElement("img");
+                        muscle_img.src = "/img/symbol_muscle.svg";
+                        muscle_img.style.width = "15px";
+                        muscle_img.style.background = "var(--muscle_color)";
+                        muscle_img.style.padding = "1px";
+                        muscle_img.style.borderRadius = "4px";
+                        muscle_img.style.verticalAlign = "middle";
+                        menu.circle_view["box_right_2"].appendChild(muscle_img);
+
 
 			graph.draw_graph();
 			graph.draw_scale("KG", "left", 10);

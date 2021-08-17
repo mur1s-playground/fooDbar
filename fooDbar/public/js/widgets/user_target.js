@@ -58,6 +58,108 @@ var UserTarget = function(db, change_dependencies) {
 	this.user_target.className = "user_target";
 	this.widget.content.appendChild(this.user_target);
 
+	this.add_entry_state = { };
+
+	this.add_entry_next = function(state_nr, number) {
+	         if (state_nr == 0) {
+                        user_target.add_entry_state["Bmi"] = number;
+                        var ne = new NumberEntry([196, 196], user_target.add_entry_next, 1, "> Fat %");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+                } else if (state_nr == 1) {
+                        user_target.add_entry_state["FatPercent"] = number;
+                        var ne = new NumberEntry([196, 196], user_target.add_entry_next, 2, "> Muscle %");
+                        menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(ne.elem);
+                } else if (state_nr == 2) {
+                        user_target.add_entry_state["MusclePercent"] = number;
+			menu.circle_view["box_center"].children[0].innerHTML = "";
+                        menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("BMI: " + user_target.add_entry_state["Bmi"]));
+                        menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+                        menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Fat: " + user_target.add_entry_state["FatPercent"] + " %"));
+                        menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+                        menu.circle_view["box_center"].children[0].appendChild(document.createTextNode("Muscle: " + user_target.add_entry_state["MusclePercent"] + " %"));
+                        menu.circle_view["box_center"].children[0].appendChild(document.createElement("br"));
+                        var submit = document.createElement("button");
+                        submit.innerHTML = "&#10003;";
+                        submit.onclick = function() {
+				var p = {
+                                        "target" : user_target.add_entry_state
+                                };
+                                user_target.db.query_post("users/target/insert", p, user_target.on_target_add_response);
+                        }
+                        menu.circle_view["box_center"].children[0].appendChild(submit);
+		}
+	}
+
+	this.set_circle_view = function() {
+		if (user_target.target != null) {
+
+			menu.circle_view["box_right_0"].innerHTML = "n/A BMI ";
+                        menu.circle_view["box_right_1"].innerHTML = "n/A % ";
+                        menu.circle_view["box_right_2"].innerHTML = "n/A % ";
+
+			var idx = [];
+                        for (var target in user_target.target) {
+                                if (user_target.target.hasOwnProperty(target)) {
+                                        idx.push(target);
+                                }
+                        }
+                        idx.sort(function(a, b) {return b-a});
+                        for (var i = 0; i < idx.length; i++) {
+				if (user_target.target[idx[i]]["Bmi"] != null) {
+					menu.circle_view["box_right_0"].innerHTML = user_target.target[idx[i]]["Bmi"] + " BMI ";
+				}
+				if (user_target.target[idx[i]]["FatPercent"] != null) {
+					menu.circle_view["box_right_1"].innerHTML = user_target.target[idx[i]]["FatPercent"] + " % ";
+				}
+				if (user_target.target[idx[i]]["MusclePercent"] != null) {
+					menu.circle_view["box_right_2"].innerHTML = user_target.target[idx[i]]["MusclePercent"] + " % ";
+				}
+
+				break;
+			}
+
+                        var fat_img = document.createElement("img");
+                        fat_img.src = "/img/symbol_fat.svg";
+                        fat_img.style.width = "15px";
+                        fat_img.style.background = "var(--fat_color)";
+                        fat_img.style.padding = "1px";
+                        fat_img.style.borderRadius = "4px";
+                        fat_img.style.verticalAlign = "middle";
+                        menu.circle_view["box_right_1"].appendChild(fat_img);
+
+                        var muscle_img = document.createElement("img");
+                        muscle_img.src = "/img/symbol_muscle.svg";
+                        muscle_img.style.width = "15px";
+                        muscle_img.style.background = "var(--muscle_color)";
+                        muscle_img.style.padding = "1px";
+                        muscle_img.style.borderRadius = "4px";
+                        muscle_img.style.verticalAlign = "middle";
+                        menu.circle_view["box_right_2"].appendChild(muscle_img);
+
+
+			menu.circle_view["box_center"].innerHTML = "";
+
+			menu.circle_view["box_left_0"].innerHTML = "";
+
+                        var add_entry = document.createElement("a");
+                        add_entry.innerHTML = "&#xFF0B;";
+                        add_entry.onclick = function() {
+                                menu.circle_view["box_center"].innerHTML = "";
+
+                                user_target.add_entry_state = {};
+                                var ne_container = document.createElement("div");
+                                ne_container.style.width = "196px";
+                                ne_container.style.height = "196px";
+                                var ne = new NumberEntry([196, 196], user_target.add_entry_next, 0, "> BMI", 21);
+                                ne_container.appendChild(ne.elem);
+                                menu.circle_view["box_center"].appendChild(ne_container);
+                        }
+                        menu.circle_view["box_left_0"].appendChild(add_entry);
+		}
+	}
+
 	this.on_remove_response = function() {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
@@ -89,6 +191,7 @@ var UserTarget = function(db, change_dependencies) {
 			}
 			user_target.changed_f();
 			user_target.changed = false;
+			user_target.set_circle_view();
 		}
 	}
 

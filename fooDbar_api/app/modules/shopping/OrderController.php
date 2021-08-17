@@ -83,6 +83,12 @@ class OrderController {
 
 	$message = "";
 
+	$min_price = 0;
+	$max_price = 0;
+
+	$min_eff_price = 0;
+	$max_eff_price = 0;
+
 	while ($sl->next()) {
 		$product = $sl->joinedModelByClass(ProductsModel::class);
 		$amount_type = $sl->joinedModelByClass(AmountTypeModel::class);
@@ -91,16 +97,34 @@ class OrderController {
 
 		$message .= $product_count . " x " . $product->getAmount() . $amount_type->getName() . " (" . round($sl->getAmount(), 2) . $amount_type->getName() . ") " . $product->getName() . "\r\n";
 
+		$min_p = null;
+		$max_p = null;
+
 		foreach ($result['products_source'] as $ps_id => $name_concat) {
 			$price = PriceController::getPrice($sl->getProductsId(), $ps_id, $date_now);
 			if ($price->next()) {
 				$message .= $price->getPrice() . " EUR - " . $name_concat["Name"] . "\r\n";
+
+				if ($min_p == null || $min_p > $price->getPrice()) {
+					$min_p = $price->getPrice();
+				}
+				if ($max_p == null || $max_p < $price->getPrice()) {
+					$max_p = $price->getPrice();
+				}
 			}
 		}
+
+		$min_price += $product_count * $min_p;
+		$max_price += $product_count * $max_p;
+
+		$min_eff_price += ($sl->getAmount() / $product->getAmount()) * $min_p;
+		$max_eff_price += ($sl->getAmount() / $product->getAmount()) * $max_p;
 
 		$message .= "\r\n\r\n";
 		$ordered_sl_ids[] = $sl->getId();
 	}
+
+	$message .= "Total: {$min_price} - {$max_price} EUR (eff: " . round($min_eff_price, 2) . " - " . round($max_eff_price, 2) . " EUR)\r\n";
 
 	$result["status"] = false;
 	if (count($ordered_sl_ids) > 0) {

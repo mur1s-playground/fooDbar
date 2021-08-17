@@ -70,6 +70,7 @@ var Recipes = function(db, change_dependencies) {
 		}
 		recipes.recipes_sub_menu.appendChild(raw_btn);
 */
+/*
 		var update_btn = document.createElement("button");
 		var refresh_img = document.createElement("img");
 		refresh_img.src = "/img/symbol_refresh.svg";
@@ -81,6 +82,7 @@ var Recipes = function(db, change_dependencies) {
                         recipes.db.query_post("recipe/processconsumption/update", p, recipes.on_process_consumption_update_result);
                 }
 		recipes.recipes_sub_menu.appendChild(update_btn);
+*/
 	}
 
         this.data_table = new DataTable(this, "recipe_consumption_group",

@@ -7,7 +7,7 @@ var Menu = function(db, change_dependencies) {
 
 	this.widgets_circle_view_setter = [
 				user_state.set_circle_view,
-				null,
+				user_target.set_circle_view,
                                 null,
                                 storage_consumption.set_circle_view,
                                 null,
