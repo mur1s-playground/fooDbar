@@ -56,6 +56,17 @@ var Storage = function(db, change_dependencies) {
 						                                	storage.db.query_post("storage/index/remove", p, storage.on_remove_response);
 							                        }
 							                }
+                                                },
+					"Divide": { "title": "Divide onto consumptions", "type": "text", "text": "&#xf7;", "onclick":
+                                                                        function() {
+                                                                                var p = {
+                                                                                        "storage_item_id": this.obj["Id"]
+                                                                                };
+                                                                                var r = confirm("Divide storage item " + this.obj["Id"] + " onto consumptions?");
+                                                                                if (r == 1) {
+                                                                                        storage.db.query_post("storage/index/divide", p, storage.on_divide_response);
+                                                                                }
+                                                                        }
                                                 }
                                 }
                         );
@@ -79,6 +90,13 @@ var Storage = function(db, change_dependencies) {
 	this.storage = document.createElement("table");
 	this.storage.className = "storage";
 	this.widget.content.appendChild(this.storage);
+
+	this.on_divide_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			storage.changed_f();
+		}
+	}
 
 	this.on_remove_response = function() {
 		var resp = JSON.parse(this.responseText);

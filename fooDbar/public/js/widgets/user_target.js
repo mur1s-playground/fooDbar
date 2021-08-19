@@ -6,11 +6,11 @@ var UserTarget = function(db, change_dependencies) {
 	this.bmi_current = null;
 
 	this.data_table = new DataTable(this, "target",
-                                {       "Bmi": { "title": "BMI", "header": { "type": "img", "img_src": "/img/symbol_bmi.svg", "img_class": "datatable_header" } },
-                                        "Weight": { "title": "Weight", "header": { "type": "img", "img_src": "/img/symbol_person_weight.svg", "img_class": "datatable_header" } },
-                                        "FatPercent": { "title": "Fat %", "header": { "type": "img", "img_src": "/img/symbol_fat.svg", "img_class": "datatable_header" } },
-                                        "MusclePercent": { "title": "Muscle %", "header": { "type": "img", "img_src": "/img/symbol_muscle.svg", "img_class": "datatable_header" } },
-                                        "DateInsert": { "title": "Date", "header": { "type": "img", "img_src": "/img/symbol_calendar.svg", "img_class": "datatable_header" } }
+                                {       "Bmi": { "title": "BMI", "header": { "type": "img", "img_src": "./img/symbol_bmi.svg", "img_class": "datatable_header" } },
+                                        "Weight": { "title": "Weight", "header": { "type": "img", "img_src": "./img/symbol_person_weight.svg", "img_class": "datatable_header" } },
+                                        "FatPercent": { "title": "Fat %", "header": { "type": "img", "img_src": "./img/symbol_fat.svg", "img_class": "datatable_header" } },
+                                        "MusclePercent": { "title": "Muscle %", "header": { "type": "img", "img_src": "./img/symbol_muscle.svg", "img_class": "datatable_header" } },
+                                        "DateInsert": { "title": "Date", "header": { "type": "img", "img_src": "./img/symbol_calendar.svg", "img_class": "datatable_header" } }
                                 },
                                 {       "Bmi": { "placeholder": "BMI", "oninput": function() { user_target.on_insert_weight_factor_change(); } },
                                         "FatPercent": { "placeholder": "Fat%" },
@@ -121,7 +121,7 @@ var UserTarget = function(db, change_dependencies) {
 			}
 
                         var fat_img = document.createElement("img");
-                        fat_img.src = "/img/symbol_fat.svg";
+                        fat_img.src = "./img/symbol_fat.svg";
                         fat_img.style.width = "15px";
                         fat_img.style.background = "var(--fat_color)";
                         fat_img.style.padding = "1px";
@@ -130,7 +130,7 @@ var UserTarget = function(db, change_dependencies) {
                         menu.circle_view["box_right_1"].appendChild(fat_img);
 
                         var muscle_img = document.createElement("img");
-                        muscle_img.src = "/img/symbol_muscle.svg";
+                        muscle_img.src = "./img/symbol_muscle.svg";
                         muscle_img.style.width = "15px";
                         muscle_img.style.background = "var(--muscle_color)";
                         muscle_img.style.padding = "1px";

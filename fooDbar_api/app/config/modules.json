@@ -16,24 +16,12 @@
     },
     "products": {
         "controllers": {
-            "Fetch": {
-                "defaultAction": "fetch",
-                "actions": [
-                    "fetch"
-                ]
-            },
             "Index": {
                 "defaultAction": "get",
                 "actions": [
                     "get",
                     "insert",
                     "remove"
-                ]
-            },
-            "Parse": {
-                "defaultAction": "parse",
-                "actions": [
-                    "parse"
                 ]
             },
             "Price": {
@@ -70,7 +58,6 @@
             "Processconsumption": {
                 "defaultAction": "get",
                 "actions": [
-                    "update",
                     "get"
                 ]
             }
@@ -111,7 +98,8 @@
                 "actions": [
                     "get",
                     "insert",
-                    "remove"
+                    "remove",
+                    "divide"
                 ]
             }
         },

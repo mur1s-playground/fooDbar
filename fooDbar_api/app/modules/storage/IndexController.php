@@ -18,12 +18,14 @@ $GLOBALS['Boot']->loadModel("StoragesModel");
 $GLOBALS['Boot']->loadModel("StoragesMembershipModel");
 $GLOBALS['Boot']->loadModel("ProductsSourceModel");
 $GLOBALS['Boot']->loadModel("ProductsPriceModel");
+$GLOBALS['Boot']->loadModel("StorageConsumptionModel");
 
 use \FooDBar\StorageModel 		as StorageModel;
 use \FooDBar\StoragesModel 		as StoragesModel;
 use \FooDBar\StoragesMembershipModel 	as StoragesMembershipModel;
 use \FooDBar\ProductsSourceModel 	as ProductsSourceModel;
 use \FooDBar\ProductsPriceModel 	as ProductsPriceModel;
+use \FooDBar\StorageConsumptionModel	as StorageConsumptionModel;
 
 use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
 use \FooDBar\Products\PriceController 		as PriceController;
@@ -268,5 +270,78 @@ class IndexController {
 	}
 
         exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
+
+    public function divideAction() {
+	$user = LoginController::requireAuth();
+
+        $data = $GLOBALS['POST']->{'storage_item_id'};
+
+        $storage_cond = new Condition("[c1] AND [c2]", array(
+                "[c1]" => [
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $user->getId()]
+                        ],
+                "[c2]" => [
+                                [StorageModel::class, StorageModel::FIELD_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $data]
+                        ]
+        ));
+
+        $storage_join = new Join(new StorageModel(), "[j1]", array(
+                "[j1]" => [
+                                [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_STORAGES_ID]
+                ]
+        ));
+
+        $storages_membership = new StoragesMembershipModel();
+        $storages_membership->find($storage_cond, array($storage_join));
+
+        $result = array();
+        $result["status"] = true;
+        if ($storages_membership->next()) {
+                $storage = $storages_membership->joinedModelByClass(StorageModel::class);
+
+		$amount = $storage->getAmount();
+
+		$storage_consumption_cond = new Condition("[c1]", array(
+			"[c1]" => [
+				[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $storage->getId()]
+			]
+		));
+
+		$storage_consumption_order = new Order(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME, Order::ORDER_DESC);
+
+		$storage_consumption = new StorageConsumptionModel();
+		$storage_consumption->find($storage_consumption_cond, null, $storage_consumption_order);
+
+		$consumption_ct = $storage_consumption->count();
+		if ($consumption_ct > 0) {
+			$amount_per_consumption = $amount / $consumption_ct;
+
+			$storage->setAmount(0.0);
+			$dt_set = false;
+			while ($storage_consumption->next()) {
+				if (!$dt_set) {
+					$storage->setDatetimeEmpty($storage_consumption->getDatetime());
+					$dt_set = true;
+				}
+				$storage_consumption->setAmount(round($storage_consumption->getAmount() + $amount_per_consumption, 4));
+				$storage_consumption->save();
+			}
+			$storage->save();
+		}
+	} else {
+		$result["status"] = false;
+                $result["error"] = "item not found/accessible";
+	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

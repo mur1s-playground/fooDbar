@@ -6,15 +6,15 @@ var UserState = function(db, change_dependencies) {
 	this.newest_height = null;
 
 	this.data_table = new DataTable(this, "state",
-				{ 	"Bmi": { "title": "BMI", "header": { "type": "img", "img_src": "/img/symbol_bmi.svg", "img_class": "datatable_header" } },
-					"Height": { "title": "Height", "header": { "type": "img", "img_src": "/img/symbol_person_height.svg", "img_class": "datatable_header" } },
-					"Weight": { "title": "Weight", "header": { "type": "img", "img_src": "/img/symbol_person_weight.svg", "img_class": "datatable_header" } },
-					"FatPercent": { "title": "Fat %", "header": { "type": "img", "img_src": "/img/symbol_fat.svg", "img_class": "datatable_header" } },
-					"MusclePercent": { "title": "Muscle %", "header": { "type": "img", "img_src": "/img/symbol_muscle.svg", "img_class": "datatable_header" } },
-					"BonePercent": { "title": "Bone %", "header": { "type": "img", "img_src": "/img/symbol_bone.svg", "img_class": "datatable_header" } },
-					"WaterPercent": { "title": "Water %", "header": { "type": "img", "img_src": "/img/symbol_water.svg", "img_class": "datatable_header" } },
-					"Pal": { "title": "PAL", "header": { "type": "img", "img_src": "/img/symbol_pal.svg", "img_class": "datatable_header" } },
-					"DatetimeInsert": { "title": "Date", "header": { "type": "img", "img_src": "/img/symbol_calendar.svg", "img_class": "datatable_header" } }
+				{ 	"Bmi": { "title": "BMI", "header": { "type": "img", "img_src": "./img/symbol_bmi.svg", "img_class": "datatable_header" } },
+					"Height": { "title": "Height", "header": { "type": "img", "img_src": "./img/symbol_person_height.svg", "img_class": "datatable_header" } },
+					"Weight": { "title": "Weight", "header": { "type": "img", "img_src": "./img/symbol_person_weight.svg", "img_class": "datatable_header" } },
+					"FatPercent": { "title": "Fat %", "header": { "type": "img", "img_src": "./img/symbol_fat.svg", "img_class": "datatable_header" } },
+					"MusclePercent": { "title": "Muscle %", "header": { "type": "img", "img_src": "./img/symbol_muscle.svg", "img_class": "datatable_header" } },
+					"BonePercent": { "title": "Bone %", "header": { "type": "img", "img_src": "./img/symbol_bone.svg", "img_class": "datatable_header" } },
+					"WaterPercent": { "title": "Water %", "header": { "type": "img", "img_src": "./img/symbol_water.svg", "img_class": "datatable_header" } },
+					"Pal": { "title": "PAL", "header": { "type": "img", "img_src": "./img/symbol_pal.svg", "img_class": "datatable_header" } },
+					"DatetimeInsert": { "title": "Date", "header": { "type": "img", "img_src": "./img/symbol_calendar.svg", "img_class": "datatable_header" } }
 				},
 				{	"Height": { "placeholder": "Height in m (eg. 1.80)", "oninput": function() { user_state.on_insert_bmi_factors_change(); } },
 					"Weight": { "placeholder": "Weight in kg (eg. 70.5)", "oninput": function() { user_state.on_insert_bmi_factors_change(); } },
@@ -205,7 +205,7 @@ var UserState = function(db, change_dependencies) {
 			}
 
 			var fat_img = document.createElement("img");
-                        fat_img.src = "/img/symbol_fat.svg";
+                        fat_img.src = "./img/symbol_fat.svg";
                         fat_img.style.width = "15px";
                         fat_img.style.background = "var(--fat_color)";
                         fat_img.style.padding = "1px";
@@ -214,7 +214,7 @@ var UserState = function(db, change_dependencies) {
                         menu.circle_view["box_right_1"].appendChild(fat_img);
 
 			var muscle_img = document.createElement("img");
-                        muscle_img.src = "/img/symbol_muscle.svg";
+                        muscle_img.src = "./img/symbol_muscle.svg";
                         muscle_img.style.width = "15px";
                         muscle_img.style.background = "var(--muscle_color)";
                         muscle_img.style.padding = "1px";
@@ -355,7 +355,7 @@ var UserState = function(db, change_dependencies) {
 			col_2.colSpan = "2";
                 	row.appendChild(col_1);
         	        row.appendChild(col_2);
-			col_2.innerHTML = "<img src='/img/symbol_clock.svg' style='height: 30px;' />";
+			col_2.innerHTML = "<img src='./img/symbol_clock.svg' style='height: 30px;' />";
 		}
 		table.appendChild(row);
 
