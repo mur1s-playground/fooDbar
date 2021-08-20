@@ -22,7 +22,7 @@ use \FooDBar\ProductsSourceModel as ProductsSourceModel;
 use \FooDBar\UsersProductsSourcesModel as UsersProductsSourcesModel;
 
 class ProductssourceController {
-    private $DefaultController = true;
+    private $DefaultController = false;
     private $DefaultAction = "get";
 
     public static function getUsersProductsSources($user) {

@@ -38,7 +38,7 @@ use \FooDBar\Storage 				as Storage;
 
 class IndexController {
     private $DefaultController = true;
-    private $DefaultAction = "index";
+    private $DefaultAction = "get";
 
     public function getdailyuserpresetsAction() {
 	$user = LoginController::requireAuth();

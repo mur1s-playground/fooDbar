@@ -26,7 +26,7 @@ use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
 use \FooDBar\Products\PriceController 		as PriceController;
 
 class OrderController {
-    private $DefaultController = true;
+    private $DefaultController = false;
     private $DefaultAction = "all";
 
     public function allAction() {

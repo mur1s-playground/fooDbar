@@ -46,7 +46,7 @@
     "recipe": {
         "controllers": {
             "Index": {
-                "defaultAction": "index",
+                "defaultAction": "get",
                 "actions": [
                     "getdailyuserpresets",
                     "insertdailyuserpreset",
@@ -83,7 +83,7 @@
                 ]
             }
         },
-        "defaultController": "Order"
+        "defaultController": "Index"
     },
     "storage": {
         "controllers": {
@@ -144,6 +144,6 @@
                 ]
             }
         },
-        "defaultController": "Productssource"
+        "defaultController": "Login"
     }
 }
