@@ -356,12 +356,15 @@ var Recipes = function(db, change_dependencies) {
 			recipes.recipe_consumption_group_rr_data = {};
 
 			recipes.update_cg_rr_table();
-
+/*
 			for (var rp in resp["recipes_planned"]) {
 				recipes.recipe_consumption_group_agg_planned_data[rp] = resp["recipes_planned"][rp];
 			}
 
 			recipes.update_cg_planned_table();
+*/
+			var p = { };
+			recipes.db.query_post("recipe/index/get", p, recipes.on_planned_response);
 		}
 	}
 
