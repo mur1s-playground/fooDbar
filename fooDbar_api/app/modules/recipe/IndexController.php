@@ -21,6 +21,7 @@ $GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAllergiesModel");
 $GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAggModel");
 $GLOBALS['Boot']->loadModel("RecipeConsumptionGroupModel");
 $GLOBALS['Boot']->loadModel("RecipeRequestDailyPresetModel");
+$GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAggPlannedModel");
 
 use \FooDBar\RecipeModel 				as RecipeModel;
 use \FooDBar\StorageModel 				as StorageModel;
@@ -30,6 +31,7 @@ use \FooDBar\RecipeConsumptionGroupAllergiesModel     	as RecipeConsumptionGroup
 use \FooDBar\RecipeConsumptionGroupAggModel		as RecipeConsumptionGroupAggModel;
 use \FooDBar\RecipeConsumptionGroupModel 		as RecipeConsumptionGroupModel;
 use \FooDBar\RecipeRequestDailyPresetModel		as RecipeRequestDailyPresetModel;
+use \FooDBar\RecipeConsumptionGroupAggPlannedModel	as RecipeConsumptionGroupAggPlannedModel;
 
 use \FooDBar\Allergies\AllergyController	as AllergyController;
 use \FooDBar\Storage 				as Storage;
@@ -104,7 +106,7 @@ class IndexController {
 	if ($rrdp->next()) {
 		$rrdp->delete();
 	} else {
-		$resutl["status"] = false;
+		$result["status"] = false;
 	}
 
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
@@ -115,10 +117,30 @@ class IndexController {
 
 	$data = $GLOBALS['POST']->{'recipes_request'};
 
+	$result = array();
+
 	$demand = $data->{'demand'};
 	$days = $data->{'days'};
 	$parts = $data->{'parts'};
 	$n_dist = $data->{'n_dist'};
+	if (isset($data->{'recipes'})) {
+		$result['recipes'] = $data->{'recipes'};
+	} else {
+		$result['recipes'] = new \stdClass();
+	}
+	$product_demand = array();
+	if (isset($data->{'demand_data'})) {
+		$product_demand = $data->{'demand_data'};
+	}
+	$banned_rcg_agg_ids = array();
+	if (isset($data->{'banned_rcg_agg_ids'})) {
+		$banned_rcg_agg_ids = $data->{'banned_rcg_agg_ids'};
+	}
+	$used_rcg_agg_ids = array();
+	if (isset($data->{'used_rcg_agg_ids'})) {
+		$used_rcg_agg_ids = $data->{'used_rcg_agg_ids'};
+	}
+
 	$threshold = 2;
 
 
@@ -289,21 +311,17 @@ class IndexController {
 	}
 	krsort($rcg_agg_by_found_products_in_storage);
 
-	$used_rcg_agg_ids = array();
-
 	$result["status"] = true;
-	$result["recipes"] = new \stdClass();
-
-	$product_demand = array();
 
 	for ($d = 0; $d < $days; $d++) {
 		for ($p = 0; $p < count($parts[$d]); $p++) {
+			if (isset($result['recipes']->{$d . "_" . $p})) continue;
 			$found_one = false;
 			foreach ($rcg_agg_by_found_products_in_storage as $products_used => $rcg_agg_deep_arrs) {
 				$idxs = range(0, count($rcg_agg_deep_arrs)-1);
 				foreach ($rcg_agg_deep_arrs as $idx => $rcg_agg_deep_arr) {
 					$rcg_agg_arr = $rcg_agg_deep_arr[RecipeConsumptionGroupAggModel::class];
-
+					if (in_array($rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID], $banned_rcg_agg_ids)) continue;
 					if (in_array($rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID], $used_rcg_agg_ids)) continue;
 					if ($rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MAX] > $parts[$d][$p] - $threshold && $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_MJ_MIN] < $parts[$d][$p] + $threshold) {
 /*
@@ -319,6 +337,9 @@ class IndexController {
 						 $used_rcg_agg_ids[] = $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID];
 
 						 $result["recipes"]->{$d . "_" . $p} = array();
+						 $result["recipes"]->{$d . "_" . $p}["Id"] = $d . "_" . $p;
+						 $result["recipes"]->{$d . "_" . $p}["RecipeConsumptionGroupAggId"] = $rcg_agg_arr[RecipeConsumptionGroupAggModel::FIELD_ID];
+
  						 $rcg = $rcg_agg_deep_arr[Join::class][RecipeConsumptionGroupModel::class];
 
 						 $products_ids = $rcg[RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS];
@@ -329,9 +350,9 @@ class IndexController {
 						 $result["recipes"]->{$d . "_" . $p}["Amounts"] = "";
 						 for ($pr = 0; $pr < count($products_arr); $pr++) {
 							$pr_id = $products_arr[$pr];
-							$pr_d = $amount_multiplier * $amounts_arr[$pr];
+							$pr_d = round($amount_multiplier * $amounts_arr[$pr], 2);
 
-							$result["recipes"]->{$d . "_" . $p}["Amounts"] .= round($pr_d, 2);
+							$result["recipes"]->{$d . "_" . $p}["Amounts"] .= $pr_d;
 							if ($pr + 1 < count($products_arr)) $result["recipes"]->{$d . "_" . $p}["Amounts"] .= ";";
 
 							if (isset($products_ids_to_amount[$products_arr[$pr]])) {
@@ -340,12 +361,12 @@ class IndexController {
 								} else {
 									$pr_d -= $products_ids_to_amount[$pr_id];
 									$products_ids_to_amount[$pr_id] = 0;
-									if (!isset($product_demand[$pr_id])) $product_demand[$pr_id] = 0;
-									$product_demand[$pr_id] += $pr_d;
+									if (!isset($product_demand->{$pr_id})) $product_demand->{$pr_id} = 0;
+									$product_demand->{$pr_id} += $pr_d;
 								}
 							} else {
-								if (!isset($product_demand[$pr_id])) $product_demand[$pr_id] = 0;
-								$product_demand[$pr_id] += $pr_d;
+								if (!isset($product_demand->{$pr_id})) $product_demand->{$pr_id} = 0;
+								$product_demand->{$pr_id} += $pr_d;
 							}
 						 }
 
@@ -363,277 +384,120 @@ class IndexController {
 			}
 		}
 	}
+	$demand_unset = array();
+	foreach ($product_demand as $p_id => $demand) {
+		$product_demand->{$p_id} = round($demand, 2);
+		if ($product_demand->{$p_id} <= 0) {
+			$demand_unset[] = $p_id;
+		}
+	}
+	foreach ($demand_unset as $p_id) {
+		unset($product_demand->{$p_id});
+	}
 	$result["product_demand"] = $product_demand;
+	$result["used_rcg_agg_ids"] = $used_rcg_agg_ids;
+	$result["banned_rcg_agg_ids"] = $banned_rcg_agg_ids;
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 
-    public function indexAction() {
-/*
-	$recipe = new RecipeModel();
-	$recipe->find();
-*/
-	/* USER ALLERGIES */
-/*	$user_id = @$_GET["user_id"];
-	$user = null;
+    public function getAction() {
+	$user = LoginController::requireAuth();
 
-	$allergy_ct = 0;
-	$allergy_conds_desc = "";
-	$allergy_conds = array();
-	if (!is_null($user_id)) {
-		$user_cond = new Condition("[c1]", array(
-			"[c1]" => [
-					[UsersModel::class, UsersModel::FIELD_ID],
-					Condition::COMPARISON_EQUALS,
-					[Condition::CONDITION_CONST, $user_id]
-				]
-			));
+	$condition = new Condition("[c1]", array(
+		"[c1]" => [
+			[RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_USERS_ID],
+			Condition::COMPARISON_EQUALS,
+			[Condition::CONDITION_CONST, $user->getId()]
+		]
+	));
 
-		$user = new UsersModel();
-		$user->find($user_cond);
-		if ($user->next()) {
-		        $allergy_conds_desc = "";
-		        $allergy_conds = array();
+	$join = new Join(new RecipeConsumptionGroupAggModel(), "[j1]", array(
+		"[j1]" => [
+			[RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_RECIPE_CONSUMPTION_GROUP_AGG_ID],
+			Condition::COMPARISON_EQUALS,
+			[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_ID]
+		]
+	));
 
-			foreach ($user->fields() as $field_name_camel => $field) {
-				$field_name = $field["Field"];
+	$join_ = new Join(new RecipeConsumptionGroupModel(), "[j2]", array(
+		"[j2]" => [
+			[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
+			Condition::COMPARISON_EQUALS,
+			[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_ID]
+		]
+	));
 
-				$starts_with_a_ = strpos($field_name, "a_");
-				if ($starts_with_a_ !== false && $starts_with_a_ === 0) {
-					$getter = "get" . $field_name_camel;
-					$value = $user->$getter();
-					if (!is_null($value) && $value == 1) {
-						if ($allergy_ct > 0) {
-							$allergy_conds_desc += " AND ";
-						}
-						$a_desc = "[a{$allergy_ct}]";
-						$allergy_conds_desc .= $a_desc;
-						$allergy_conds[$a_desc] = array(
-							[ProductsModel::class, $field_name_camel],
-							Condition::COMPARISON_LESS,
-							[Condition::CONDITION_CONST, 1]
-						);
-						$allergy_ct++;
-					}
-				}
-			}
-		}
-	} */
-	/* END USER ALLERGIES */
-/*
-	$result = array();
+	$rcg_agg_p = new RecipeConsumptionGroupAggPlannedModel();
+	$rcg_agg_p->find($condition, array($join, $join_));
 
-	$available = @$_GET["available"];
-	if (is_null($available)) {
-		$available = false;
-	} else {
-		$available = $available === "true";
+	$result["status"] = true;
+        $result["recipes_planned"] = new \stdClass();
+	while ($rcg_agg_p->next()) {
+		$rcg = $rcg_agg_p->joinedModelByClass(RecipeConsumptionGroupModel::class);
+
+		$result["recipes_planned"]->{$rcg_agg_p->getId()} = array();
+		$result["recipes_planned"]->{$rcg_agg_p->getId()}[RecipeConsumptionGroupAggPlannedModel::FIELD_ID] = $rcg_agg_p->getId();
+		$result["recipes_planned"]->{$rcg_agg_p->getId()}[RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS] = $rcg->getProductsIds();
+		$result["recipes_planned"]->{$rcg_agg_p->getId()}[RecipeConsumptionGroupModel::FIELD_AMOUNTS] = $rcg_agg_p->getAmounts();
 	}
 
-	$partially = @$_GET["partially"];
-	if (is_null($partially)) {
-		$partially = true;
-	} else {
-		$partially = $partially === "true";
-	}
-
-	$ignore_missing = @$_GET["ignore_missing"];
-	if (is_null($ignore_missing)) {
-		$ignore_missing = false;
-	} else {
-		$ignore_missing = $ignore_missing === "true";
-	}
-
-	$t_products = new \stdClass();
-
-	while ($recipe->next()) {
-		$ingredients_blob = $recipe->getIngredientsList();
-		$ingredients_splt = explode(";", $ingredients_blob);
-
-		$r_available = true;
-		$r_partially = false;
-
-		$r_meta = array(
-			"kj_low" => 0,
-			"kj_high" => 0,
-			"price_low" => 0,
-			"price_high" => 0,
-			"price_available_low" => 0
-		);
-
-		$r_kj_low_sum = 0;
-		$r_kj_high_sum = 0;
-		$r_price_low_sum = 0;
-		$r_price_high_sum = 0;
-		$r_products = array();
-		$r_missing_ingredient = false;
-
-		$ingredients = array();
-		for ($i = 0; $i < count($ingredients_splt); $i++) {
-			$ingredient_splt = explode(":", $ingredients_splt[$i]);
-
-			$ingredient_name = $ingredient_splt[0];
-			$ingredient_amount = $ingredient_splt[1];
-			$ingredient_amount_type_id = $ingredient_splt[2];
-
-			$ingredients[$ingredient_name] = array(
-				"meta"		=> array(
-					"available" 		=> false,
-					"completly"		=> false,
-					"without_composition" 	=> false,
-					"kj_low"		=> null,
-					"kj_high"		=> null,
-					"price_low"		=> null,
-					"price_high"		=> null,
-					"price_available_low"	=> null
-				),
-				"products" 	=> array()
-			);
-
-			$product_condition_desc = "[c1] AND [c2]";
-			$product_condition_cond = array(
-				"[c1]" => [
-                	                        [ProductsModel::class, ProductsModel::FIELD_NAME],
-        	                                Condition::COMPARISON_LIKE,
-	                                        [Condition::CONDITION_CONST, $ingredient_name]
-                                        ],
-                                "[c2]" => [
-                        	                [ProductsModel::class, ProductsModel::FIELD_AMOUNT_TYPE_ID],
-                                	        Condition::COMPARISON_EQUALS,
-                                        	[Condition::CONDITION_CONST, $ingredient_amount_type_id]
-                                        ]
-
-			);
-			if ($allergy_ct > 0) {
-				$product_condition_desc .= " AND " . $allergy_conds_desc;
-				$product_condition_cond = array_merge($product_condition_cond, $allergy_conds);
-			}
-
-			$product_condition = new Condition($product_condition_desc, $product_condition_cond);
-
-			$product_storage_join = new Join(new StorageModel(), "[j1]", array(
-				"[j1]" => [
-					[ProductsModel::class, ProductsModel::FIELD_ID],
-					Condition::COMPARISON_EQUALS,
-					[StorageModel::class, StorageModel::FIELD_PRODUCTS_ID]
-				]
-			), Join::JOIN_LEFT);
-
-			$products = new ProductsModel();
-			$products->find($product_condition, array($product_storage_join));
-
-			$amount_sum = 0;
-
-			while ($products->next()) {
-				$p_id = intval($products->getId());
-				$r_products[] = $products->toArray();
-
-				$storage = $products->joinedModelByClass(StorageModel::class);
-
-				$p_am = floatval($storage->getAmount());
-				$p_kj = floatval($products->getKj());
-
-				if (is_null($ingredients[$ingredient_name]["meta"]["kj_low"]) || $ingredients[$ingredient_name]["meta"]["kj_low"] > $p_kj) {
-					$ingredients[$ingredient_name]["meta"]["kj_low"] = $p_kj * $ingredient_amount;
-				}
-                                if (is_null($ingredients[$ingredient_name]["meta"]["kj_high"]) || $ingredients[$ingredient_name]["meta"]["kj_high"] < $p_kj) {
-                                        $ingredients[$ingredient_name]["meta"]["kj_high"] = $p_kj * $ingredient_amount;
-                                }
-
-				$p_app = $products->getPrice()/$products->getAmount();
-				$p_ap = $p_app * $ingredient_amount;
-				if (is_null($ingredients[$ingredient_name]["meta"]["price_low"]) || $ingredients[$ingredient_name]["meta"]["price_low"] > $p_ap) {
-					$ingredients[$ingredient_name]["meta"]["price_low"] = $p_ap;
-				}
-                                if (is_null($ingredients[$ingredient_name]["meta"]["price_high"]) || $ingredients[$ingredient_name]["meta"]["price_high"] < $p_ap) {
-                                        $ingredients[$ingredient_name]["meta"]["price_high"] = $p_ap;
-                                }
-				if (is_null($ingredients[$ingredient_name]["meta"]["price_available_low"]) || $ingredients[$ingredient_name]["meta"]["price_available_low"] > $p_ap) {
-					$ingredients[$ingredient_name]["meta"]["price_available_low"] = $p_ap;
-				}
-
-
-				if ($p_am != null) {
-					$amount_sum += $p_am;
-
-					$ingredients[$ingredient_name]["meta"]["available"] = true;
-
-					$avail_price_low = $p_ap - ($p_app * $p_am);
-					if ($avail_price_low < 0) $avail_price_low = 0.0;
-					if (is_null($ingredients[$ingredient_name]["meta"]["price_available_low"]) || $ingredients[$ingredient_name]["meta"]["price_available_low"] > $avail_price_low) {
-						$ingredients[$ingredient_name]["meta"]["price_available_low"] = $avail_price_low;
-					}
-
-					if ($p_am >= $ingredient_amount) {
-						$ingredients[$ingredient_name]["meta"]["without_composition"] = true;
-						$ingredients[$ingredient_name]["meta"]["price_available_low"] = 0.0;
-					}
-					if ($amount_sum >= $ingredient_amount) {
-						$ingredients[$ingredient_name]["meta"]["completly"] = true;
-					}
-				}
-
-				$ingredients[$ingredient_name]["products"][] = array(
-					"id" => $p_id,
-					"available_amount" => $p_am
-				);
-			}
-			if (count($ingredients[$ingredient_name]["products"]) == 0) {
-				$r_missing_ingredient = true;
-				if (!$ignore_missing) break;
-			}
-			if ($available) {
-				if (!$ingredients[$ingredient_name]["meta"]["available"]) {
-					$r_avail = false;
-					if (!$partially) break;
-				} else {
-					$r_partially = true;
-				}
-			}
-
-			if (!is_null($ingredients[$ingredient_name]["meta"]["kj_low"])) {
-				$r_meta["kj_low"] += $ingredients[$ingredient_name]["meta"]["kj_low"];
-			}
-			if (!is_null($ingredients[$ingredient_name]["meta"]["kj_high"])) {
-				$r_meta["kj_high"] += $ingredients[$ingredient_name]["meta"]["kj_high"];
-			}
-			if (!is_null($ingredients[$ingredient_name]["meta"]["price_low"])) {
-				$r_meta["price_low"] += $ingredients[$ingredient_name]["meta"]["price_low"];
-			}
-                        if (!is_null($ingredients[$ingredient_name]["meta"]["price_high"])) {
-                                $r_meta["price_high"] += $ingredients[$ingredient_name]["meta"]["price_high"];
-                        }
-			if (!is_null($ingredients[$ingredient_name]["meta"]["price_available_low"])) {
-				$r_meta["price_available_low"] += $ingredients[$ingredient_name]["meta"]["price_available_low"];
-			}
-		}
-
-		$add = false;
-		if (!$available) {
-			$add = true;
-		} else if ($available && $partially) {
-			if ($r_partially) $add = true;
-		} else if ($available && !$partially) {
-			if ($r_avail) $add = true;
-		}
-		if (!$ignore_missing) {
-			if ($r_missing_ingredient) $add = false;
-		}
-		if ($add) {
-			for ($p = 0; $p < count($r_products); $p++) {
-				$p_id = $r_products[$p][ProductsModel::FIELD_ID];
-				if (!isset($t_products->{$p_id})) {
-					$t_products->{$p_id} = $r_products[$p];
-				}
-			}
-                        $result[$recipe->getName()] = array(
-                                "description" 	=> $recipe->getDescription(),
-				"meta"		=> $r_meta,
-                                "ingredients" 	=> $ingredients
-                        );
-		}
-	}
-	$result["products"] = $t_products;
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
-*/
+    }
+
+    public function insertAction() {
+	$user = LoginController::requireAuth();
+
+        $data = $GLOBALS['POST']->{'recipes'};
+
+	$result["status"] = true;
+	$result["recipes_planned"] = new \stdClass();
+
+	$props = get_object_vars($data);
+	$keys = array_keys($props);
+	asort($keys, SORT_STRING);
+
+	foreach ($keys as $p) {
+		$rcg_agg_p = new RecipeConsumptionGroupAggPlannedModel();
+		$rcg_agg_p->setUsersId($user->getId());
+		$rcg_agg_p->setRecipeConsumptionGroupAggId($data->{$p}->{RecipeConsumptionGroupAggPlannedModel::FIELD_RECIPE_CONSUMPTION_GROUP_AGG_ID});
+		$rcg_agg_p->setAmounts($data->{$p}->{RecipeConsumptionGroupAggPlannedModel::FIELD_AMOUNTS});
+		$rcg_agg_p->insert();
+
+		$result["recipes_planned"]->{$rcg_agg_p->getId()} = $rcg_agg_p->toArray();
+	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
+
+    public function removeAction() {
+	$user = LoginController::requireAuth();
+
+        $data = $GLOBALS['POST']->{'recipe_planned_id'};
+
+        $result["status"] = true;
+
+	$condition = new Condition("[c1] AND [c2]", array(
+		"[c1]" => [
+			[RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_ID],
+			Condition::COMPARISON_EQUALS,
+			[Condition::CONDITION_CONST, $data]
+		],
+		"[c2]" => [
+			[RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_USERS_ID],
+			Condition::COMPARISON_EQUALS,
+			[Condition::CONDITION_CONST, $user->getId()]
+		]
+	));
+
+	$rcg_agg_p = new RecipeConsumptionGroupAggPlannedModel();
+	$rcg_agg_p->find($condition);
+	if ($rcg_agg_p->next()) {
+		$result["removed_recipe_planned_id"] = $rcg_agg_p->getId();
+		$rcg_agg_p->delete();
+	} else {
+		$result["status"] = false;
+	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

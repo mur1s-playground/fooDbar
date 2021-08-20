@@ -10,10 +10,10 @@ var ShoppingList = function(db, change_dependencies) {
 	this.data_table = new DataTable(this, "recipe_consumption_group",
                                 {
 					"OrderId": {  "title": "OrderId", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
-					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "/img/symbol_weight.svg", "img_class": "datatable_header" } },
-                                        "ProductsId": { "title": "Products", "header": { "type": "img", "img_src": "/img/symbol_shopping_list.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
-					"ProductAmount": { "title": "ProductAmount",  "header": { "type": "img", "img_src": "/img/symbol_weight.svg", "img_class": "datatable_header" } },
-					"ProductsSourceIds": { "title": "ProductsSource", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header" }, "join_list": { "model": "products_source", "field": "Name" } },
+					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
+                                        "ProductsId": { "title": "Products", "header": { "type": "img", "img_src": "./img/symbol_shopping_list.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"ProductAmount": { "title": "ProductAmount",  "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
+					"ProductsSourceIds": { "title": "ProductsSource", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header" }, "join_list": { "model": "products_source", "field": "Name" } },
                                         "Prices": { "title": "Price", "header": { "type": "text", "text": "", "text_class": "datatable_header" }, "assoc_list": { "id": 4 } }
                                 },
                                 { },
@@ -29,6 +29,8 @@ var ShoppingList = function(db, change_dependencies) {
 	this.on_product_demand_insert_response = function() {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
+			recipes.recipe_consumption_group_rr_demand_data = {};
+			recipes.update_demand_table();
 			shopping_list.changed_f();
 		}
 	}

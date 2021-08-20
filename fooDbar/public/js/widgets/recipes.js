@@ -6,8 +6,14 @@ var Recipes = function(db, change_dependencies) {
 
 	this.recipe_consumption_group_data = null;
 	this.recipe_consumption_group_agg_data = null;
-	this.recipe_consumption_group_rr_data = null;
-	this.recipe_consumption_group_rr_demand_data = null;
+	this.recipe_consumption_group_agg_planned_data = null;
+
+	this.recipe_consumption_group_rr_used = [];
+	this.recipe_consumption_group_rr_banned = [];
+	this.recipe_consumption_group_rr_data = {};
+	this.recipe_consumption_group_rr_demand_data = {};
+
+	this.recipe_consumption_group_rr_banned_data = {};
 
 	this.elem = this.widget.elem;
 	this.elem.style.display = "none";
@@ -20,7 +26,7 @@ var Recipes = function(db, change_dependencies) {
 	this.recipes_sub_menu.className = "recipes_sub_menu";
 
 	this.on_menu_btn_click = function(action) {
-		var tabs = ["Query", "data_table_Agg", "data_table_Raw"];
+		var tabs = ["data_table_Agg_Planned", "Query", "data_table_Agg", "data_table_Raw"];
 		for (var t in tabs) {
 			if (tabs[t] == action) {
 				document.getElementById(recipes.widget.name + "_" + tabs[t]).style.display = "inline";
@@ -33,14 +39,24 @@ var Recipes = function(db, change_dependencies) {
 	this.get_recipes_sub_menu = function() {
 		recipes.recipes_sub_menu.innerHTML = "";
 
+		var planned_btn = document.createElement("button");
+		var r_img = document.createElement("img");
+		r_img.src = "./img/symbol_recipe.svg";
+		r_img.style.width = "25px";
+		planned_btn.appendChild(r_img);
+		planned_btn.onclick = function() {
+			recipes.on_menu_btn_click("data_table_Agg_Planned");
+		}
+		recipes.recipes_sub_menu.appendChild(planned_btn);
+
 		var query_btn = document.createElement("button");
 		query_btn.style.backgroundImage = "linear-gradient(to right, #cccccc, var(--recipes_color))";
 		var search_img = document.createElement("img");
-                search_img.src = "/img/symbol_search.svg";
+                search_img.src = "./img/symbol_search.svg";
                 search_img.style.width = "25px";
                 query_btn.appendChild(search_img);
 		var recipe_img = document.createElement("img");
-                recipe_img.src = "/img/symbol_recipe.svg";
+                recipe_img.src = "./img/symbol_recipe.svg";
                 recipe_img.style.width = "25px";
                 query_btn.appendChild(recipe_img);
 		query_btn.onclick = function() {
@@ -51,11 +67,11 @@ var Recipes = function(db, change_dependencies) {
 		var agg_btn = document.createElement("button");
 		agg_btn.style.backgroundImage = "linear-gradient(to right, var(--recipes_color), var(--storage_color))";
 		var recipe_img = document.createElement("img");
-		recipe_img.src = "/img/symbol_recipe.svg";
+		recipe_img.src = "./img/symbol_recipe.svg";
 		recipe_img.style.width = "25px";
 		agg_btn.appendChild(recipe_img);
 		var storage_img = document.createElement("img");
-		storage_img.src = "/img/symbol_storage.svg";
+		storage_img.src = "./img/symbol_products.svg";
 		storage_img.style.width = "25px";
 		agg_btn.appendChild(storage_img);
 		agg_btn.onclick = function() {
@@ -73,7 +89,7 @@ var Recipes = function(db, change_dependencies) {
 /*
 		var update_btn = document.createElement("button");
 		var refresh_img = document.createElement("img");
-		refresh_img.src = "/img/symbol_refresh.svg";
+		refresh_img.src = "./img/symbol_refresh.svg";
 		refresh_img.style.width = "25px";
 		update_btn.appendChild(refresh_img);
 
@@ -127,31 +143,59 @@ var Recipes = function(db, change_dependencies) {
 		return "";
 	}
 
+	this.data_table_agg_planned = new DataTable(this, "recipe_consumption_group_planned",
+                                {
+                                        "ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
+                                        "Amounts": { "title": "Amounts", "header": { "type": "text", "text": "Amounts", "text_class": "datatable_header" }, "assoc_list": { "id": 0 } },
+                                },
+                                { },
+                                {
+					"Consume": { "title": "Consume", "type": "text", "text": "C", "onclick":
+                                                                        function() {
+
+                                                                        }
+                                                },
+					"Delete": { "title": "Delete", "type": "text", "text": "&#128465;", "onclick":
+                                                                        function() {
+										var p = {
+	                                                                                "recipe_planned_id": this.obj["Id"]
+        	                                                                };
+                	                                                        var r = confirm("Delete planned recipe " + this.obj["Id"] + "?");
+                        	                                                if (r == 1) {
+                                	                                                recipes.db.query_post("recipe/index/remove", p, recipes.on_remove_planned_response);
+                                        	                                }
+                                                                        }
+                                                }
+
+                                }
+                                );
+
+
 
 	this.data_table_agg = new DataTable(this, "recipe_consumption_group",
                                 {
-					"ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
-                                        "PricePerMjMin": { "title": "PricePerMjMin", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-					"PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "img", "img_src": "/img/symbol_pricepermj.svg", "img_class": "datatable_header_recipes" } },
-                                        "PricePerMjMax": { "title": "PricePerMjMax", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
-					"MjMin": { "title": "MjMin", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-					"MjAvg": { "title": "MjAvg", "header": { "type": "img", "img_src": "/img/symbol_mj.svg", "img_class": "datatable_header_recipes" } },
-                                        "MjMax": { "title": "MjMax", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
-					"NFatPercentMin": { "title": "Fat% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-                                        "NFatPercentAvg": { "title": "Fat% Avg", "header": { "type": "img", "img_src": "/img/symbol_fat.svg", "img_class": "datatable_header_recipes" } },
-					"NFatPercentMax": { "title": "Fat% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
-					"NCarbsPercentMin": { "title": "Carbs% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-                                        "NCarbsPercentAvg": { "title": "Carbs% Avg", "header": { "type": "img", "img_src": "/img/symbol_carbs.svg", "img_class": "datatable_header_recipes" } },
-					"NCarbsPercentMax": { "title": "Carbs% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
-					"NProteinPercentMin": { "title": "Protein% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-                                        "NProteinPercentAvg": { "title": "Protein% Avg", "header": { "type": "img", "img_src": "/img/symbol_muscle.svg", "img_class": "datatable_header_recipes" } },
-					"NProteinPercentMax": { "title": "Protein% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
-                                        "NFiberPercentMin": { "title": "Fiber% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-					"NFiberPercentAvg": { "title": "Fiber% Avg", "header": { "type": "img", "img_src": "/img/symbol_fiber.svg", "img_class": "datatable_header_recipes" } },
-					"NFiberPercentMax": { "title": "Fiber% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
-					"NSaltPercentMin": { "title": "Salt% Min", "header": { "type": "img", "img_src": "/img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
-					"NSaltPercentAvg": { "title": "Salt% Avg", "header": { "type": "img", "img_src": "/img/symbol_salt.svg", "img_class": "datatable_header_recipes" } },
-                                        "NSaltPercentMax": { "title": "Salt% Max", "header": { "type": "img", "img_src": "/img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
+                                        "PricePerMjMin": { "title": "PricePerMjMin", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "img", "img_src": "./img/symbol_pricepermj.svg", "img_class": "datatable_header_recipes" } },
+                                        "PricePerMjMax": { "title": "PricePerMjMax", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"MjMin": { "title": "MjMin", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"MjAvg": { "title": "MjAvg", "header": { "type": "img", "img_src": "./img/symbol_mj.svg", "img_class": "datatable_header_recipes" } },
+                                        "MjMax": { "title": "MjMax", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NFatPercentMin": { "title": "Fat% Min", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFatPercentAvg": { "title": "Fat% Avg", "header": { "type": "img", "img_src": "./img/symbol_fat.svg", "img_class": "datatable_header_recipes" } },
+					"NFatPercentMax": { "title": "Fat% Max", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NCarbsPercentMin": { "title": "Carbs% Min", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NCarbsPercentAvg": { "title": "Carbs% Avg", "header": { "type": "img", "img_src": "./img/symbol_carbs.svg", "img_class": "datatable_header_recipes" } },
+					"NCarbsPercentMax": { "title": "Carbs% Max", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NProteinPercentMin": { "title": "Protein% Min", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+                                        "NProteinPercentAvg": { "title": "Protein% Avg", "header": { "type": "img", "img_src": "./img/symbol_muscle.svg", "img_class": "datatable_header_recipes" } },
+					"NProteinPercentMax": { "title": "Protein% Max", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFiberPercentMin": { "title": "Fiber% Min", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"NFiberPercentAvg": { "title": "Fiber% Avg", "header": { "type": "img", "img_src": "./img/symbol_fiber.svg", "img_class": "datatable_header_recipes" } },
+					"NFiberPercentMax": { "title": "Fiber% Max", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
+					"NSaltPercentMin": { "title": "Salt% Min", "header": { "type": "img", "img_src": "./img/symbol_min.svg", "img_class": "datatable_header_recipes" } },
+					"NSaltPercentAvg": { "title": "Salt% Avg", "header": { "type": "img", "img_src": "./img/symbol_salt.svg", "img_class": "datatable_header_recipes" } },
+                                        "NSaltPercentMax": { "title": "Salt% Max", "header": { "type": "img", "img_src": "./img/symbol_max.svg", "img_class": "datatable_header_recipes" } },
                                 },
                                 { },
                                 { }
@@ -159,67 +203,179 @@ var Recipes = function(db, change_dependencies) {
 
 	this.data_table_rr = new DataTable(this, "recipe_consumption_group_rr",
                                 {
-                                        "ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
+                                        "ProductsIds": { "title": "Products", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header_recipes" },  "join_list": { "model": "products", "field": "Name", "classname_callback": this.is_product_in_storage } },
 					"Amounts": { "title": "Amounts", "header": { "type": "text", "text": "Amounts", "text_class": "datatable_header" }, "assoc_list": { "id": 0 } },
-//                                      "PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "img", "img_src": "/img/symbol_pricepermj.svg", "img_class": "datatable_header_recipes" } },
-                                        "Mj": { "title": "Mj", "header": { "type": "img", "img_src": "/img/symbol_mj.svg", "img_class": "datatable_header_recipes" } },
-                                        "NFatPercent": { "title": "Fat%", "header": { "type": "img", "img_src": "/img/symbol_fat.svg", "img_class": "datatable_header_recipes" } },
-                                        "NCarbsPercent": { "title": "Carbs%", "header": { "type": "img", "img_src": "/img/symbol_carbs.svg", "img_class": "datatable_header_recipes" } },
-                                        "NProteinPercent": { "title": "Protein%", "header": { "type": "img", "img_src": "/img/symbol_muscle.svg", "img_class": "datatable_header_recipes" } },
+//                                      "PricePerMjAvg": { "title": "PricePerMjAvg", "header": { "type": "img", "img_src": "./img/symbol_pricepermj.svg", "img_class": "datatable_header_recipes" } },
+                                        "Mj": { "title": "Mj", "header": { "type": "img", "img_src": "./img/symbol_mj.svg", "img_class": "datatable_header_recipes" } },
+                                        "NFatPercent": { "title": "Fat%", "header": { "type": "img", "img_src": "./img/symbol_fat.svg", "img_class": "datatable_header_recipes" } },
+                                        "NCarbsPercent": { "title": "Carbs%", "header": { "type": "img", "img_src": "./img/symbol_carbs.svg", "img_class": "datatable_header_recipes" } },
+                                        "NProteinPercent": { "title": "Protein%", "header": { "type": "img", "img_src": "./img/symbol_muscle.svg", "img_class": "datatable_header_recipes" } },
                                 },
                                 { },
-                                { }
+                                {
+						 "Ban": { "title": "Ban", "type": "text", "text": "&#128465;", "onclick":
+                                                                        function() {
+										recipes.recipe_consumption_group_rr_banned_data[this.obj["RecipeConsumptionGroupAggId"]] = recipes.recipe_consumption_group_rr_data[this.obj["Id"]];
+										var products = recipes.recipe_consumption_group_rr_banned_data[this.obj["RecipeConsumptionGroupAggId"]]["ProductsIds"].split(";");
+										var amounts = recipes.recipe_consumption_group_rr_banned_data[this.obj["RecipeConsumptionGroupAggId"]]["Amounts"].split(";");
+										var to_remove = [];
+										for (var p in products) {
+											if (recipes.recipe_consumption_group_rr_demand_data.hasOwnProperty(products[p])) {
+												recipes.recipe_consumption_group_rr_demand_data[products[p]] -= parseFloat(amounts[p]);
+												if (recipes.recipe_consumption_group_rr_demand_data[products[p]] <= 0) {
+													to_remove.push(products[p]);
+												}
+											}
+										}
+										for (var p in to_remove) {
+											delete recipes.recipe_consumption_group_rr_demand_data[to_remove[p]];
+										}
+										delete recipes.recipe_consumption_group_rr_data[this.obj["Id"]];
+										recipes.recipe_consumption_group_rr_banned.push(this.obj["RecipeConsumptionGroupAggId"]);
+
+										recipes.update_demand_table();
+
+							                        recipes.update_cg_rr_table();
+                                                                        }
+                                                }
+
+				}
                                 );
+
+	this.update_demand_table = function() {
+		recipes.recipe_consumption_group_rr_demand.innerHTML = "";
+		var demand = false;
+		for (var pd in recipes.recipe_consumption_group_rr_demand_data) {
+			if (recipes.recipe_consumption_group_rr_demand_data.hasOwnProperty(pd)) {
+				var pd_demand = document.createElement("tr");
+                                var td0 = document.createElement("td");
+                                td0.innerHTML = products.product_data[pd]["Name"];
+                                pd_demand.appendChild(td0);
+                                var td1 = document.createElement("td");
+                                td1.innerHTML = Math.round(recipes.recipe_consumption_group_rr_demand_data[pd] * 100)/100;
+                                pd_demand.appendChild(td1);
+                                recipes.recipe_consumption_group_rr_demand.appendChild(pd_demand);
+                                demand = true;
+			}
+		}
+		if (demand) {
+	                var pd_demand = document.createElement("tr");
+                        var td0 = document.createElement("td")
+
+                        var btn = document.createElement("button");
+                        btn.style.backgroundColor = "var(--shopping_list_color)";
+                        var shopping_list_img = document.createElement("img");
+                        shopping_list_img.src = "./img/symbol_shopping_list.svg";
+                        shopping_list_img.style.width = "25px";
+                        btn.appendChild(shopping_list_img);
+                        btn.title= "Add to shopping list";
+                        btn.onclick = function() {
+                        	shopping_list.shopping_list_append(recipes.recipe_consumption_group_rr_demand_data);
+                                menu.switch_tab("Shopping List");
+                        }
+                        td0.appendChild(btn);
+                        pd_demand.appendChild(td0);
+                        recipes.recipe_consumption_group_rr_demand.appendChild(pd_demand);
+                }
+	}
+
+	this.update_cg_rr_table = function() {
+		recipes.recipe_consumption_group_rr.innerHTML = "";
+
+		var plan = false;
+                for (var cg in recipes.recipe_consumption_group_rr_data) {
+                	if (recipes.recipe_consumption_group_rr_data.hasOwnProperty(cg)) {
+				if (!plan) {
+					recipes.recipe_consumption_group_rr.appendChild(recipes.data_table_rr.get_header_row());
+				}
+                        	recipes.recipe_consumption_group_rr.appendChild(recipes.data_table_rr.get_data_row(recipes.recipe_consumption_group_rr_data[cg], { "products": products.product_data }));
+				plan = true;
+                        }
+                }
+
+		if (plan) {
+			var plan_row = document.createElement("tr");
+			var plan_col = document.createElement("td");
+			plan_col.colSpan = 6;
+
+			var plan_btn = document.createElement("button");
+			plan_btn.title = "Save";
+			plan_btn.innerHTML = "&#x1F5B4;";
+			plan_btn.onclick = function() {
+				var p = {
+					"recipes": recipes.recipe_consumption_group_rr_data
+				};
+				recipes.db.query_post("recipe/index/insert", p, recipes.on_recipe_insert_response);
+			}
+			plan_col.appendChild(plan_btn);
+			plan_row.appendChild(plan_col);
+
+			recipes.recipe_consumption_group_rr.appendChild(plan_row);
+		}
+	}
+
+	this.update_cg_planned_table = function() {
+		recipes.recipe_consumption_group_agg_planned.innerHTML = "";
+
+		var plan = false;
+                for (var cg in recipes.recipe_consumption_group_agg_planned_data) {
+                        if (recipes.recipe_consumption_group_agg_planned_data.hasOwnProperty(cg)) {
+                                if (!plan) {
+                                        recipes.recipe_consumption_group_agg_planned.appendChild(recipes.data_table_agg_planned.get_header_row());
+                                }
+                                recipes.recipe_consumption_group_agg_planned.appendChild(recipes.data_table_agg_planned.get_data_row(recipes.recipe_consumption_group_agg_planned_data[cg], { "products": products.product_data }));
+                                plan = true;
+                        }
+                }
+
+	}
+
+	this.on_remove_planned_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			delete recipes.recipe_consumption_group_agg_planned_data[resp["removed_recipe_planned_id"]];
+
+			recipes.update_cg_planned_table();
+		}
+	}
+
+	this.on_planned_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			recipes.recipe_consumption_group_agg_planned_data = resp["recipes_planned"];
+
+			recipes.update_cg_planned_table();
+		}
+	}
+
+	this.on_recipe_insert_response = function() {
+		var resp = JSON.parse(this.responseText);
+                if (resp["status"] == true) {
+			recipes.recipe_consumption_group_rr_used = [];
+			recipes.recipe_consumption_group_rr_banned = [];
+			recipes.recipe_consumption_group_rr_data = {};
+
+			recipes.update_cg_rr_table();
+
+			for (var rp in resp["recipes_planned"]) {
+				recipes.recipe_consumption_group_agg_planned_data[rp] = resp["recipes_planned"][rp];
+			}
+
+			recipes.update_cg_planned_table();
+		}
+	}
 
 	this.on_recipe_request_response = function() {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
+			recipes.recipe_consumption_group_rr_used = resp["used_rcg_agg_ids"];
+			recipes.recipe_consumption_group_rr_banned = resp["banned_rcg_agg_ids"];
 			recipes.recipe_consumption_group_rr_data = resp["recipes"]
 			recipes.recipe_consumption_group_rr_demand_data = resp["product_demand"];
-                        recipes.recipe_consumption_group_rr.innerHTML = "";
 
-			var demand = false;
-			for (var pd in resp["product_demand"]) {
-				if (resp["product_demand"].hasOwnProperty(pd)) {
-					var pd_demand = document.createElement("tr");
-					var td0 = document.createElement("td");
-					td0.innerHTML = products.product_data[pd]["Name"];
-					pd_demand.appendChild(td0);
-					var td1 = document.createElement("td");
-					td1.innerHTML = Math.round(resp["product_demand"][pd] * 100)/100;
-					pd_demand.appendChild(td1);
-					recipes.recipe_consumption_group_rr.appendChild(pd_demand);
-					demand = true;
-				}
-			}
+			recipes.update_demand_table();
 
-			if (demand) {
-				var pd_demand = document.createElement("tr");
-                                var td0 = document.createElement("td")
-
-				var btn = document.createElement("button");
-				btn.style.backgroundColor = "var(--shopping_list_color)";
-				var shopping_list_img = document.createElement("img");
-				shopping_list_img.src = "/img/symbol_shopping_list.svg";
-				shopping_list_img.style.width = "25px";
-				btn.appendChild(shopping_list_img);
-				btn.title= "Add to shopping list";
-				btn.onclick = function() {
-					shopping_list.shopping_list_append(recipes.recipe_consumption_group_rr_demand_data);
-					menu.switch_tab("Shopping List");
-				}
-				td0.appendChild(btn);
-				pd_demand.appendChild(td0);
-				recipes.recipe_consumption_group_rr.appendChild(pd_demand);
-			}
-
-                        recipes.recipe_consumption_group_rr.appendChild(recipes.data_table_rr.get_header_row());
-
-                        for (var cg in recipes.recipe_consumption_group_rr_data) {
-                                if (recipes.recipe_consumption_group_rr_data.hasOwnProperty(cg)) {
-                                        recipes.recipe_consumption_group_rr.appendChild(recipes.data_table_rr.get_data_row(recipes.recipe_consumption_group_rr_data[cg], { "products": products.product_data }));
-                                }
-                        }
+			recipes.update_cg_rr_table();
 		}
 	}
 
@@ -390,7 +546,7 @@ var Recipes = function(db, change_dependencies) {
 							true,
 							["var(--fat_color)", "var(--carbs_color)", "var(--muscle_color)"],
 							["Fat", "Carbs", "Protein"],
-							["/img/symbol_fat.svg", "/img/symbol_carbs.svg", "/img/symbol_muscle.svg"]
+							["./img/symbol_fat.svg", "./img/symbol_carbs.svg", "./img/symbol_muscle.svg"]
 							);
 		multislider_ndist.elem_bar.onchange_callback = function() {
                         document.getElementById(recipes.widget.name + "_recipes_save_daily_preset" + day).style.visibility = "visible";
@@ -503,7 +659,7 @@ var Recipes = function(db, change_dependencies) {
 
 		var q_btn = document.createElement("button");
 		var search_img = document.createElement("img");
-		search_img.src = "/img/symbol_search.svg";
+		search_img.src = "./img/symbol_search.svg";
 		search_img.style.width = "25px";
 		q_btn.appendChild(search_img);
                 q_btn.onclick = function() {
@@ -522,7 +678,11 @@ var Recipes = function(db, change_dependencies) {
                                         "demand": demand_value,
                                         "days": recipes.recipe_consumption_group_query_days,
                                         "parts": parts,
-                                        "n_dist": n_dist
+                                        "n_dist": n_dist,
+					"used_rcg_agg_ids": recipes.recipe_consumption_group_rr_used,
+					"banned_rcg_agg_ids": recipes.recipe_consumption_group_rr_banned,
+					"recipes": recipes.recipe_consumption_group_rr_data,
+					"demand_data": recipes.recipe_consumption_group_rr_demand_data
                                 }
                         };
                         recipes.db.query_post("recipe/index/request", p, recipes.on_recipe_request_response);
@@ -535,6 +695,7 @@ var Recipes = function(db, change_dependencies) {
 		var row2 = document.createElement("tr");
 		var td2 = document.createElement("td");
 		td2.colSpan = 7;
+		td2.appendChild(this.recipe_consumption_group_rr_demand);
 		td2.appendChild(this.recipe_consumption_group_rr);
 		row2.appendChild(td2);
 		this.recipe_consumption_group_query.appendChild(row2);
@@ -543,6 +704,10 @@ var Recipes = function(db, change_dependencies) {
 	this.recipe_consumption_group_query = document.createElement("table");
 	this.recipe_consumption_group_query.id = this.widget.name + "_Query";
 	this.recipe_consumption_group_query.className = "recipes_query";
+	this.recipe_consumption_group_query.style.display = "none";
+
+	this.recipe_consumption_group_rr_demand = document.createElement("table");
+	this.recipe_consumption_group_rr_demand.className = "recipes_cg_demand_table";
 
 	this.recipe_consumption_group_rr = document.createElement("table");
 	this.recipe_consumption_group_rr.className = "recipes_cg_agg_table";
@@ -556,6 +721,11 @@ var Recipes = function(db, change_dependencies) {
 	this.recipe_consumption_group_agg.id = this.widget.name + "_data_table_Agg";
 	this.recipe_consumption_group_agg.className = "recipes_cg_agg_table";
 	this.recipe_consumption_group_agg.style.display = "none";
+
+	this.recipe_consumption_group_agg_planned = document.createElement("table");
+	this.recipe_consumption_group_agg_planned.id = this.widget.name + "_data_table_Agg_Planned";
+	this.recipe_consumption_group_agg_planned.className = "recipes_planned_table";
+
 
 	this.changed_f = function() {
 		this.changed = true;
@@ -619,7 +789,9 @@ var Recipes = function(db, change_dependencies) {
 				recipes.recipe_query_demand_info();
 				this.widget.content.appendChild(this.recipe_consumption_group);
 				this.widget.content.appendChild(this.recipe_consumption_group_agg);
+				this.widget.content.appendChild(this.recipe_consumption_group_agg_planned);
                                 recipes.db.query_post("recipe/processconsumption/get", p, recipes.on_process_consumption_result);
+				recipes.db.query_post("recipe/index/get", p, recipes.on_planned_response);
 			} else {
 				this.widget.content.innerHTML = "";
 				this.elem.style.display = "none";

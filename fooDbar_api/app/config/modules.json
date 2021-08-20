@@ -52,7 +52,9 @@
                     "insertdailyuserpreset",
                     "deletedailyuserpreset",
                     "request",
-                    "index"
+                    "get",
+                    "insert",
+                    "remove"
                 ]
             },
             "Processconsumption": {

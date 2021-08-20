@@ -551,6 +551,10 @@ td {
 
 /* RECIPES */
 
+.recipes_cg_demand_table tr:nth-child(2n) {
+	background: var(--table_row_2n_bg);
+}
+
 .recipes_cg_table td {
 	padding: 5px;
 	border-bottom: 1px dashed black;
