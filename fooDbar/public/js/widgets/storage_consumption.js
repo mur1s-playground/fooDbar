@@ -34,6 +34,35 @@ var StorageConsumption = function(db, change_dependencies) {
 							}
                                 },
                                 {
+					"Edit": { "title": "Edit", "type": "text", "text": "&#x1f589;", "onclick":
+                                                                        function() {
+										var data = storage_consumption.consumption_data[this.obj["Id"]];
+
+										var apply_button = { "title": "Apply", "type": "text", "text": "&#10003;", "onclick": function() {
+	                                                                                                      var p = {
+        	                                                                                                      "consumption_item": storage_consumption.data_table.get_inserted_values(this.obj["Id"])
+                                                                                                              };
+                                                                                                              storage_consumption.db.query_post("storage/consumption/edit", p, storage_consumption.on_consumption_edit_response);
+                                                                                                        }
+                                                                		};
+
+										var cancel_button = { "title": "Cancel", "type": "text", "text": "&#xd7;", "onclick": function() {
+														var edit_row = document.getElementById(storage_consumption.widget.name + "_consumption_" + this.obj["Id"]);
+														var data_row = storage_consumption.data_table.get_data_row(storage_consumption.consumption_data[this.obj["Id"]], { "storages": storage.storages, "products": products.product_data });
+														edit_row.parentNode.replaceChild(data_row, edit_row);
+                                                                                                        }
+
+										};
+
+										var button_override = {
+											"apply": apply_button,
+											"cancel": cancel_button
+										};
+										var edit_row = storage_consumption.data_table.get_edit_row(data, { "storages": storage.storages, "products": products.product_data }, button_override);
+										var data_row = document.getElementById(storage_consumption.widget.name + "_consumption_" + this.obj["Id"]);
+										data_row.parentNode.replaceChild(edit_row, data_row);
+                                                                        }
+                                                },
                                         "Delete": { "title": "Delete", "type": "text", "text": "&#128465;", "onclick":
 									function() {
 							                        var p = {
@@ -575,6 +604,11 @@ var StorageConsumption = function(db, change_dependencies) {
 			products_select.disabled = true;
                         add_button.disabled = true;
 		}
+	}
+
+	this.on_consumption_edit_response = function() {
+//		var resp = JSON.parse(this.responseText);
+		storage.changed_f();
 	}
 
 	this.on_undo_response = function() {

@@ -10,7 +10,7 @@ class StorageConsumptionModel extends \Frame\DBTable {
 	const FIELD_STORAGE_ID = 'StorageId';
 	const FIELD_AMOUNT = 'Amount';
 	const FIELD_DATETIME = 'Datetime';
-	const FIELD_RECIPE_ID = 'RecipeId';
+	const FIELD_RECIPE_CONSUMPTION_GROUP_AGG_ID = 'RecipeConsumptionGroupAggId';
 	const FIELD_USERS_ID = 'UsersId';
 
 	/* int(11) */
@@ -26,14 +26,14 @@ class StorageConsumptionModel extends \Frame\DBTable {
 	private $Datetime;
 
 	/* int(11) */
-	private $RecipeId;
+	private $RecipeConsumptionGroupAggId;
 
 	/* int(11) */
 	private $UsersId;
 
 
 	public function __construct($values = null) {
-		parent::__construct('storage_consumption','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"StorageId":{"Field":"storage_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"Datetime":{"Field":"datetime","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"RecipeId":{"Field":"recipe_id","Type":"int(11)","Null":"YES","Key":"","Default":null,"Extra":""},"UsersId":{"Field":"users_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('storage_consumption','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"StorageId":{"Field":"storage_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"Datetime":{"Field":"datetime","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"RecipeConsumptionGroupAggId":{"Field":"recipe_consumption_group_agg_id","Type":"int(11)","Null":"YES","Key":"","Default":null,"Extra":""},"UsersId":{"Field":"users_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -68,13 +68,13 @@ class StorageConsumptionModel extends \Frame\DBTable {
 	public function setDatetime($Datetime) {
 		$this->Datetime = $Datetime;
 	}
-	/* @return int(11) $this->RecipeId */
-	public function getRecipeId() {
-		return $this->RecipeId;
+	/* @return int(11) $this->RecipeConsumptionGroupAggId */
+	public function getRecipeConsumptionGroupAggId() {
+		return $this->RecipeConsumptionGroupAggId;
 	}
-	/* @param int(11) $RecipeId */
-	public function setRecipeId($RecipeId) {
-		$this->RecipeId = $RecipeId;
+	/* @param int(11) $RecipeConsumptionGroupAggId */
+	public function setRecipeConsumptionGroupAggId($RecipeConsumptionGroupAggId) {
+		$this->RecipeConsumptionGroupAggId = $RecipeConsumptionGroupAggId;
 	}
 	/* @return int(11) $this->UsersId */
 	public function getUsersId() {

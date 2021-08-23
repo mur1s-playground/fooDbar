@@ -54,7 +54,8 @@
                     "request",
                     "get",
                     "insert",
-                    "remove"
+                    "remove",
+                    "consume"
                 ]
             },
             "Processconsumption": {
@@ -92,7 +93,8 @@
                 "actions": [
                     "get",
                     "add",
-                    "undo"
+                    "undo",
+                    "edit"
                 ]
             },
             "Index": {

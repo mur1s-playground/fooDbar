@@ -36,85 +36,7 @@ class ConsumptionController {
     private $DefaultController = false;
     private $DefaultAction = "get";
 
-    public function getAction() {
-	$user = LoginController::requireAuth();
-
-	$result = array();
-        $result["status"] = true;
-
-	$storages_membership_condition = new Condition("[c1]", array(
-                "[c1]" => [
-                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [Condition::CONDITION_CONST, $user->getId()]
-                        ]
-        ));
-
-	$consumption_user_join = new Join(new UsersModel(), "[j1]", array(
-		"[j1]" => [
-                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_USERS_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [UsersModel::class, UsersModel::FIELD_ID]
-                        ]
-	));
-
-	$consumption_storage_join = new Join(new StorageModel(), "[j2]", array(
-		"[j2]" => [
-                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [StorageModel::class, StorageModel::FIELD_ID]
-                        ]
-	));
-
-        $storages_membership_join = new Join(new StoragesMembershipModel(), "[j3]", array(
-                "[j3]" => [
-                                [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
-                                Condition::COMPARISON_EQUALS,
-                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_STORAGES_ID]
-                        ]
-        ));
-
-	$fields = new Fields(array());
-	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID);
-	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID);
-	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_AMOUNT);
-	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
-	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_RECIPE_ID);
-	$fields->addField(UsersModel::class, UsersModel::FIELD_NAME);
-	$fields->addField(StorageModel::class, StorageModel::FIELD_STORAGES_ID);
-	$fields->addField(StorageModel::class, StorageModel::FIELD_PRODUCTS_ID);
-
-	$consumption = new StorageConsumptionModel();
-	$consumption->find($storages_membership_condition, array($consumption_user_join, $consumption_storage_join, $storages_membership_join), null, null, $fields);
-
-	$result["consumption"] = new \stdClass();
-	while ($consumption->next()) {
-		$users_model = $consumption->joinedModelByClass(UsersModel::class);
-		$storage_model = $consumption->joinedModelByClass(StorageModel::class);
-
-		$result["consumption"]->{$consumption->getId()}["Id"] = $consumption->getId();
-		$result["consumption"]->{$consumption->getId()}["StorageId"] = $consumption->getStorageId();
-		$result["consumption"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
-		$result["consumption"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
-		$result["consumption"]->{$consumption->getId()}["User"] = $users_model->getName();
-		$result["consumption"]->{$consumption->getId()}["StoragesId"] = $storage_model->getStoragesId();
-		$result["consumption"]->{$consumption->getId()}["ProductsId"] = $storage_model->getProductsId();
-	}
-
-	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
-    }
-
-    public function addAction() {
-	$user = LoginController::requireAuth();
-
-	$data = $GLOBALS['POST']->{'consumption_item'};
-	$trash = false;
-	if (isset($GLOBALS['POST']->{'trash'})) {
-		if ($GLOBALS['POST']->{'trash'} == true) {
-			$trash = true;
-		}
-	}
-
+    public static function addConsumption($user, $data, $trash, $recipe_consumption_group_agg_id = null) {
 	$storage_cond = new Condition("[c1] AND [c2] AND [c3] AND [c4]", array(
 		"[c1]" => [
 				[StorageModel::class, StorageModel::FIELD_STORAGES_ID],
@@ -195,6 +117,7 @@ class ConsumptionController {
 
 				$consumption = new StorageConsumptionModel();
 				$consumption->setStorageId($storage_consume->getId());
+				$consumption->setRecipeConsumptionGroupAggId($recipe_consumption_group_agg_id);
 
 				if ($amount > $requested_amount) {
 					$consumption->setAmount($requested_amount);
@@ -237,15 +160,10 @@ class ConsumptionController {
 			}
 		}
 	}
-
-	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+	return $result;
     }
 
-    public function undoAction() {
-	$user = LoginController::requireAuth();
-
-	$data = $GLOBALS['POST']->{'consumption_item_id'};
-
+    public static function undoConsumption($user, $data) {
 	$consumption_cond = new Condition("[c1] AND [c2]", array(
 		"[c1]" => [
 				[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID],
@@ -303,13 +221,122 @@ class ConsumptionController {
 		}
 		$storage->save();
 
-		$result["deleted_consumption_item"] = array( 'Id' => $consumption->getId() );
+		$result["deleted_consumption_item"] = array( 'Id' => $consumption->getId(), 'RecipeConsumptionGroupAggId' => $consumption->getRecipeConsumptionGroupAggId(), 'Trash' => ($consumption->getUsersId() == 0) );
 		$consumption->delete();
 	} else {
 		$result["status"] = false;
                 $result["error"] = "item not found/accessible";
 	}
 
+	return $result;
+    }
+
+    public function getAction() {
+	$user = LoginController::requireAuth();
+
+	$result = array();
+        $result["status"] = true;
+
+	$storages_membership_condition = new Condition("[c1]", array(
+                "[c1]" => [
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $user->getId()]
+                        ]
+        ));
+
+	$consumption_user_join = new Join(new UsersModel(), "[j1]", array(
+		"[j1]" => [
+                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [UsersModel::class, UsersModel::FIELD_ID]
+                        ]
+	));
+
+	$consumption_storage_join = new Join(new StorageModel(), "[j2]", array(
+		"[j2]" => [
+                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [StorageModel::class, StorageModel::FIELD_ID]
+                        ]
+	));
+
+        $storages_membership_join = new Join(new StoragesMembershipModel(), "[j3]", array(
+                "[j3]" => [
+                                [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_STORAGES_ID]
+                        ]
+        ));
+
+	$fields = new Fields(array());
+	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_ID);
+	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID);
+	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_AMOUNT);
+	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME);
+	$fields->addField(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_RECIPE_CONSUMPTION_GROUP_AGG_ID);
+	$fields->addField(UsersModel::class, UsersModel::FIELD_NAME);
+	$fields->addField(StorageModel::class, StorageModel::FIELD_STORAGES_ID);
+	$fields->addField(StorageModel::class, StorageModel::FIELD_PRODUCTS_ID);
+
+	$consumption = new StorageConsumptionModel();
+	$consumption->find($storages_membership_condition, array($consumption_user_join, $consumption_storage_join, $storages_membership_join), null, null, $fields);
+
+	$result["consumption"] = new \stdClass();
+	while ($consumption->next()) {
+		$users_model = $consumption->joinedModelByClass(UsersModel::class);
+		$storage_model = $consumption->joinedModelByClass(StorageModel::class);
+
+		$result["consumption"]->{$consumption->getId()}["Id"] = $consumption->getId();
+		$result["consumption"]->{$consumption->getId()}["StorageId"] = $consumption->getStorageId();
+		$result["consumption"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
+		$result["consumption"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
+		$result["consumption"]->{$consumption->getId()}["User"] = $users_model->getName();
+		$result["consumption"]->{$consumption->getId()}["StoragesId"] = $storage_model->getStoragesId();
+		$result["consumption"]->{$consumption->getId()}["ProductsId"] = $storage_model->getProductsId();
+	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
+
+    public function addAction() {
+	$user = LoginController::requireAuth();
+
+	$data = $GLOBALS['POST']->{'consumption_item'};
+	$trash = false;
+        if (isset($GLOBALS['POST']->{'trash'})) {
+        	if ($GLOBALS['POST']->{'trash'} == true) {
+                	$trash = true;
+                }
+        }
+	$result = self::addConsumption($user, $data, $trash);
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
+
+    public function undoAction() {
+	$user = LoginController::requireAuth();
+
+	$data = $GLOBALS['POST']->{'consumption_item_id'};
+
+	$result = self::undoConsumption($user, $data);
+
         exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
+
+    public function editAction() {
+	$user = LoginController::requireAuth();
+
+	$data_id = $GLOBALS['POST']->{'consumption_item'}->{'Id'};
+
+	$result = self::undoConsumption($user, $data_id);
+
+	if ($result["status"] == true) {
+		$data = $GLOBALS['POST']->{'consumption_item'};
+
+		$result = self::addConsumption($user, $data, $result['deleted_consumption_item']['Trash'], $result['deleted_consumption_item']['RecipeConsumptionGroupAggId']);
+	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
 }

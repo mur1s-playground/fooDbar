@@ -12,7 +12,7 @@ var Menu = function(db, change_dependencies) {
                                 storage_consumption.set_circle_view,
                                 null,
                                 null,
-                                null,
+                                recipes.set_circle_view,
                                 null,
 				];
 

@@ -36,48 +36,50 @@ var Recipes = function(db, change_dependencies) {
 		}
 	}
 
-	this.get_recipes_sub_menu = function() {
-		recipes.recipes_sub_menu.innerHTML = "";
-
-		var planned_btn = document.createElement("button");
+	this.set_circle_view = function() {
+		menu.circle_view["box_left_0"].innerHTML = "";
+		var r_link = document.createElement("a");
 		var r_img = document.createElement("img");
-		r_img.src = "./img/symbol_recipe.svg";
-		r_img.style.width = "25px";
-		planned_btn.appendChild(r_img);
-		planned_btn.onclick = function() {
-			recipes.on_menu_btn_click("data_table_Agg_Planned");
-		}
-		recipes.recipes_sub_menu.appendChild(planned_btn);
+                r_img.src = "./img/symbol_recipe.svg";
+		r_img.className = "circle_menu_img";
+		r_link.appendChild(r_img);
+                r_link.onclick = function() {
+                        recipes.on_menu_btn_click("data_table_Agg_Planned");
+                }
+		menu.circle_view["box_left_0"].appendChild(r_link);
 
-		var query_btn = document.createElement("button");
-		query_btn.style.backgroundImage = "linear-gradient(to right, #cccccc, var(--recipes_color))";
-		var search_img = document.createElement("img");
-                search_img.src = "./img/symbol_search.svg";
-                search_img.style.width = "25px";
-                query_btn.appendChild(search_img);
-		var recipe_img = document.createElement("img");
-                recipe_img.src = "./img/symbol_recipe.svg";
-                recipe_img.style.width = "25px";
-                query_btn.appendChild(recipe_img);
-		query_btn.onclick = function() {
+		menu.circle_view["box_left_1"].innerHTML = "";
+		var q_link = document.createElement("a");
+		var q_img0 = document.createElement("img");
+		q_img0.src = "./img/symbol_search.svg";
+		q_img0.className = "circle_menu_img";
+		q_link.appendChild(q_img0);
+		var q_img1 = document.createElement("img");
+                q_img1.src = "./img/symbol_recipe.svg";
+                q_img1.className = "circle_menu_img";
+                q_link.appendChild(q_img1);
+		q_link.onclick = function() {
 			recipes.on_menu_btn_click("Query");
 		}
-		recipes.recipes_sub_menu.appendChild(query_btn);
+		menu.circle_view["box_left_1"].appendChild(q_link);
 
-		var agg_btn = document.createElement("button");
-		agg_btn.style.backgroundImage = "linear-gradient(to right, var(--recipes_color), var(--storage_color))";
-		var recipe_img = document.createElement("img");
-		recipe_img.src = "./img/symbol_recipe.svg";
-		recipe_img.style.width = "25px";
-		agg_btn.appendChild(recipe_img);
-		var storage_img = document.createElement("img");
-		storage_img.src = "./img/symbol_products.svg";
-		storage_img.style.width = "25px";
-		agg_btn.appendChild(storage_img);
-		agg_btn.onclick = function() {
+		menu.circle_view["box_left_2"].innerHTML = "";
+		var a_link = document.createElement("a");
+		var a_img0 = document.createElement("img");
+		a_img0.src = "./img/symbol_recipe.svg";
+		a_img0.className = "circle_menu_img";
+		a_link.appendChild(a_img0);
+		var a_img1 = document.createElement("img");
+		a_img1.src = "./img/symbol_products.svg";
+		a_img1.className = "circle_menu_img";
+		a_link.appendChild(a_img1);
+		a_link.onclick = function() {
 			recipes.on_menu_btn_click("data_table_Agg");
 		}
-		recipes.recipes_sub_menu.appendChild(agg_btn);
+		menu.circle_view["box_left_2"].appendChild(a_link);
+	}
+
+	this.get_recipes_sub_menu = function() {
 /*
 		var raw_btn = document.createElement("button");
 		raw_btn.innerHTML = "R";
@@ -150,9 +152,15 @@ var Recipes = function(db, change_dependencies) {
                                 },
                                 { },
                                 {
-					"Consume": { "title": "Consume", "type": "text", "text": "C", "onclick":
+					"Consume": { "title": "Consume", "type": "img", "img_src": "./img/symbol_person.svg", "onclick":
                                                                         function() {
-
+										var p = {
+											"recipe_planned_id": this.obj["Id"]
+										};
+										var r = confirm("(Partially) Consume planned recipe " + this.obj["Id"] + "?");
+										if (r == 1) {
+											recipes.db.query_post("recipe/index/consume", p, recipes.on_consume_planned_response);
+										}
                                                                         }
                                                 },
 					"Delete": { "title": "Delete", "type": "text", "text": "&#128465;", "onclick":
@@ -328,6 +336,19 @@ var Recipes = function(db, change_dependencies) {
                         }
                 }
 
+	}
+
+	this.on_consume_planned_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+/*
+			delete recipes.recipe_consumption_group_agg_planned_data[resp["removed_recipe_planned_id"]];
+
+                        recipes.update_cg_planned_table();
+*/
+			storage.changed_f();
+			menu.switch_tab("Consumption");
+		}
 	}
 
 	this.on_remove_planned_response = function() {

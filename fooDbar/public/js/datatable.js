@@ -5,21 +5,26 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 	this.insert_fields = insert_fields;
 	this.row_options = row_options;
 
-	this.get_inserted_values = function() {
+	this.get_inserted_values = function(row_suffix = null) {
 		var p_sub = {};
+		if (row_suffix != null) {
+			p_sub["Id"] = row_suffix;
+		}
 		for (var insert in this.insert_fields) {
 			if (!this.insert_fields.hasOwnProperty(insert)) continue;
                       	if (insert === "add_button") continue;
+			var id = this.parent.widget.name + "_" + this.id_suffix + "_" + insert;
+			if (row_suffix != null) id += "_" + row_suffix;
                         if (this.insert_fields[insert].hasOwnProperty("join")) {
-	                	var select_elem = document.getElementById(this.parent.widget.name + "_" + this.id_suffix + "_" + insert);
+	                	var select_elem = document.getElementById(id);
                                 p_sub[insert] = select_elem.options[select_elem.selectedIndex].value;
                         } else {
 				if (this.insert_fields[insert]["type"] != null) {
 					if (this.insert_fields[insert]["type"] == "checkbox") {
-						p_sub[insert] = document.getElementById(this.parent.widget.name + "_" + this.id_suffix + "_" + insert).checked;
+						p_sub[insert] = document.getElementById(id).checked;
 					}
 				} else {
-	                                p_sub[insert] = document.getElementById(this.parent.widget.name + "_" + this.id_suffix + "_" + insert).value;
+	                                p_sub[insert] = document.getElementById(id).value;
 				}
                         }
 		}
@@ -51,7 +56,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 		return row_elem;
 	}
 
-	this.get_insert_row = function(data, join_opts = null) {
+	this.get_insert_row = function(data, join_opts = null, row_suffix = null) {
 		var row_elem = document.createElement("tr");
 
 		for (var field in this.fields) {
@@ -65,6 +70,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 						input.type = this.insert_fields[field]["type"];
 					}
 					input.id = parent.widget.name + "_" + this.id_suffix + "_" + field;
+					if (row_suffix != null) input.id += "_" + row_suffix;
 					if (data != null) {
 						input.value = data[field];
 					}
@@ -76,6 +82,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 				} else {
 					var select = document.createElement("select");
 					select.id = parent.widget.name + "_" + this.id_suffix + "_" + field;
+					if (row_suffix != null) select.id += "_" + row_suffix;
 					if (this.insert_fields[field]["onchange"]) {
                                                 select.onchange = this.insert_fields[field]["onchange"];
                                         }
@@ -102,6 +109,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 				if (this.insert_fields[field]["button"]) {
 					var button = document.createElement("button");
 					button.id = parent.widget.name + "_" + this.id_suffix + "_" + field + "_button";
+					if (row_suffix != null) button.id += "_" + row_suffix;
 					button.title = this.insert_fields[field]["button"]["title"];
 					if (this.insert_fields[field]["button"]["type"] == "text") {
 						button.appendChild(document.createTextNode(this.insert_fields[field]["button"]["text"]));
@@ -112,6 +120,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 			} else {
 				var span = document.createElement("span");
 				span.id = parent.widget.name + "_" + this.id_suffix + "_" + field;
+				if (row_suffix != null) span.id += "_" + row_suffix;
 				col.appendChild(span);
 			}
 			row_elem.appendChild(col);
@@ -120,6 +129,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 		var col = document.createElement("td");
 		var add_button = document.createElement("button");
 		add_button.id = parent.widget.name + "_" + this.id_suffix + "_add_button";
+		if (row_suffix != null) add_button.id += "_" + row_suffix;
        	        add_button.obj = this.parent;
                	add_button.innerHTML = "&#xFF0B;";
                 add_button.onclick = this.insert_fields["add_button"]["onclick"];
@@ -129,6 +139,7 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 		if (this.insert_fields[field]["button"]) {
                 	var button = document.createElement("button");
                         button.id = parent.widget.name + "_" + this.id_suffix + "_" + field + "_button";
+			if (row_suffix != null) button.id += "_" + row_suffix;
                         button.title = this.insert_fields[field]["button"]["title"];
                         if (this.insert_fields[field]["button"]["type"] == "text") {
                         	button.innerHTML = this.insert_fields[field]["button"]["text"];
@@ -138,6 +149,27 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
                 }
 
 		row_elem.appendChild(col);
+
+		return row_elem;
+	}
+
+	this.get_edit_row = function(data, join_opts = null, button_override = null) {
+		var row_elem = this.get_insert_row(data, join_opts, data["Id"]);
+		row_elem.id = parent.widget.name + "_" + this.id_suffix + "_" + data["Id"];
+
+		if (button_override != null) {
+			var button_col = row_elem.children[row_elem.children.length - 1];
+			button_col.innerHTML = "";
+
+			for (var bo in button_override) {
+				var button = document.createElement("button");
+				button.obj = data;
+				button.title = button_override[bo]["title"];
+				button.innerHTML = button_override[bo]["text"];
+				button.onclick = button_override[bo]["onclick"];
+				button_col.appendChild(button);
+			}
+		}
 
 		return row_elem;
 	}
@@ -194,7 +226,12 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 			var button = document.createElement("button");
 			button.obj = data;
 			if (this.row_options[option]["type"] == "text") {
-				button.innerHTML = this.row_options[option].innerHTML = this.row_options[option]["text"];
+				button.innerHTML = this.row_options[option]["text"];
+			} else if (this.row_options[option]["type"] == "img") {
+				var img = document.createElement("img");
+				img.src = this.row_options[option]["img_src"];
+				img.style.width = "25px";
+				button.appendChild(img);
 			}
 			button.onclick = this.row_options[option]["onclick"];
 			col.appendChild(button);

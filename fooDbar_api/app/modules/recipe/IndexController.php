@@ -500,4 +500,95 @@ class IndexController {
 
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
+
+    public function consumeAction() {
+	$user = LoginController::requireAuth();
+
+	$data = $GLOBALS['POST']->{'recipe_planned_id'};
+
+	$result["status"] = true;
+
+	$condition = new Condition("[c1] AND [c2]", array(
+		"[c1]" => [
+			[RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_ID],
+                        Condition::COMPARISON_EQUALS,
+                        [Condition::CONDITION_CONST, $data]
+		],
+		"[c2]" => [
+                        [RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_USERS_ID],
+                        Condition::COMPARISON_EQUALS,
+                        [Condition::CONDITION_CONST, $user->getId()]
+                ]
+	));
+
+	$join_a = new Join(new RecipeConsumptionGroupAggModel(), "[j1]", array(
+		"[j1]" => [
+			[RecipeConsumptionGroupAggPlannedModel::class, RecipeConsumptionGroupAggPlannedModel::FIELD_RECIPE_CONSUMPTION_GROUP_AGG_ID],
+			Condition::COMPARISON_EQUALS,
+			[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_ID]
+		]
+	));
+
+	$join_g = new Join(new RecipeConsumptionGroupModel(), "[j2]", array(
+		"[j2]" => [
+			[RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
+			Condition::COMPARISON_EQUALS,
+			[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupAggModel::FIELD_ID]
+		]
+	));
+
+	$rcg_agg_p = new RecipeConsumptionGroupAggPlannedModel();
+	$rcg_agg_p->find($condition, array($join_a, $join_g));
+	if ($rcg_agg_p->next()) {
+		$amounts = $rcg_agg_p->getAmounts();
+		$amounts_r = explode(';', $amounts);
+
+		$rcg = $rcg_agg_p->joinedModelByClass(RecipeConsumptionGroupModel::class);
+                $products_ids = $rcg->getProductsIds();
+		$products_r = explode(';', $products_ids);
+
+                $date_now = date_create();
+                $date_f = $date_now->format("Y-m-d H:i:s");
+
+		//FF: usable storage filter
+		$GLOBALS['Boot']->loadModule("storage", "Index");
+		$storages = Storage\IndexController::getStorages($user);
+
+		$GLOBALS['Boot']->loadModule("storage", "Consumption");
+		for ($p = 0; $p < count($products_r); $p++) {
+			$data = new \stdClass();
+			$data->{'ProductsId'} = $products_r[$p];
+			$data->{'Amount'} = $amounts_r[$p];
+			$data->{'Datetime'} = $date_f;
+
+			//FF: split on usable storages
+			foreach ($storages as $storage_id => $storage) {
+				$data->{'StoragesId'} = $storage_id;
+
+				$result_p = Storage\ConsumptionController::addConsumption($user, $data, false, $rcg_agg_p->getRecipeConsumptionGroupAggId());
+				if ($result_p["status"] === true) {
+					if (!isset($result["new_consumption_item"])) {
+						$result["new_consumption_item"] = new \stdClass();
+					}
+					foreach ($result_p["new_consumption_item"] as $consumption_id => $consumption) {
+						$result["new_consumption_item"]->{$consumption_id} = $consumption;
+					}
+					break;
+				} else {
+					if (!isset($result["error"])) {
+						$result["error"] = new \stdClass();
+					}
+					$result["error"]->{$products_r[$p]} = $result_p;
+				}
+			}
+		}
+
+		$result["removed_recipe_planned_id"] = $rcg_agg_p->getId();
+		$rcg_agg_p->delete();
+	} else {
+		$result["status"] = false;
+	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
 }
