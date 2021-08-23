@@ -32,13 +32,13 @@ var Menu = function(db, change_dependencies) {
 	setInterval(this.circle_view_menu_time_f, 1000);
 
 	this.circle_view_menu = {
- 		"Recipes": { "tab": "Recipes", "imgs": [ "/img/symbol_recipe.svg" ], "target": "box_left_0" },
-		"User Target": { "tab": "User Target", "imgs": [ "/img/symbol_bmi.svg", "/img/symbol_target.svg" ], "target": "box_left_1" },
-		"User State": { "tab": "User State", "imgs": [ "/img/symbol_person_height.svg", "/img/symbol_person_weight.svg" ], "target": "box_left_2" },
-		"Shopping List": { "tab": "Shopping List", "imgs": [ "/img/symbol_shopping_list.svg" ], "target": "box_right_0" },
-		"Storage": { "tab": "Storage", "imgs": [ "/img/symbol_storage.svg" ], "target": "box_right_1" },
-		"Products": { "tab": "Products", "imgs": [ "/img/symbol_products.svg" ], "target": "box_right_2" },
-		"Consumption": { "tab": "Consumption", "imgs": [ "/img/symbol_person.svg" ], "target": "box_top", "className": "circle_menu_img_tb_corr" }
+ 		"Recipes": { "tab": "Recipes", "imgs": [ "./img/symbol_recipe.svg" ], "target": "box_left_0" },
+		"User Target": { "tab": "User Target", "imgs": [ "./img/symbol_bmi.svg", "./img/symbol_target.svg" ], "target": "box_left_1" },
+		"User State": { "tab": "User State", "imgs": [ "./img/symbol_person_height.svg", "./img/symbol_person_weight.svg" ], "target": "box_left_2" },
+		"Shopping List": { "tab": "Shopping List", "imgs": [ "./img/symbol_shopping_list.svg" ], "target": "box_right_0" },
+		"Storage": { "tab": "Storage", "imgs": [ "./img/symbol_storage.svg" ], "target": "box_right_1" },
+		"Products": { "tab": "Products", "imgs": [ "./img/symbol_products.svg" ], "target": "box_right_2" },
+		"Consumption": { "tab": "Consumption", "imgs": [ "./img/symbol_person.svg" ], "target": "box_top", "className": "circle_menu_img_tb_corr" }
 	};
 
 	this.clear_circle_view = function () {
@@ -108,7 +108,7 @@ var Menu = function(db, change_dependencies) {
 
 		this.circle_view["base_bg"]				= document.createElement("img");
 		this.circle_view["base_bg"].id				= "circle_view_bg";
-		this.circle_view["base_bg"].src				= "/img/consumption_circle.png";
+		this.circle_view["base_bg"].src				= "./img/consumption_circle.png";
 		this.circle_view["base_bg"].onclick 			= function() {
 			menu.switch_tab("none");
 			menu.set_circle_view();
