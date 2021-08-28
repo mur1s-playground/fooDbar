@@ -436,7 +436,13 @@ class IndexController {
 
 				$diff = -1 * $diff;
 
+				$dt_set = false;
 				while ($storage_consumption_inner->next()) {
+					if (!$dt_set && $target_amount == 0) {
+						$storage->setDatetimeEmpty($storage_consumption_inner->getDatetime());
+                                                $dt_set = true;
+					}
+
 					$s_amount = $storage_consumption_inner->getAmount();
 
 					$part = $s_amount/$consumption_sum;
