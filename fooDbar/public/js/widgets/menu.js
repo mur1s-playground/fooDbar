@@ -10,7 +10,7 @@ var Menu = function(db, change_dependencies) {
 				user_target.set_circle_view,
                                 null,
                                 storage_consumption.set_circle_view,
-                                null,
+                                storage.set_circle_view,
                                 null,
                                 recipes.set_circle_view,
                                 null,

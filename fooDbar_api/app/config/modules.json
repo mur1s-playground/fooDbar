@@ -103,7 +103,8 @@
                     "get",
                     "insert",
                     "remove",
-                    "divide"
+                    "divide",
+                    "multiply"
                 ]
             }
         },

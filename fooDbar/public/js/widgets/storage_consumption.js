@@ -7,9 +7,9 @@ var StorageConsumption = function(db, change_dependencies) {
 	this.data_table = new DataTable(this, "consumption",
                                 {
 					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
-					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "/img/symbol_storage.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
-					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "/img/symbol_weight.svg", "img_class": "datatable_header" } },
-					"Datetime": { "title": "Consumption", "header": { "type": "img", "img_src": "/img/symbol_person.svg", "img_class": "datatable_header" } },
+					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "./img/symbol_storage.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
+					"Datetime": { "title": "Consumption", "header": { "type": "img", "img_src": "./img/symbol_person.svg", "img_class": "datatable_header" } },
 					"User": { "title": "User", "header": { "type": "text", "text": "", "text_class": "datatable_header" } }
                                 },
                                 {
@@ -214,19 +214,19 @@ var StorageConsumption = function(db, change_dependencies) {
 		var n_fat_box_img   		         	= document.createElement("img");
                 n_fat_box_img.id             			= "consumption_circle_nutrition_fat_img";
                 n_fat_box_img.className      			= "consumption_circle_nutrition_img";
-                n_fat_box_img.src            			= "/img/symbol_fat.svg";
+                n_fat_box_img.src            			= "./img/symbol_fat.svg";
                 nutrition_container.appendChild(n_fat_box_img);
 
 		var n_carbs_box_img            			= document.createElement("img");
                 n_carbs_box_img.id             			= "consumption_circle_nutrition_carbs_img";
                 n_carbs_box_img.className      			= "consumption_circle_nutrition_img";
-                n_carbs_box_img.src            			= "/img/symbol_carbs.svg";
+                n_carbs_box_img.src            			= "./img/symbol_carbs.svg";
                 nutrition_container.appendChild(n_carbs_box_img);
 
 		var n_protein_box_img                           = document.createElement("img");
                 n_protein_box_img.id                            = "consumption_circle_nutrition_protein_img";
                 n_protein_box_img.className                     = "consumption_circle_nutrition_img";
-                n_protein_box_img.src                           = "/img/symbol_muscle.svg";
+                n_protein_box_img.src                           = "./img/symbol_muscle.svg";
                 nutrition_container.appendChild(n_protein_box_img);
 
 		menu.circle_view["box_center"].appendChild(nutrition_container);
@@ -535,7 +535,7 @@ var StorageConsumption = function(db, change_dependencies) {
 
 		var visibility_toggle = document.createElement("button");
 		var v_img = document.createElement("img");
-		v_img.src = "/img/symbol_search.svg";
+		v_img.src = "./img/symbol_search.svg";
 		v_img.style.width = "25px";
 		visibility_toggle.appendChild(v_img);
 		visibility_toggle.onclick = function() {

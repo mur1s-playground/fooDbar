@@ -6,11 +6,17 @@ use \FooDBar\Users\LoginController as LoginController;
 
 $GLOBALS['Boot']->loadDBExt("Fields");
 $GLOBALS['Boot']->loadDBExt("Join");
+$GLOBALS['Boot']->loadDBExt("GroupBy");
+$GLOBALS['Boot']->loadDBExt("DBFunction");
+$GLOBALS['Boot']->loadDBExt("DBFunctionExpression");
 
-use \Frame\Fields 	as Fields;
-use \Frame\Join 	as Join;
-use \Frame\Condition 	as Condition;
-use \Frame\Order 	as Order;
+use \Frame\Fields               as Fields;
+use \Frame\Join                 as Join;
+use \Frame\Condition            as Condition;
+use \Frame\Order                as Order;
+use \Frame\GroupBy              as GroupBy;
+use \Frame\DBFunction           as DBFunction;
+use \Frame\DBFunctionExpression as DBFunctionExpression;
 
 
 $GLOBALS['Boot']->loadModel("StorageModel");
@@ -276,6 +282,7 @@ class IndexController {
 	$user = LoginController::requireAuth();
 
         $data = $GLOBALS['POST']->{'storage_item_id'};
+	$target_amount = $GLOBALS['POST']->{'storage_target_amount'};
 
         $storage_cond = new Condition("[c1] AND [c2]", array(
                 "[c1]" => [
@@ -308,39 +315,144 @@ class IndexController {
 
 		$amount = $storage->getAmount();
 
-		$storage_consumption_cond = new Condition("[c1]", array(
-			"[c1]" => [
-				[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
-				Condition::COMPARISON_EQUALS,
-				[Condition::CONDITION_CONST, $storage->getId()]
-			]
-		));
+		if ($target_amount <= $amount) {
+			$diff = $amount - $target_amount;
 
-		$storage_consumption_order = new Order(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME, Order::ORDER_DESC);
+			$storage_consumption_cond = new Condition("[c1]", array(
+				"[c1]" => [
+					[StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+					Condition::COMPARISON_EQUALS,
+					[Condition::CONDITION_CONST, $storage->getId()]
+				]
+			));
 
-		$storage_consumption = new StorageConsumptionModel();
-		$storage_consumption->find($storage_consumption_cond, null, $storage_consumption_order);
+			$storage_consumption_order = new Order(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME, Order::ORDER_DESC);
 
-		$consumption_ct = $storage_consumption->count();
-		if ($consumption_ct > 0) {
-			$amount_per_consumption = $amount / $consumption_ct;
+			$storage_consumption = new StorageConsumptionModel();
+			$storage_consumption->find($storage_consumption_cond, null, $storage_consumption_order);
 
-			$storage->setAmount(0.0);
-			$dt_set = false;
-			while ($storage_consumption->next()) {
-				if (!$dt_set) {
-					$storage->setDatetimeEmpty($storage_consumption->getDatetime());
-					$dt_set = true;
+			$consumption_ct = $storage_consumption->count();
+			if ($consumption_ct > 0) {
+				$amount_per_consumption = $diff / $consumption_ct;
+
+				$storage->setAmount($target_amount);
+				$dt_set = false;
+				while ($storage_consumption->next()) {
+					if (!$dt_set) {
+						$storage->setDatetimeEmpty($storage_consumption->getDatetime());
+						$dt_set = true;
+					}
+					$storage_consumption->setAmount(round($storage_consumption->getAmount() + $amount_per_consumption, 4));
+					$storage_consumption->save();
 				}
-				$storage_consumption->setAmount(round($storage_consumption->getAmount() + $amount_per_consumption, 4));
-				$storage_consumption->save();
+				$storage->save();
 			}
-			$storage->save();
 		}
 	} else {
 		$result["status"] = false;
                 $result["error"] = "item not found/accessible";
 	}
+
+	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
+    }
+
+    public function multiplyAction() {
+	$user = LoginController::requireAuth();
+
+	$data = $GLOBALS['POST']->{'storage_item_id'};
+	$target_amount = $GLOBALS['POST']->{'storage_target_amount'};
+
+	$storage_cond = new Condition("[c1] AND [c2]", array(
+                "[c1]" => [
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $user->getId()]
+                        ],
+                "[c2]" => [
+                                [StorageModel::class, StorageModel::FIELD_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $data]
+                        ]
+        ));
+
+        $storage_join = new Join(new StorageModel(), "[j1]", array(
+                "[j1]" => [
+                                [StorageModel::class, StorageModel::FIELD_STORAGES_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [StoragesMembershipModel::class, StoragesMembershipModel::FIELD_STORAGES_ID]
+                ]
+        ));
+
+        $storages_membership = new StoragesMembershipModel();
+        $storages_membership->find($storage_cond, array($storage_join));
+
+        $result = array();
+        $result["status"] = true;
+        if ($storages_membership->next()) {
+                $storage = $storages_membership->joinedModelByClass(StorageModel::class);
+
+		$amount = $storage->getAmount();
+
+		$storage_consumption_cond = new Condition("[c1]", array(
+                        "[c1]" => [
+                                [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $storage->getId()]
+                        ]
+                ));
+
+		$sum_expr = new DBFunctionExpression("[c1]", array(
+                	"[c1]" => [StorageConsumptionModel::class, StorageConsumptionModel::FIELD_AMOUNT]
+	        ));
+
+	        $fields = new Fields(array());
+	        $fields->addFunctionField("SumAmount", DBFunction::FUNCTION_SUM, $sum_expr);
+
+	        $group_by = new GroupBy(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_STORAGE_ID);
+
+                $storage_consumption_order = new Order(StorageConsumptionModel::class, StorageConsumptionModel::FIELD_DATETIME, Order::ORDER_DESC);
+
+                $storage_consumption = new StorageConsumptionModel();
+                $storage_consumption->find($storage_consumption_cond, null, $storage_consumption_order, null, $fields, $group_by);
+
+		if ($storage_consumption->next()) {
+			$consumption_sum = floatval($storage_consumption->DBFunctionResult("SumAmount"));
+
+			$diff = $target_amount - $amount;
+
+			if ($diff > 0 && $consumption_sum > $diff) {
+				$part = 1.0 - $diff/$consumption_sum;
+
+				$storage_consumption_inner = new StorageConsumptionModel();
+				$storage_consumption_inner->find($storage_consumption_cond, null, $storage_consumption_order);
+
+				while ($storage_consumption_inner->next()) {
+					$storage_consumption_inner->setAmount(round($storage_consumption_inner->getAmount() * $part, 4));
+					$storage_consumption_inner->save();
+				}
+			} else if ($diff < 0) {
+				$storage_consumption_inner = new StorageConsumptionModel();
+                                $storage_consumption_inner->find($storage_consumption_cond, null, $storage_consumption_order);
+
+				$diff = -1 * $diff;
+
+				while ($storage_consumption_inner->next()) {
+					$s_amount = $storage_consumption_inner->getAmount();
+
+					$part = $s_amount/$consumption_sum;
+
+					$storage_consumption_inner->setAmount($s_amount + $part * $diff);
+					$storage_consumption_inner->save();
+				}
+			}
+			$storage->setAmount($target_amount);
+                        $storage->save();
+		}
+
+	} else {
+                $result["status"] = false;
+                $result["error"] = "item not found/accessible";
+        }
 
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }

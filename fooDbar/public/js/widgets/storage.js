@@ -20,13 +20,17 @@ var Storage = function(db, change_dependencies) {
 		return false;
 	}
 
+	this.set_circle_view = function() {
+		menu.circle_view["box_center"].innerHTML = "";
+	}
+
 	this.data_table = new DataTable(this, "storage",
                                 {
 					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
-					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "/img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
-					"ProductsSourceId": { "title": "Source", "header": { "type": "img", "img_src": "/img/symbol_shopping_list.svg", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
-					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "/img/symbol_weight.svg", "img_class": "datatable_header" } },
-					"Price": { "title": "Price", "header": { "type": "img", "img_src": "/img/symbol_price.svg", "img_class": "datatable_header" } },
+					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"ProductsSourceId": { "title": "Source", "header": { "type": "img", "img_src": "./img/symbol_shopping_list.svg", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
+					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
+					"Price": { "title": "Price", "header": { "type": "img", "img_src": "./img/symbol_price.svg", "img_class": "datatable_header" } },
 					"DatetimeInsert": { "title": "Insert", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
 					"DatetimeOpen": { "title": "Open", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
 //                                        "DatetimeEmpty": { "title": "Empty", "header": { "type": "text", "text": "Empty", "text_class": "datatable_header" } }
@@ -57,15 +61,28 @@ var Storage = function(db, change_dependencies) {
 							                        }
 							                }
                                                 },
-					"Divide": { "title": "Divide onto consumptions", "type": "text", "text": "&#xf7;", "onclick":
+					"Divide": { "title": "Divide evenly onto consumptions", "type": "text", "text": "&#xf7;", "onclick":
                                                                         function() {
-                                                                                var p = {
-                                                                                        "storage_item_id": this.obj["Id"]
-                                                                                };
-                                                                                var r = confirm("Divide storage item " + this.obj["Id"] + " onto consumptions?");
-                                                                                if (r == 1) {
-                                                                                        storage.db.query_post("storage/index/divide", p, storage.on_divide_response);
-                                                                                }
+                                                                                menu.circle_view["box_center"].innerHTML = "";
+
+                                                                                var ne_container = document.createElement("div");
+                                                                                ne_container.style.width = "196px";
+                                                                                ne_container.style.height = "196px";
+                                                                                var ne = new NumberEntry([196, 196], storage.divide_entry, this.obj["Id"], "> Target Amount");
+                                                                                ne_container.appendChild(ne.elem);
+                                                                                menu.circle_view["box_center"].appendChild(ne_container);
+                                                                        }
+                                                },
+					"Multiply": { "title": "Multiply proportionally onto/from consumptions", "type": "text", "text": "&#xb7;", "onclick":
+                                                                        function() {
+										menu.circle_view["box_center"].innerHTML = "";
+
+                                                                                var ne_container = document.createElement("div");
+                                                                                ne_container.style.width = "196px";
+                                                                                ne_container.style.height = "196px";
+                                                                                var ne = new NumberEntry([196, 196], storage.multiply_entry, this.obj["Id"], "> Target Amount");
+                                                                                ne_container.appendChild(ne.elem);
+                                                                                menu.circle_view["box_center"].appendChild(ne_container);
                                                                         }
                                                 }
                                 }
@@ -91,10 +108,42 @@ var Storage = function(db, change_dependencies) {
 	this.storage.className = "storage";
 	this.widget.content.appendChild(this.storage);
 
-	this.on_divide_response = function() {
+	this.divide_entry = function(state_nr, number) {
+		var storage_elem = storage.storage_data[state_nr];
+                var amount = parseFloat(storage_elem["Amount"]);
+                var p = {
+                        "storage_item_id": state_nr,
+                        "storage_target_amount": number
+                };
+		if (number < amount) {
+			var r = confirm("Divide storage item " + state_nr + " onto consumptions?");
+                        if (r == 1) {
+                                storage.db.query_post("storage/index/divide", p, storage.on_set_response);
+                        }
+
+		}
+	}
+
+	this.multiply_entry = function(state_nr, number) {
+		var storage_elem = storage.storage_data[state_nr];
+                var amount = parseFloat(storage_elem["Amount"]);
+		var p = {
+                	"storage_item_id": state_nr,
+                        "storage_target_amount": number
+                };
+                if (number != amount) {
+                        var r = confirm("Multiply storage item " + state_nr + " onto/from consumptions?");
+                        if (r == 1) {
+                                storage.db.query_post("storage/index/multiply", p, storage.on_set_response);
+                        }
+		}
+	}
+
+	this.on_set_response = function() {
 		var resp = JSON.parse(this.responseText);
 		if (resp["status"] == true) {
 			storage.changed_f();
+			storage.set_circle_view();
 		}
 	}
 
