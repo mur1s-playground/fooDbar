@@ -338,7 +338,7 @@ class IndexController {
 				$storage->setAmount($target_amount);
 				$dt_set = false;
 				while ($storage_consumption->next()) {
-					if (!$dt_set) {
+					if (!$dt_set && $target_amount == 0) {
 						$storage->setDatetimeEmpty($storage_consumption->getDatetime());
 						$dt_set = true;
 					}
