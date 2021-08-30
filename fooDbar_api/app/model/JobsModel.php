@@ -12,6 +12,7 @@ class JobsModel extends \Frame\DBTable {
 	const FIELD_STATUS = 'Status';
 	const FIELD_DATETIME_START = 'DatetimeStart';
 	const FIELD_DATETIME_END = 'DatetimeEnd';
+	const FIELD_PID = 'Pid';
 	const FIELD_RESULT = 'Result';
 
 	/* int(11) */
@@ -32,12 +33,15 @@ class JobsModel extends \Frame\DBTable {
 	/* datetime */
 	private $DatetimeEnd;
 
+	/* int(11) */
+	private $Pid;
+
 	/* blob */
 	private $Result;
 
 
 	public function __construct($values = null) {
-		parent::__construct('jobs','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Script":{"Field":"script","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Params":{"Field":"params","Type":"blob","Null":"YES","Key":"","Default":null,"Extra":""},"Status":{"Field":"status","Type":"varchar(255)","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeStart":{"Field":"datetime_start","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeEnd":{"Field":"datetime_end","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"Result":{"Field":"result","Type":"blob","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('jobs','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Script":{"Field":"script","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Params":{"Field":"params","Type":"blob","Null":"YES","Key":"","Default":null,"Extra":""},"Status":{"Field":"status","Type":"varchar(255)","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeStart":{"Field":"datetime_start","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"DatetimeEnd":{"Field":"datetime_end","Type":"datetime","Null":"YES","Key":"","Default":null,"Extra":""},"Pid":{"Field":"pid","Type":"int(11)","Null":"YES","Key":"","Default":null,"Extra":""},"Result":{"Field":"result","Type":"blob","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -87,6 +91,14 @@ class JobsModel extends \Frame\DBTable {
 	/* @param datetime $DatetimeEnd */
 	public function setDatetimeEnd($DatetimeEnd) {
 		$this->DatetimeEnd = $DatetimeEnd;
+	}
+	/* @return int(11) $this->Pid */
+	public function getPid() {
+		return $this->Pid;
+	}
+	/* @param int(11) $Pid */
+	public function setPid($Pid) {
+		$this->Pid = $Pid;
 	}
 	/* @return blob $this->Result */
 	public function getResult() {

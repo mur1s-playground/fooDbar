@@ -38,6 +38,7 @@ class Job extends Boot {
 
 		if ($job->next()) {
 			$this->job = $job;
+			$this->job->setPid(getmypid());
 			$this->setJobStatus(self::JOB_STATUS_RUNNING);
 		} else {
 			exit();
