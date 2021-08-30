@@ -3,6 +3,10 @@
         "controllers": [],
         "defaultController": "Allergy"
     },
+    "app": {
+        "controllers": [],
+        "defaultController": "Status"
+    },
     "demand": {
         "controllers": {
             "Index": {
