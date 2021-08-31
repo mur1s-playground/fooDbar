@@ -16,8 +16,13 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
 			var id = this.parent.widget.name + "_" + this.id_suffix + "_" + insert;
 			if (row_suffix != null) id += "_" + row_suffix;
                         if (this.insert_fields[insert].hasOwnProperty("join")) {
-	                	var select_elem = document.getElementById(id);
-                                p_sub[insert] = select_elem.options[select_elem.selectedIndex].value;
+				if (this.fields[insert]["join"]["autocomplete"] != null) {
+					var input_elem = document.getElementById(id + "_input");
+					p_sub[insert] = input_elem.selected_value;
+				} else {
+		                	var select_elem = document.getElementById(id);
+        	                        p_sub[insert] = select_elem.options[select_elem.selectedIndex].value;
+				}
                         } else {
 				if (this.insert_fields[insert]["type"] != null) {
 					if (this.insert_fields[insert]["type"] == "checkbox") {
@@ -80,31 +85,42 @@ var DataTable = function(parent, id_suffix, fields, insert_fields, row_options) 
                 	                }
                         	        col.appendChild(input);
 				} else {
-					var select = document.createElement("select");
-					select.id = parent.widget.name + "_" + this.id_suffix + "_" + field;
-					if (row_suffix != null) select.id += "_" + row_suffix;
-					if (this.insert_fields[field]["onchange"]) {
-                                                select.onchange = this.insert_fields[field]["onchange"];
-                                        }
+					if (this.fields[field]["join"]["autocomplete"] != null) {
+						var a_id = parent.widget.name + "_" + this.id_suffix + "_" + field;
+						if (row_suffix != null) a_id += "_" + row_suffix;
+						var autocomplete = new AutocompleteTextfield(a_id, join_opts[this.fields[field]["join"]["model"]], this.fields[field]["join"]["field"]);
+						if (data != null) {
+							autocomplete.textfield.value = join_opts[this.fields[field]["join"]["model"]][data[field]][this.fields[field]["join"]["field"]];
+							autocomplete.textfield.selected_value = data[field];
+						}
+						col.appendChild(autocomplete.elem);
+					} else {
+						var select = document.createElement("select");
+						select.id = parent.widget.name + "_" + this.id_suffix + "_" + field;
+						if (row_suffix != null) select.id += "_" + row_suffix;
+						if (this.insert_fields[field]["onchange"]) {
+                        	                        select.onchange = this.insert_fields[field]["onchange"];
+                	                        }
 
 
-					for (var opt in join_opts[this.fields[field]["join"]["model"]]) {
-						var option = document.createElement("option");
-						option.value = join_opts[this.fields[field]["join"]["model"]][opt]["Id"];
-						option.appendChild(document.createTextNode(join_opts[this.fields[field]["join"]["model"]][opt][this.fields[field]["join"]["field"]]));
-						select.appendChild(option);
-					}
+						for (var opt in join_opts[this.fields[field]["join"]["model"]]) {
+							var option = document.createElement("option");
+							option.value = join_opts[this.fields[field]["join"]["model"]][opt]["Id"];
+							option.appendChild(document.createTextNode(join_opts[this.fields[field]["join"]["model"]][opt][this.fields[field]["join"]["field"]]));
+							select.appendChild(option);
+						}
 
-					if (data != null) {
-						for (var o = 0; o < select.options.length; o++) {
-							if (select.options[o].value == data[field]) {
-								select.selectedIndex = o;
-								break;
+						if (data != null) {
+							for (var o = 0; o < select.options.length; o++) {
+								if (select.options[o].value == data[field]) {
+									select.selectedIndex = o;
+									break;
+								}
 							}
 						}
-					}
 
-					col.appendChild(select);
+						col.appendChild(select);
+					}
 				}
 				if (this.insert_fields[field]["button"]) {
 					var button = document.createElement("button");

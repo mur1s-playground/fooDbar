@@ -27,7 +27,7 @@ var Storage = function(db, change_dependencies) {
 	this.data_table = new DataTable(this, "storage",
                                 {
 					"StoragesId":  { "title": "Storage", "header": { "type": "text", "text": "", "text_class": "datatable_header" }, "join": { "model": "storages", "field": "Desc" } },
-					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name" } },
+					"ProductsId": { "title": "Product", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products", "field": "Name", "autocomplete": true } },
 					"ProductsSourceId": { "title": "Source", "header": { "type": "img", "img_src": "./img/symbol_shopping_list.svg", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
 					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
 					"Price": { "title": "Price", "header": { "type": "img", "img_src": "./img/symbol_price.svg", "img_class": "datatable_header" } },

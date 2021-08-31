@@ -511,14 +511,14 @@ td {
         vertical-align: middle;
 }
 
-#Storage_storage_ProductsId, #Storage_storage_ProductsSourceId {
+#Storage_storage_ProductsId, #Storage_storage_ProductsSourceId, #Storage_storage_ProductsId_input, #Storage_storage_ProductsId_list {
 	height: 45px;
 	min-width: 250px;
 	max-width: 350px;
 	vertical-align: middle;
 }
 
-#Storage_storage_ProductsId {
+#Storage_storage_ProductsId_input {
 	background: var(--products_color);
 }
 
