@@ -34,7 +34,7 @@ class Job extends Boot {
 			]
 		));
 		$job = new JobsModel();
-		$job->find();
+		$job->find($cond);
 
 		if ($job->next()) {
 			$this->job = $job;

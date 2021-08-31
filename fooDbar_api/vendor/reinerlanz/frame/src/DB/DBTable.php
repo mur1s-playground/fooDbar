@@ -33,12 +33,12 @@ class DBTable {
         }
     }
 
-    public function insert($lock = true) {
+    public function insert($lock = true, $set_id = false) {
         $query = "INSERT INTO `{$this->table_name}` (";
         foreach ($this->fields as $field_name_camel => $field) {
             if ($field['Extra'] == "auto_increment") {
                 if ($lock) $ai_field = $field_name_camel;
-                continue;
+                if (!$set_id) continue;
             }
             $query .= "`{$field['Field']}`,";
         }
@@ -48,7 +48,7 @@ class DBTable {
         $error = array();
 
         foreach ($this->fields as $field_name_camel => $field) {
-            if ($field['Extra'] == "auto_increment") continue;
+            if ($field['Extra'] == "auto_increment" && !$set_id) continue;
 
             $child_getter_function = "get{$field_name_camel}";
             $value = $this->$child_getter_function();
@@ -461,16 +461,18 @@ class DBTable {
         }
 
         if (!is_null($limit)) {
-            if (!is_numeric($limit->getLimit())) {
-                $error[] = "non int limit";
-            }
-            $query .= " LIMIT {$limit->getLimit()}";
-            if (!is_null($limit->getOffset())) {
+	    $limit_cl = " LIMIT ";
+	    if (!is_null($limit->getOffset())) {
                 if (!is_numeric($limit->getOffset())) {
                     $error[] = "non int offset";
                 }
-                $query .= ", {$limit->getOffset()}";
+                $limit_cl .= "{$limit->getOffset()}, ";
             }
+            if (!is_numeric($limit->getLimit())) {
+                $error[] = "non int limit";
+            }
+            $limit_cl .= "{$limit->getLimit()}";
+	    $query .= $limit_cl;
         }
 
         $query .= ";";
@@ -652,7 +654,7 @@ class DBTable {
     }
 
     private function isTextType($type) {
-        if (strpos($type, "char") !== false || strpos($type, "text") !== false || strpos($type, "date") !== false) {
+        if (strpos($type, "char") !== false || strpos($type, "text") !== false || strpos($type, "date") !== false || strpos($type, "blob") !== false) {
             return true;
         }
         return false;

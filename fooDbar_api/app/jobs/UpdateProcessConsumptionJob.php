@@ -536,6 +536,129 @@ class UpdateProcessConsumptionJob extends Job {
         	$products_matrix->truncate();
 	}
 
+	public static function get_context($json) {
+	        $context = array(
+        	        'http' => array(
+                	        'method'         =>     'POST',
+                        	'header'         =>     "Content-type: application/json\r\n" .
+	                                                "Content-Length: " . strlen($json) . "\r\n",
+        	                'content'        =>     $json
+                	)
+	        );
+        	$context = stream_context_create($context);
+	        return $context;
+	}
+
+	public static function get_post($url, $json) {
+	        $context = self::get_context($json);
+        	$result = json_decode(file_get_contents($url, false, $context));
+	        return $result;
+	}
+
+	public static function download_tables() {
+		$foreign_base_url = "https://api.mur1.de/";
+		$local_base_url = "http://10.10.12.33/";
+
+		$login_action = "users/login";
+
+		$foreign_login_json = '{"email": "mur1s.playground@root.de", "password": "secreter"}';
+		$local_login_json = '{"email": "mur1s.playground@root.de", "password": "secret"}';
+
+		$foreign_login_result = self::get_post($foreign_base_url . $login_action, $foreign_login_json);
+		$local_login_result = self::get_post($local_base_url . $login_action, $local_login_json);
+
+		if ($foreign_login_result->{"status"} == true && $local_login_result->{"status"} == true) {
+		        $tables = array(
+		                "Storage",
+        	        	"StorageConsumption",
+                		"Products",
+		                "ProductsPrice"
+	        	);
+
+		        $truncate_action = "app/backup/truncate";
+        		$backup_action = "app/backup";
+	        	$insert_action = "app/backup/insert";
+
+	        	foreach ($tables as $table) {
+        	        	$local_data_arr = array(
+	        	                "login_data" => $local_login_result->{'login_data'},
+        	        	        "table" => array(
+                	        	                "name"          =>      $table
+                        	        	)
+			                );
+				$local_json = json_encode($local_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+                		$truncate_result = self::get_post($local_base_url . $truncate_action, $local_json);
+
+		                $foreign_data_arr = array(
+        		                "login_data" => $foreign_login_result->{'login_data'},
+                		        "table" => array(
+                        	                "name"          =>      $table,
+                                	        "limit"         =>      10000,
+                                        	"offset"        =>      0
+	                                )
+		                );
+        		        $json = json_encode($foreign_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+                		$table_result = self::get_post($foreign_base_url . $backup_action, $json);
+
+		                $model_full_name = "\\FooDBar\\" . $table . "Model";
+
+        		        $local_data_arr["table"]["rows"] = $table_result->{$model_full_name};
+                		$local_json = json_encode($local_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+	                	$insert_result = self::get_post($local_base_url . $insert_action, $local_json);
+			}
+		}
+		return array("local" => $local_login_result, "foreign" => $foreign_login_result);
+	}
+
+	public static function upload_tables($logins) {
+		$foreign_base_url = "https://foodbar.api.mur1.de/";
+                $local_base_url = "http://10.10.12.33/";
+
+		$local_login_result = $logins["local"];
+		$foreign_login_result = $logins["foreign"];
+
+		$truncate_action = "app/backup/truncate";
+                $backup_action = "app/backup";
+                $insert_action = "app/backup/insert";
+
+		$tables = array(
+                                "RecipeConsumptionGroup",
+                                "RecipeConsumptionGroupAgg",
+                                "RecipeConsumptionGroupAllergies",
+                                "ProductsMatrix",
+				"Jobs",
+				"AppStatus"
+                        );
+
+		foreach ($tables as $table) {
+                		$foreign_data_arr = array(
+                                        "login_data" => $foreign_login_result->{'login_data'},
+                                        "table" => array(
+                                                        "name"          =>      $table
+                                                )
+                                        );
+                                $foreign_json = json_encode($foreign_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+                                $truncate_result = self::get_post($foreign_base_url . $truncate_action, $foreign_json);
+
+                                $local_data_arr = array(
+                                        "login_data" => $local_login_result->{'login_data'},
+                                        "table" => array(
+                                                "name"          =>      $table,
+                                                "limit"         =>      10000,
+                                                "offset"        =>      0
+                                        )
+                                );
+                                $json = json_encode($local_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+                                $table_result = self::get_post($local_base_url . $backup_action, $json);
+
+                                $model_full_name = "\\FooDBar\\" . $table . "Model";
+
+                                $foreign_data_arr["table"]["rows"] = $table_result->{$model_full_name};
+                                $foreign_json = json_encode($foreign_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+                                $insert_result = self::get_post($foreign_base_url . $insert_action, $foreign_json);
+                }
+	}
+
 	public function run() {
 		$GLOBALS['Boot']->loadDBExt("Fields");
 		$GLOBALS['Boot']->loadDBExt("Join");
@@ -560,6 +683,8 @@ class UpdateProcessConsumptionJob extends Job {
 			parent::setJobStatus(parent::JOB_STATUS_ERROR, array("error" => "missing param date_to"));
 			exit();
 		}
+
+		$logins = self::download_tables();
 
 		$status_fields = array(
 			self::APP_STATUS_PROCESS_CONSUMPTION
@@ -593,6 +718,8 @@ class UpdateProcessConsumptionJob extends Job {
 		);
 
 		StatusController::setFields($fields);
+
+		self::upload_tables($logins);
 
 		parent::setJobStatus(parent::JOB_STATUS_FINISHED, array("status" => true));
 	}

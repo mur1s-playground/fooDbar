@@ -4,7 +4,16 @@
         "defaultController": "Allergy"
     },
     "app": {
-        "controllers": [],
+        "controllers": {
+            "Backup": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "insert",
+                    "truncate"
+                ]
+            }
+        },
         "defaultController": "Status"
     },
     "demand": {
