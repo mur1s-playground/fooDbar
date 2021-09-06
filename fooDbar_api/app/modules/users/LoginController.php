@@ -82,6 +82,10 @@ class LoginController {
 			$token = hash('sha256', random_bytes(256));
 			$user->setToken($token);
 			$user->save();
+
+			$GLOBALS['Boot']->loadModule("users", "Limit");
+			LimitController::countAndSetDataCounters($user);
+
 			$result["status"] = true;
 			$result["login_data"] = new \stdClass();
 			$result["login_data"]->{'user_id'} = intval($user->getId());

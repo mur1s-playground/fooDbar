@@ -21,12 +21,14 @@ $GLOBALS['Boot']->loadModel("ProductsPriceModel");
 
 use \FooDBar\ProductsPriceModel as ProductsPriceModel;
 
+use \FooDBar\Users\LimitController as LimitController;
+
 class PriceController {
     private $DefaultController = false;
     private $DefaultAction = "get";
 
-    public static function getMinMaxPriceByProductsIdArray($products_arr, $datetime) {
-	$products_price_cond = new Condition("[c1] AND [c2]", array(
+    public static function getMinMaxPriceByProductsIdArray($users_ids, $products_arr, $datetime) {
+	$products_price_cond = new Condition("[c1] AND [c2] AND [c3]", array(
                 "[c1]" => [
                                 [ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME],
                                 Condition::COMPARISON_LESS_EQUALS,
@@ -36,6 +38,11 @@ class PriceController {
 				[ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID],
 				Condition::COMPARISON_IN,
 				[Condition::CONDITION_CONST_ARRAY, $products_arr]
+			],
+		"[c3]" => [
+				[ProductsPriceModel::class, ProductsPriceModel::FIELD_USERS_ID],
+				Condition::COMPARISON_IN,
+				[Condition::CONDITION_CONST_ARRAY, $users_ids]
 			]
         ));
 
@@ -63,8 +70,8 @@ class PriceController {
 	return $result;
     }
 
-    public static function getPrice($products_id, $products_source_id, $datetime) {
-	$products_price_cond = new Condition("[c1] AND [c2] AND [c3]", array(
+    public static function getPrice($users_ids, $products_id, $products_source_id, $datetime) {
+	$products_price_cond = new Condition("[c1] AND [c2] AND [c3] AND ([c4] OR [c5]) AND [c6]", array(
                 "[c1]" => [
                                 [ProductsPriceModel::class, ProductsPriceModel::FIELD_PRODUCTS_ID],
                                 Condition::COMPARISON_EQUALS,
@@ -79,7 +86,22 @@ class PriceController {
                                 [ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME],
                                 Condition::COMPARISON_LESS_EQUALS,
                                 [Condition::CONDITION_CONST, $datetime]
-                        ]
+                        ],
+		"[c4]" => [
+				[ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME_TO],
+				Condition::COMPARISON_IS,
+				[Condition::CONDITION_RESERVED, Condition::RESERVED_NULL]
+			],
+		"[c5]" => [
+				[ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME_TO],
+				Condition::COMPARISON_GREATER,
+				[Condition::CONDITION_CONST, $datetime]
+			],
+		"[c6]" => [
+				[ProductsPriceModel::class, ProductsPriceModel::FIELD_USERS_ID],
+				Condition::COMPARISON_IN,
+				[Condition::CONDITION_CONST_ARRAY, $users_ids]
+		]
         ));
 
         $products_price_order = new Order(ProductsPriceModel::class, ProductsPriceModel::FIELD_DATETIME, Order::ORDER_DESC);
@@ -90,17 +112,22 @@ class PriceController {
 	return $products_price;
     }
 
-    public static function addPrice($products_id, $products_source_id, $datetime, $price) {
-	$product_price = new ProductsPriceModel();
-	$product_price->setProductsId($products_id);
-	$product_price->setProductsSourceId($products_source_id);
-	$product_price->setDatetime($datetime);
-	$product_price->setPrice($price);
-	return $product_price->insert();
+    public static function addPrice($user, $products_id, $products_source_id, $datetime, $price) {
+	$GLOBALS['Boot']->loadModule("users", "Limit");
+        if (LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_PRODUCTS_PRICE)) {
+		$product_price = new ProductsPriceModel();
+		$product_price->setUsersId($user->getId());
+		$product_price->setProductsId($products_id);
+		$product_price->setProductsSourceId($products_source_id);
+		$product_price->setDatetime($datetime);
+		$product_price->setPrice($price);
+		return $product_price->insert();
+	}
+	return false;
     }
 
-    public static function addPriceOnDemand($products_id, $products_source_id, $datetime, $price) {
-        $products_price = self::getPrice($products_id, $products_source_id, $datetime);
+    public static function addPriceOnDemand($user, $products_id, $products_source_id, $datetime, $price) {
+        $products_price = self::getPrice(array($user->getId()), $products_id, $products_source_id, $datetime);
 
         $new_price = false;
         if ($products_price->next()) {
@@ -111,7 +138,7 @@ class PriceController {
 		$new_price = true;
 	}
         if ($new_price) {
-		return self::addPrice($products_id, $products_source_id, $datetime, $price);
+		return self::addPrice($user, $products_id, $products_source_id, $datetime, $price);
         }
 	return $products_price;
     }

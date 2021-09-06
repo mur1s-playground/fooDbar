@@ -17,6 +17,8 @@ $GLOBALS['Boot']->loadModel("AmountTypeModel");
 use \FooDBar\ProductsModel 	as ProductsModel;
 use \FooDBar\AmountTypeModel 	as AmountTypeModel;
 
+use \FooDBar\Users\LimitController as LimitController;
+
 class IndexController {
     private $DefaultController = true;
     private $DefaultAction = "get";
@@ -47,8 +49,16 @@ class IndexController {
 	$result = array();
         $result["status"] = true;
 
+	$cond = new Condition("[c1]", array(
+		"[c1]" => [
+			[ProductsModel::class, ProductsModel::FIELD_USERS_ID],
+			Condition::COMPARISON_EQUALS,
+			[Condition::CONDITION_CONST, $user->getId()]
+		]
+	));
+
         $products = new ProductsModel();
-        $products->find();
+        $products->find($cond);
 
 	$result["products"] = new \stdClass();
 	while ($products->next()) {
@@ -71,34 +81,41 @@ class IndexController {
 
 	$data = $GLOBALS['POST']->{'product'};
 
-	$product = new ProductsModel();
-
- 	foreach ($product->fields() as $field_name_camel => $field) {
-		$setter = "set" . $field_name_camel;
-
-		if (!isset($data->{$field_name_camel})) continue;
-
-		$value = $data->{$field_name_camel};
-		if ($value === true) {
-			$value = 1;
-		} else if ($value === false) {
-			$value = 0;
-		}
-
-		if (strlen($value) > 0) {
-			$product->$setter($value);
-		}
-	}
-
-	$today = date_create();
-        $date_now = $today->format("Y-m-d H:i:s");
-	$product->setLastSeen($date_now);
-
-	$product->insert();
-
+	$GLOBALS['Boot']->loadModule("users", "Limit");
 	$result = array();
-	$result["status"] = true;
-	$result["new_product"] = $product->toArray();
+	if (LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_PRODUCTS)) {
+		$product = new ProductsModel();
+
+ 		foreach ($product->fields() as $field_name_camel => $field) {
+			$setter = "set" . $field_name_camel;
+
+			if (!isset($data->{$field_name_camel})) continue;
+
+			$value = $data->{$field_name_camel};
+			if ($value === true) {
+				$value = 1;
+			} else if ($value === false) {
+				$value = 0;
+			}
+
+			if (strlen($value) > 0) {
+				$product->$setter($value);
+			}
+		}
+
+		$today = date_create();
+	        $date_now = $today->format("Y-m-d H:i:s");
+		$product->setLastSeen($date_now);
+
+		$product->insert();
+		$user->save();
+
+		$result["status"] = true;
+		$result["new_product"] = $product->toArray();
+	} else {
+		$result["status"] = false;
+		$result["error"] = "data limit exceeded";
+	}
 
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
     }
@@ -108,8 +125,13 @@ class IndexController {
 
 	$data = $GLOBALS['POST']->{'product_id'};
 
-	$product_cond = new Condition("[c1]", array(
+	$product_cond = new Condition("[c1] AND [c2]", array(
 		"[c1]" => [
+				[ProductsModel::class, ProductsModel::FIELD_USERS_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $user->getId()]
+			],
+		"[c2]" => [
 				[ProductsModel::class, ProductsModel::FIELD_ID],
                                 Condition::COMPARISON_EQUALS,
                                 [Condition::CONDITION_CONST, $data]
@@ -125,6 +147,8 @@ class IndexController {
 		$result["deleted_product"] = $product->toArray();
 		$result["status"] = true;
 		$product->delete();
+		$GLOBALS['Boot']->loadModule("users", "Limit");
+		LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_PRODUCTS, false, true);
 	}
 
         exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));

@@ -245,14 +245,14 @@ class UpdateProcessConsumptionJob extends Job {
 	        return $result;
 	}
 
-	public static function updatePrices($date_from, $date_to) {
+	public static function updatePrices($users_ids, $date_from, $date_to) {
         	$result["products_ids"] = self::getProductsIds($date_from, $date_to);
 
 	        $GLOBALS['Boot']->loadModule("products", "Index");
         	$result["products"] = Products\IndexController::getProductsByIdArray($result["products_ids"]);
 
 	        $GLOBALS['Boot']->loadModule("products", "Price");
-        	$result["products_minmax_prices"] = Products\PriceController::getMinMaxPriceByProductsIdArray($result["products_ids"], $date_to);
+        	$result["products_minmax_prices"] = Products\PriceController::getMinMaxPriceByProductsIdArray($users_ids, $result["products_ids"], $date_to);
 
 	        $cond = new Condition("[c1] AND [c2]", array(
         	        "[c1]" => [
@@ -333,7 +333,15 @@ class UpdateProcessConsumptionJob extends Job {
 	        }
     	}
 
-	public static function insertConsumptionGroupAgg() {
+	public static function insertConsumptionGroupAgg($users_id) {
+		$cond = new Condition("[c1]", array(
+			"[c1]" => [
+				[RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_USERS_ID],
+				Condition::COMPARISON_EQUALS,
+				[Condition::CONDITION_CONST, $users_id]
+			]
+		));
+
 	        $field_nut = array(
                         RecipeConsumptionGroupModel::FIELD_MJ,
                         RecipeConsumptionGroupModel::FIELD_N_FAT_PERCENT,
@@ -394,9 +402,10 @@ class UpdateProcessConsumptionJob extends Job {
 	        $group_by = new GroupBy(RecipeConsumptionGroupModel::class, RecipeConsumptionGroupModel::FIELD_PRODUCTS_IDS);
 
 	        $rcg = new RecipeConsumptionGroupModel();
-        	$rcg->find(null, null, null, null, $fields, $group_by);
+        	$rcg->find($cond, null, null, null, $fields, $group_by);
 	        while ($rcg->next()) {
         	        $rcg_agg = new RecipeConsumptionGroupAggModel();
+			$rcg_agg->setUsersId($users_id);
                 	$rcg_agg->setRecipeConsumptionGroupId($rcg->DBFunctionResult("RecipeConsumptionGroupId_" . DBFunction::FUNCTION_MIN));
         	        $rcg_agg->setRecipeConsumptionGroupCount($rcg->DBFunctionResult("RecipeConsumptionGroupCount_" . DBFunction::FUNCTION_COUNT));
 	                $rcg_agg->setPricePerMjMin($rcg->DBFunctionResult("PricePerMjMin"));
@@ -412,7 +421,15 @@ class UpdateProcessConsumptionJob extends Job {
 	        }
 	}
 
-	public static function updateProductsMatrix() {
+	public static function updateProductsMatrix($users_id) {
+		$users_cond =  new Condition("[c1]", array(
+                        "[c1]" => [
+                                [RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_USERS_ID],
+                                Condition::COMPARISON_EQUALS,
+                                [Condition::CONDITION_CONST, $users_id]
+                        ]
+                ));
+
         	$rcg_join = new Join(new RecipeConsumptionGroupModel(), "[j1]", array(
 	                "[j1]" => [
         	                [RecipeConsumptionGroupAggModel::class, RecipeConsumptionGroupAggModel::FIELD_RECIPE_CONSUMPTION_GROUP_ID],
@@ -422,7 +439,7 @@ class UpdateProcessConsumptionJob extends Job {
         	));
 
 	        $rcg_agg = new RecipeConsumptionGroupAggModel();
-        	$rcg_agg->find(null, $rcg_join);
+        	$rcg_agg->find($users_cond, $rcg_join);
 
 	        $combination_matrix_by_p_id = array();
         	while ($rcg_agg->next()) {
@@ -450,6 +467,7 @@ class UpdateProcessConsumptionJob extends Job {
 	        $pcm_models = array();
         	foreach ($combination_matrix_by_p_id as $p_id => $p_id_i_arr) {
                 	$pcm = new ProductsMatrixModel();
+			$pcm->setUsersId($users_id);
 
 	                $pcm->setProductsId($p_id);
 
@@ -556,7 +574,7 @@ class UpdateProcessConsumptionJob extends Job {
 	}
 
 	public static function download_tables() {
-		$foreign_base_url = "https://api.mur1.de/";
+		$foreign_base_url = "https://foodbar.api.mur1.de/";
 		$local_base_url = "http://10.10.12.33/";
 
 		$login_action = "users/login";
@@ -707,11 +725,12 @@ class UpdateProcessConsumptionJob extends Job {
 
 		self::insertConsumptionGroupsWithAllergies(0, $date_f);
 
-		self::updatePrices(0, $date_f);
+		/* TMP: 1 */
+		self::updatePrices(array(1), 0, $date_f);
 
-	        self::insertConsumptionGroupAgg();
+	        self::insertConsumptionGroupAgg(1);
 
-        	self::updateProductsMatrix();
+        	self::updateProductsMatrix(1);
 
 		$fields = array(
 			self::APP_STATUS_PROCESS_CONSUMPTION => array( "date_from" => $date_f)

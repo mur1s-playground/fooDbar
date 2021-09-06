@@ -32,6 +32,8 @@ use \FooDBar\StorageConsumptionModel 	as StorageConsumptionModel;
 use \FooDBar\ProductsModel 		as ProductsModel;
 use \FooDBar\UsersModel			as UsersModel;
 
+use \FooDBar\Users\LimitController	as LimitController;
+
 class ConsumptionController {
     private $DefaultController = false;
     private $DefaultAction = "get";
@@ -92,6 +94,8 @@ class ConsumptionController {
 			$result["error"] = "not enough product in storage";
 			$result["SumAmount"] = $available_amount;
 		} else {
+			$GLOBALS['Boot']->loadModule("users", "Limit");
+
 			$result["status"] = true;
 			$result["new_consumption_item"] = new \stdClass();
 
@@ -134,25 +138,29 @@ class ConsumptionController {
 				}
 
 				$storage_consume->setAmount($amount);
-				$storage_consume->save();
 
-				$consumption->setDatetime($date_f);
-				$username = $user->getName();
-				if ($trash) {
-					$consumption->setUsersId(0);
-					$username = "Trash";
+				if (LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_STORAGE_CONSUMPTION)) {
+					$storage_consume->save();
+
+					$consumption->setDatetime($date_f);
+					$username = $user->getName();
+					if ($trash) {
+						$consumption->setUsersId(0);
+						$username = "Trash";
+					} else {
+		                                $consumption->setUsersId($user->getId());
+					}
+                        	        $consumption->insert();
+
+					$result["new_consumption_item"]->{$consumption->getId()}["Id"] = $consumption->getId();
+			                $result["new_consumption_item"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
+                			$result["new_consumption_item"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
+		        	        $result["new_consumption_item"]->{$consumption->getId()}["User"] = $username;
+                			$result["new_consumption_item"]->{$consumption->getId()}["StoragesId"] = $storage_consume->getStoragesId();
+	                		$result["new_consumption_item"]->{$consumption->getId()}["ProductsId"] = $storage_consume->getProductsId();
 				} else {
-	                                $consumption->setUsersId($user->getId());
+					$result["error"] = "data limit exceeded";
 				}
-                                $consumption->insert();
-
-
-				$result["new_consumption_item"]->{$consumption->getId()}["Id"] = $consumption->getId();
-		                $result["new_consumption_item"]->{$consumption->getId()}["Amount"] = $consumption->getAmount();
-                		$result["new_consumption_item"]->{$consumption->getId()}["Datetime"] = $consumption->getDatetime();
-		                $result["new_consumption_item"]->{$consumption->getId()}["User"] = $username;
-                		$result["new_consumption_item"]->{$consumption->getId()}["StoragesId"] = $storage_consume->getStoragesId();
-                		$result["new_consumption_item"]->{$consumption->getId()}["ProductsId"] = $storage_consume->getProductsId();
 
 				if ($requested_amount == 0) {
 					break;
@@ -160,6 +168,7 @@ class ConsumptionController {
 			}
 		}
 	}
+	$user->save();
 	return $result;
     }
 
@@ -223,6 +232,8 @@ class ConsumptionController {
 
 		$result["deleted_consumption_item"] = array( 'Id' => $consumption->getId(), 'RecipeConsumptionGroupAggId' => $consumption->getRecipeConsumptionGroupAggId(), 'Trash' => ($consumption->getUsersId() == 0) );
 		$consumption->delete();
+		$GLOBALS['Boot']->loadModule("users", "Limit");
+		LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_STORAGE_CONSUMPTION, false, true);
 	} else {
 		$result["status"] = false;
                 $result["error"] = "item not found/accessible";

@@ -14,6 +14,11 @@ class UsersModel extends \Frame\DBTable {
 	const FIELD_BIRTHDATE = 'Birthdate';
 	const FIELD_GENDER_ID = 'GenderId';
 	const FIELD_IS_ADMIN = 'IsAdmin';
+	const FIELD_PRODUCTS_COUNT = 'ProductsCount';
+	const FIELD_PRODUCTS_PRICE_COUNT = 'ProductsPriceCount';
+	const FIELD_STORAGE_COUNT = 'StorageCount';
+	const FIELD_STORAGE_CONSUMPTION_COUNT = 'StorageConsumptionCount';
+	const FIELD_DATA_LIMIT = 'DataLimit';
 	const FIELD_A_NOT_VEGETARIAN = 'ANotVegetarian';
 	const FIELD_A_NOT_VEGAN = 'ANotVegan';
 	const FIELD_A_GLUTEN = 'AGluten';
@@ -54,6 +59,21 @@ class UsersModel extends \Frame\DBTable {
 
 	/* tinyint(4) */
 	private $IsAdmin;
+
+	/* int(11) */
+	private $ProductsCount;
+
+	/* int(11) */
+	private $ProductsPriceCount;
+
+	/* int(11) */
+	private $StorageCount;
+
+	/* int(11) */
+	private $StorageConsumptionCount;
+
+	/* int(11) */
+	private $DataLimit;
 
 	/* tinyint(4) */
 	private $ANotVegetarian;
@@ -105,7 +125,7 @@ class UsersModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('users','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Name":{"Field":"name","Type":"varchar(45)","Null":"NO","Key":"","Default":null,"Extra":""},"Password":{"Field":"password","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Email":{"Field":"email","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Token":{"Field":"token","Type":"varchar(255)","Null":"YES","Key":"","Default":null,"Extra":""},"Birthdate":{"Field":"birthdate","Type":"date","Null":"NO","Key":"","Default":null,"Extra":""},"GenderId":{"Field":"gender_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"IsAdmin":{"Field":"is_admin","Type":"tinyint(4)","Null":"YES","Key":"","Default":"0","Extra":""},"ANotVegetarian":{"Field":"a_not_vegetarian","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegan":{"Field":"a_not_vegan","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AGluten":{"Field":"a_gluten","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACrustaceans":{"Field":"a_crustaceans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AEggs":{"Field":"a_eggs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AFish":{"Field":"a_fish","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"APeanuts":{"Field":"a_peanuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASoybeans":{"Field":"a_soybeans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMilk":{"Field":"a_milk","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANuts":{"Field":"a_nuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACeleriac":{"Field":"a_celeriac","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMustard":{"Field":"a_mustard","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASesam":{"Field":"a_sesam","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASulfur":{"Field":"a_sulfur","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ALupins":{"Field":"a_lupins","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMolluscs":{"Field":"a_molluscs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('users','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"Name":{"Field":"name","Type":"varchar(45)","Null":"NO","Key":"","Default":null,"Extra":""},"Password":{"Field":"password","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Email":{"Field":"email","Type":"varchar(255)","Null":"NO","Key":"","Default":null,"Extra":""},"Token":{"Field":"token","Type":"varchar(255)","Null":"YES","Key":"","Default":null,"Extra":""},"Birthdate":{"Field":"birthdate","Type":"date","Null":"NO","Key":"","Default":null,"Extra":""},"GenderId":{"Field":"gender_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"IsAdmin":{"Field":"is_admin","Type":"tinyint(4)","Null":"YES","Key":"","Default":"0","Extra":""},"ProductsCount":{"Field":"products_count","Type":"int(11)","Null":"NO","Key":"","Default":"0","Extra":""},"ProductsPriceCount":{"Field":"products_price_count","Type":"int(11)","Null":"NO","Key":"","Default":"0","Extra":""},"StorageCount":{"Field":"storage_count","Type":"int(11)","Null":"NO","Key":"","Default":"0","Extra":""},"StorageConsumptionCount":{"Field":"storage_consumption_count","Type":"int(11)","Null":"NO","Key":"","Default":"0","Extra":""},"DataLimit":{"Field":"data_limit","Type":"int(11)","Null":"NO","Key":"","Default":"0","Extra":""},"ANotVegetarian":{"Field":"a_not_vegetarian","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANotVegan":{"Field":"a_not_vegan","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AGluten":{"Field":"a_gluten","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACrustaceans":{"Field":"a_crustaceans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AEggs":{"Field":"a_eggs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AFish":{"Field":"a_fish","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"APeanuts":{"Field":"a_peanuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASoybeans":{"Field":"a_soybeans","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMilk":{"Field":"a_milk","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ANuts":{"Field":"a_nuts","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ACeleriac":{"Field":"a_celeriac","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMustard":{"Field":"a_mustard","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASesam":{"Field":"a_sesam","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ASulfur":{"Field":"a_sulfur","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"ALupins":{"Field":"a_lupins","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""},"AMolluscs":{"Field":"a_molluscs","Type":"tinyint(4)","Null":"YES","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -171,6 +191,46 @@ class UsersModel extends \Frame\DBTable {
 	/* @param tinyint(4) $IsAdmin */
 	public function setIsAdmin($IsAdmin) {
 		$this->IsAdmin = $IsAdmin;
+	}
+	/* @return int(11) $this->ProductsCount */
+	public function getProductsCount() {
+		return $this->ProductsCount;
+	}
+	/* @param int(11) $ProductsCount */
+	public function setProductsCount($ProductsCount) {
+		$this->ProductsCount = $ProductsCount;
+	}
+	/* @return int(11) $this->ProductsPriceCount */
+	public function getProductsPriceCount() {
+		return $this->ProductsPriceCount;
+	}
+	/* @param int(11) $ProductsPriceCount */
+	public function setProductsPriceCount($ProductsPriceCount) {
+		$this->ProductsPriceCount = $ProductsPriceCount;
+	}
+	/* @return int(11) $this->StorageCount */
+	public function getStorageCount() {
+		return $this->StorageCount;
+	}
+	/* @param int(11) $StorageCount */
+	public function setStorageCount($StorageCount) {
+		$this->StorageCount = $StorageCount;
+	}
+	/* @return int(11) $this->StorageConsumptionCount */
+	public function getStorageConsumptionCount() {
+		return $this->StorageConsumptionCount;
+	}
+	/* @param int(11) $StorageConsumptionCount */
+	public function setStorageConsumptionCount($StorageConsumptionCount) {
+		$this->StorageConsumptionCount = $StorageConsumptionCount;
+	}
+	/* @return int(11) $this->DataLimit */
+	public function getDataLimit() {
+		return $this->DataLimit;
+	}
+	/* @param int(11) $DataLimit */
+	public function setDataLimit($DataLimit) {
+		$this->DataLimit = $DataLimit;
 	}
 	/* @return tinyint(4) $this->ANotVegetarian */
 	public function getANotVegetarian() {

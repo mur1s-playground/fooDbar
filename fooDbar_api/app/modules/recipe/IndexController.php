@@ -13,7 +13,6 @@ use \Frame\Fields	as Fields;
 use \Frame\Condition 	as Condition;
 use \Frame\Order 	as Order;
 
-$GLOBALS['Boot']->loadModel("RecipeModel");
 $GLOBALS['Boot']->loadModel("StorageModel");
 $GLOBALS['Boot']->loadModel("StorageConsumptionModel");
 $GLOBALS['Boot']->loadModel("ProductsModel");
@@ -23,7 +22,6 @@ $GLOBALS['Boot']->loadModel("RecipeConsumptionGroupModel");
 $GLOBALS['Boot']->loadModel("RecipeRequestDailyPresetModel");
 $GLOBALS['Boot']->loadModel("RecipeConsumptionGroupAggPlannedModel");
 
-use \FooDBar\RecipeModel 				as RecipeModel;
 use \FooDBar\StorageModel 				as StorageModel;
 use \FooDBar\StorageConsumptionModel           		as StorageConsumptionModel;
 use \FooDBar\ProductsModel 				as ProductsModel;

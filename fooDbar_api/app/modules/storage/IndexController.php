@@ -36,6 +36,7 @@ use \FooDBar\StorageConsumptionModel	as StorageConsumptionModel;
 use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
 use \FooDBar\Products\PriceController 		as PriceController;
 use \FooDBar\Shopping				as Shopping;
+use \FooDBar\Users\LimitController		as LimitController;
 
 class IndexController {
     private $DefaultController = true;
@@ -192,30 +193,44 @@ class IndexController {
 
 	$data = $GLOBALS['POST']->{'storage_item'};
 
-        self::requireStorageMembership($user, $data->{'StoragesId'});
+	$GLOBALS['Boot']->loadModule("users", "Limit");
+        $result = array();
+        if (LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_STORAGE)) {
 
-	$today = date_create();
-        $date_now = $today->format("Y-m-d H:i:s");
+	        self::requireStorageMembership($user, $data->{'StoragesId'});
 
-	$GLOBALS['Boot']->loadModule("products", "Price");
-	$products_price = PriceController::addPriceOnDemand($data->{'ProductsId'}, $data->{'ProductsSourceId'}, $date_now, $data->{'Price'});
+		$today = date_create();
+        	$date_now = $today->format("Y-m-d H:i:s");
 
-	$storage = new StorageModel();
-	$storage->setStoragesId($data->{'StoragesId'});
-	$storage->setProductsId($data->{'ProductsId'});
-	$storage->setProductsSourceId($data->{'ProductsSourceId'});
-	$storage->setAmount($data->{'Amount'});
-	$storage->setDatetimeInsert($date_now);
+		$GLOBALS['Boot']->loadModule("products", "Price");
+		$products_price = PriceController::addPriceOnDemand($user, $data->{'ProductsId'}, $data->{'ProductsSourceId'}, $date_now, $data->{'Price'});
+		if ($products_price === false) {
+			$result["status"] = false;
+			$result["error"] = "data limit exceeded";
+		} else {
+			$user->save();
 
-	$storage->insert();
+			$storage = new StorageModel();
+			$storage->setStoragesId($data->{'StoragesId'});
+			$storage->setProductsId($data->{'ProductsId'});
+			$storage->setProductsSourceId($data->{'ProductsSourceId'});
+			$storage->setAmount($data->{'Amount'});
+			$storage->setDatetimeInsert($date_now);
 
-	$result["status"] = true;
-	$result["new_storage_item"] = $storage->toArray();
-	$result["new_storage_item"]["Price"] = $data->{'Price'};
+			$storage->insert();
 
-	if (isset($data->{'ShoppingListId'})) {
-		$GLOBALS['Boot']->loadModule("shopping", "Index");
-		$result["removed_shopping_list_item"] = Shopping\IndexController::removeItem($user, $data->{'ShoppingListId'});
+			$result["status"] = true;
+			$result["new_storage_item"] = $storage->toArray();
+			$result["new_storage_item"]["Price"] = $data->{'Price'};
+
+			if (isset($data->{'ShoppingListId'})) {
+				$GLOBALS['Boot']->loadModule("shopping", "Index");
+				$result["removed_shopping_list_item"] = Shopping\IndexController::removeItem($user, $data->{'ShoppingListId'});
+			}
+		}
+	} else {
+		$result["status"] = false;
+		$result["error"] = "data limit exceeded";
 	}
 
 	exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
@@ -264,12 +279,17 @@ class IndexController {
 		$storage = $storages_membership->joinedModelByClass(StorageModel::class);
 		$result["deleted_storage_item"] = array( 'Id' => $storage->getId() );
 
+		$GLOBALS['Boot']->loadModule("users", "Limit");
+
 		$products_price = $storages_membership->joinedModelByClass(ProductsPriceModel::class);
 		if ($products_price->getDatetime() == $storage->getDatetimeInsert()) {
 			$products_price->delete();
+			LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_PRODUCTS_PRICE, false);
 		}
 
 		$storage->delete();
+		LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_STORAGE, false);
+		$user->save();
 	} else {
 		$result["status"] = false;
 		$result["error"] = "item not found/accessible";

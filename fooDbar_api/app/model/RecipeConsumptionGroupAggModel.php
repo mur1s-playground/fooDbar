@@ -7,6 +7,7 @@ require_once "/media/public/fooDbar_api/vendor/reinerlanz/frame/src/DB/DBTable.p
 class RecipeConsumptionGroupAggModel extends \Frame\DBTable {
 
 	const FIELD_ID = 'Id';
+	const FIELD_USERS_ID = 'UsersId';
 	const FIELD_RECIPE_CONSUMPTION_GROUP_ID = 'RecipeConsumptionGroupId';
 	const FIELD_RECIPE_CONSUMPTION_GROUP_COUNT = 'RecipeConsumptionGroupCount';
 	const FIELD_PRICE_PER_MJ_MIN = 'PricePerMjMin';
@@ -33,6 +34,9 @@ class RecipeConsumptionGroupAggModel extends \Frame\DBTable {
 
 	/* int(11) */
 	private $Id;
+
+	/* int(11) */
+	private $UsersId;
 
 	/* int(11) */
 	private $RecipeConsumptionGroupId;
@@ -105,7 +109,7 @@ class RecipeConsumptionGroupAggModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('recipe_consumption_group_agg','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"RecipeConsumptionGroupId":{"Field":"recipe_consumption_group_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"RecipeConsumptionGroupCount":{"Field":"recipe_consumption_group_count","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"PricePerMjMin":{"Field":"price_per_mj_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"PricePerMjAvg":{"Field":"price_per_mj_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"PricePerMjMax":{"Field":"price_per_mj_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"MjMin":{"Field":"mj_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"MjAvg":{"Field":"mj_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"MjMax":{"Field":"mj_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFatPercentMin":{"Field":"n_fat_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFatPercentAvg":{"Field":"n_fat_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFatPercentMax":{"Field":"n_fat_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NCarbsPercentMin":{"Field":"n_carbs_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NCarbsPercentAvg":{"Field":"n_carbs_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NCarbsPercentMax":{"Field":"n_carbs_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NProteinPercentMin":{"Field":"n_protein_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NProteinPercentAvg":{"Field":"n_protein_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NProteinPercentMax":{"Field":"n_protein_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFiberPercentMin":{"Field":"n_fiber_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFiberPercentAvg":{"Field":"n_fiber_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFiberPercentMax":{"Field":"n_fiber_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NSaltPercentMin":{"Field":"n_salt_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NSaltPercentAvg":{"Field":"n_salt_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NSaltPercentMax":{"Field":"n_salt_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('recipe_consumption_group_agg','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"UsersId":{"Field":"users_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"RecipeConsumptionGroupId":{"Field":"recipe_consumption_group_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"RecipeConsumptionGroupCount":{"Field":"recipe_consumption_group_count","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"PricePerMjMin":{"Field":"price_per_mj_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"PricePerMjAvg":{"Field":"price_per_mj_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"PricePerMjMax":{"Field":"price_per_mj_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"MjMin":{"Field":"mj_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"MjAvg":{"Field":"mj_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"MjMax":{"Field":"mj_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFatPercentMin":{"Field":"n_fat_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFatPercentAvg":{"Field":"n_fat_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFatPercentMax":{"Field":"n_fat_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NCarbsPercentMin":{"Field":"n_carbs_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NCarbsPercentAvg":{"Field":"n_carbs_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NCarbsPercentMax":{"Field":"n_carbs_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NProteinPercentMin":{"Field":"n_protein_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NProteinPercentAvg":{"Field":"n_protein_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NProteinPercentMax":{"Field":"n_protein_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFiberPercentMin":{"Field":"n_fiber_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFiberPercentAvg":{"Field":"n_fiber_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NFiberPercentMax":{"Field":"n_fiber_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NSaltPercentMin":{"Field":"n_salt_percent_min","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NSaltPercentAvg":{"Field":"n_salt_percent_avg","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""},"NSaltPercentMax":{"Field":"n_salt_percent_max","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -115,6 +119,14 @@ class RecipeConsumptionGroupAggModel extends \Frame\DBTable {
 	/* @param int(11) $Id */
 	public function setId($Id) {
 		$this->Id = $Id;
+	}
+	/* @return int(11) $this->UsersId */
+	public function getUsersId() {
+		return $this->UsersId;
+	}
+	/* @param int(11) $UsersId */
+	public function setUsersId($UsersId) {
+		$this->UsersId = $UsersId;
 	}
 	/* @return int(11) $this->RecipeConsumptionGroupId */
 	public function getRecipeConsumptionGroupId() {
