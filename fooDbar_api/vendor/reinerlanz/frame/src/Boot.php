@@ -8,7 +8,7 @@ require (__DIR__ . "/DB/DBO.php");
 $GLOBALS['Boot'] = null;
 
 class Boot {
-    private $config = null;
+    protected $config = null;
     private $DBO = null;
 
     private $loadedModules = array();

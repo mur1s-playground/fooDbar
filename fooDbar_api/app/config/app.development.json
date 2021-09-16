@@ -19,5 +19,20 @@
     "username" : "mur1",
     "password" : "pw",
     "database" : "fooDbar"
+  },
+  "email": {
+    "host" : "root.de",
+    "port" : 993,
+    "flags" : "/imap/ssl",
+    "folder" : "INBOX",
+    "user" : "mur1s.playground@root.de",
+    "password" : "ez12345"
+  },
+  "admin_login": {
+    "user" : "mur1s.playground@root.de",
+    "foreign_url" : "https://api.mur1.de/",
+    "foreign_password" : "secreter",
+    "local_url" : "http://10.10.12.33/",
+    "local_password" : "secret"
   }
 }

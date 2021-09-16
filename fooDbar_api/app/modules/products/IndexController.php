@@ -85,6 +85,7 @@ class IndexController {
 	$result = array();
 	if (LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_PRODUCTS)) {
 		$product = new ProductsModel();
+		$product->setUsersId($user->getId());
 
  		foreach ($product->fields() as $field_name_camel => $field) {
 			$setter = "set" . $field_name_camel;

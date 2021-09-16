@@ -574,13 +574,17 @@ class UpdateProcessConsumptionJob extends Job {
 	}
 
 	public static function download_tables() {
-		$foreign_base_url = "https://foodbar.api.mur1.de/";
-		$local_base_url = "http://10.10.12.33/";
+		$foreign_base_url = $this->config->getConfigValue(array('admin_login', 'foreign_url'));
+		$local_base_url = $this->config->getConfigValue(array('admin_login', "local_url"));
 
-		$login_action = "users/login";
+                $login_action = "users/login";
 
-		$foreign_login_json = '{"email": "mur1s.playground@root.de", "password": "secreter"}';
-		$local_login_json = '{"email": "mur1s.playground@root.de", "password": "secret"}';
+                $admin_user = $this->config->getConfigValue(array('admin_login', 'user'));
+                $admin_password = $this->config->getConfigValue(array('admin_login', 'foreign_password'));
+		$admin_password_local = $this->config->getConfigValue(array('admin_login', 'local_password'));
+
+                $foreign_login_json = '{"email": "' . $admin_user . '", "password": "' . $admin_password . '"}';
+		$local_login_json = '{"email": "' . $admin_user . '", "password": "' . $admin_password_local . '"}';
 
 		$foreign_login_result = self::get_post($foreign_base_url . $login_action, $foreign_login_json);
 		$local_login_result = self::get_post($local_base_url . $login_action, $local_login_json);
@@ -629,8 +633,8 @@ class UpdateProcessConsumptionJob extends Job {
 	}
 
 	public static function upload_tables($logins) {
-		$foreign_base_url = "https://foodbar.api.mur1.de/";
-                $local_base_url = "http://10.10.12.33/";
+		$foreign_base_url = $this->config->getConfigValue(array('admin_login', 'foreign_url'));
+                $local_base_url = $this->config->getConfigValue(array('admin_login', "local_url"));
 
 		$local_login_result = $logins["local"];
 		$foreign_login_result = $logins["foreign"];
