@@ -26,7 +26,7 @@ class UpdateEMailJob extends Job {
 
 	const EMAIL_TYPE_REWE_EBON 	= 0;
 
-	public static function get_msg_part_text($mbox, $msgno, $partno, $p) {
+	public static function get_msg_part_text($hash, $mbox, $msgno, $partno, $p) {
 		if ($partno == 0) {
 			$data = imap_body($mbox, $msgno);
 		} else {
@@ -34,12 +34,45 @@ class UpdateEMailJob extends Job {
 		}
 
 		if ($p->encoding == ENCQUOTEDPRINTABLE) {
-			$data = qouted_printable_decode($data);
+			$data = quoted_printable_decode($data);
 		} else if ($p->encoding == ENCBASE64) {
 			$data = base64_decode($data);
 		}
 
+		$params = array();
+		if (isset($p->{"parameters"})) {
+			foreach ($p->parameters as $x) {
+				$params[strtolower($x->attribute)] = $x->value;
+			}
+		}
+		if (isset($p->{"dparameters"})) {
+			foreach ($p->dparameters as $x) {
+				$params[strtolower($x->attribute)] = $x->value;
+			}
+		}
+
 		$result = array();
+		$filename = null;
+
+		if (isset($params['filename'])) {
+			$filename = $params['filename'];
+		} else if (isset($params['name'])) {
+			$filename = $params['name'];
+		}
+
+		if (!is_null($filename)) {
+			$hash_ = hash('sha256', $hash . $partno);
+
+			$result[$partno] = array(
+				'filename' => $filename,
+				'data' => $hash_
+			);
+			file_put_contents(__DIR__ . "/tmp/" . $hash_, $data);
+			if (strpos($filename, ".pdf") == strlen($filename) - 4) {
+				exec("qpdf --qdf --object-streams=disable " . __DIR__ . "/tmp/" . $hash_ . " " . __DIR__ . "/tmp/" . $hash_ . "_d", $output, $retval);
+			}
+		}
+
 		if ($data && ($p->type == TYPETEXT || $p->type == TYPEMESSAGE)) {
 			$result[$partno] = $data;
 		}
@@ -47,7 +80,7 @@ class UpdateEMailJob extends Job {
 		if (isset($p->{"parts"})) {
 			foreach ($p->parts as $partno_s => $p_s) {
 				$p_no_s = $partno . '.' . ($partno_s + 1);
-				$result = array_merge($result, self::get_msg_part_text($mbox, $msgno, $p_no_s, $p));
+				$result = array_merge($result, self::get_msg_part_text($hash, $mbox, $msgno, $p_no_s, $p_s));
 			}
 		}
 
@@ -81,13 +114,15 @@ class UpdateEMailJob extends Job {
 					$toaddress = $header->{"to"}[0]->{"mailbox"} . "@" . $header->{"to"}[0]->{"host"};
 					$fromaddress = $header->{"from"}[0]->{"mailbox"} . "@" . $header->{"from"}[0]->{"host"};
 
+					$hash = hash('sha256', $date . $subject . $toaddress . $fromaddress . random_bytes(256));
+
 					$structure = imap_fetchstructure($mbox, $msgno);
 					$msg = array();
 					if (!isset($structure->{"parts"})) {
-						$msg = self::get_msg_part_text($mbox, $msgno, 0, $structure);
+						$msg = self::get_msg_part_text($hash, $mbox, $msgno, 0, $structure);
 					} else {
 						foreach ($structure->parts as $partno => $p) {
-							$msg = array_merge($msg, self::get_msg_part_text($mbox, $msgno, $partno+1, $p));
+							$msg = array_merge($msg, self::get_msg_part_text($hash, $mbox, $msgno, $partno+1, $p));
 						}
 					}
 
@@ -128,11 +163,21 @@ class UpdateEMailJob extends Job {
 		while ($em->next()) {
 			$type = -1;
 
-			/* $type = self::EMAIL_TYPE_REWE_EBON */
+			$msg_arr = json_decode($em->getMsg());
+			$param = null;
+			foreach($msg_arr as $msg_p) {
+				if (@isset($msg_p->{'filename'})) {
+					if ($msg_p->{'filename'} == "REWE-eBon.pdf") {
+						$type = self::EMAIL_TYPE_REWE_EBON;
+						$param = $msg_p->{'data'};
+						break;
+					}
+				}
+			}
 
 			if ($type > -1) {
 				$em->setStatus(self::EMAIL_STATUS_TYPE);
-				$em->setStatusMsg(json_encode(array("status" => true, "type" => $type)));
+				$em->setStatusMsg(json_encode(array("status" => true, "type" => $type, "param" => $param)));
 				$em->save();
 			} else {
 				$em->setStatusMsg(json_encode(array("status" => false, "error" => "unrecognized type")));
@@ -162,43 +207,141 @@ class UpdateEMailJob extends Job {
 	public static function parse_rewe_ebon($user_id, $em) {
 		$result = array("status" => false);
 		$error = array();
-		if (false) {
+
+		$status = json_decode($em->getStatusMsg(), true);
+		$pdf = file_get_contents(__DIR__ . "/tmp/" . $status['param'] . "_d");
+
+		/* BFRANGES */
+		$bfranges = array();
+
+		$pos = 0;
+		while (($f = strpos($pdf, "beginbfrange", $pos)) != false) {
+			$fe = strpos($pdf, "endbfrange", $pos);
+			$lines = explode("\n", substr($pdf, $f, $fe - $f));
+			for ($l = 0; $l < count($lines); $l++) {
+				$seg = explode(" ", $lines[$l]);
+				if (count($seg) == 3) {
+					$seg = str_replace(array("<", ">"), "", $seg);
+					$val_0 = hexdec($seg[0]);
+					$val_1 = hexdec($seg[1]);
+					$val_2 = hexdec($seg[2]);
+					for ($v = $val_0; $v <= $val_1; $v++) {
+						$bfranges[$v] = $val_2 + $v - $val_0;
+					}
+				}
+			}
+			$pos = $fe + 1;
+		}
+
+		/* PAGES */
+		$pages = array();
+
+		$pos = 0;
+		while (($f = strpos($pdf, "Contents for page ", $pos)) != false) {
+			$sp = strpos($pdf, "stream", $f);
+			$sp_e = strpos($pdf, "endstream", $sp);
+			$pos = $sp_e+1;
+			$pages[] = array($sp, $sp_e);
+		}
+
+		/* TEXT */
+		$text = "";
+		foreach ($pages as $page) {
+			$stream = substr($pdf, $page[0], $page[1] - $page[0]);
+			if (preg_match_all("/^<[0-9a-f]*> Tj$/m", $stream, $matches)) {
+				foreach ($matches[0] as $match) {
+					$m = str_replace(array("<", ">", " Tj"), "", $match);
+					$len = strlen($m);
+					for ($c = 0; $c < $len; $c += 4) {
+						$char_code = substr($m, $c, 4);
+						$cc = hexdec($char_code);
+						if (isset($bfranges[$cc])) {
+							$text .= chr($bfranges[$cc]);
+						} else {
+							$text .= " ";
+						}
+					}
+					$text .= "\n";
+				}
+			}
+		}
+		$lines = explode("\n", $text);
+
+		/* EBON STRUCTURE / ADDRESS / ZIPCODE / CITY */
+		$first_non_zero = count($lines);
+		$zipcode_line = -1;
+		$last_non_prod = -1;
+		$sum_line = -1;
+
+		$address = "";
+		for ($l = 0; $l < count($lines); $l++) {
+			if (strlen(trim($lines[$l])) > 0 && $first_non_zero > $l) {
+				$first_non_zero = $l;
+			}
+			if ($zipcode_line == -1) {
+				$tl = explode(" ", trim($lines[$l]));
+				if (count($tl) == 2) {
+					if (strlen($tl[0]) == 5 && is_numeric($tl[0])) {
+						$zipcode_line = $l;
+						$zipcode = $tl[0];
+						$city = $tl[1];
+					}
+				}
+			}
+			if ($last_non_prod == -1) {
+				$tl = array_values(array_filter(explode(" ", trim($lines[$l]))));
+				if (count($tl) == 1 && $tl[0] == "EUR") {
+					$last_non_prod = $l;
+				}
+			}
+			if ($sum_line == -1) {
+				$tl = array_values(array_filter(explode(" ", trim($lines[$l]))));
+				if (count($tl) == 3) {
+					if ($tl[0] == "SUMME" && $tl[1] = "EUR") {
+						$sum_line = $l;
+					}
+				}
+			}
+		}
+
+		for ($l = $first_non_zero; $l < $zipcode_line; $l++) {
+			$address .= trim($lines[$l]);
+		}
+
+		/* EBON_PRODUCTS */
+		$ebon_products = array();
+		for ($p = $last_non_prod + 1; $p < $sum_line - 1; $p++) {
+			$l_arr = array_values(array_filter(explode(" ", trim($lines[$p]))));
+			if ($lines[$p][0] != " ") { 	//Product line
+				$p_name = $l_arr[0];
+				for ($a = 1; $a < count($l_arr) - 2; $a++) {
+					$p_name .= " " . $l_arr[$a];
+				}
+				$p_price = floatval(str_replace(",", ".", $l_arr[count($l_arr) - 2]));
+				$ebon_products[] = array(
+					"Name" => $p_name,
+					"Price" => $p_price,
+					"AmountType" => null,
+					"Amount" => null
+				);
+			} else {			//Amount line
+				$amount = floatval(str_replace(",", ".", $l_arr[0]));
+				$amount_type = $l_arr[1];
+				$p_price = floatval(str_replace(",", ".", $l_arr[3]));
+				$ebon_products[count($ebon_products) -1]["Amount"] = $amount;
+				$ebon_products[count($ebon_products) -1]["AmountType"] = $amount_type;
+				$ebon_products[count($ebon_products) -1]["Price"] = $p_price;
+			}
+		}
+
+		if ($zipcode_line > -1 && $last_non_prod > -1 && $sum_line > -1 && count($ebon_products) > 0) {
 			$products_source_type = "rewe";
 			$products_source_type_id = 2;
-
-			/* PARSE MARKET */
-			$address = "";
-			$zipcode = "";
-			$city = "";
-
-			/* PARSE PRODUCTS */
-			$ebon_products = array();
-
-			/*
-				$ebon_products[0] = array(
-					"Name" 		=> "RISPENTOMATE",
-					"Amount" 	=> 0.910,
-					"AmountType"	=> "kg",
-					"Price"		=> 3.49
-				);
-				$ebon_products[1] = array(
-					"Name"		=> "MALZMEHRKORNBROT",
-					"Amount"	=> null,
-					"AmountType"	=> null,
-					"Price"		=> 1.79
-				);
-				$ebon_products[2] => array(
-					"Name"		=> "BUTTERMILCH",
-					"Amount"	=> 3,
-					"AmountType"	=> "Stk",
-					"Price"		=> 0.39
-				);
-			*/
 
 			/* PRODUCTS_SOURCE_ID */
 			$products_source_id = -1;
 
-			$ps_cond = new Condition("[c1] AND [c2] AND [c3] AND [c4]", array(
+			$ps_cond = new Condition("[c1] AND [c2] /*AND [c3] */AND [c4]", array(
 				"[c1]" => [
 					[ProductsSourceModel::class, ProductsSourceModel::FIELD_ADDRESS],
 					Condition::COMPARISON_LIKE,
@@ -209,11 +352,11 @@ class UpdateEMailJob extends Job {
 					Condition::COMPARISON_LIKE,
 					[Condition::CONDITION_CONST, $zipcode]
 				],
-				"[c3]" => [
+/*				"[c3]" => [
 					[ProductsSourceModel::class, ProductsSourceModel::FIELD_CITY],
 					Condition::COMPARISON_LIKE,
 					[Condition::CONDITION_CONST, $city]
-				],
+				],*/
 				"[c4]" => [
 					[ProductsSourceModel::class, ProductsSourceModel::FIELD_PRODUCTS_SOURCE_TYPE_ID],
                                         Condition::COMPARISON_EQUALS,
@@ -301,12 +444,13 @@ class UpdateEMailJob extends Job {
 				$epp->setEbonProductsId($ebon_products[$e_id]["EbonProductsId"]);
 				$epp->setAmount($ebon_products[$e_id]["Amount"]);
 				if (!is_null($ebon_products[$e_id]["AmountType"])) {
-					if (isset($amount_type[$ebon_products[$e_id]["AmountType"]])) {
-						$epp->setAmountType($amount_type[$ebon_products[$e_id]["AmountType"]]);
+					if (isset($amount_types[$ebon_products[$e_id]["AmountType"]])) {
+						$epp->setAmountTypeId($amount_types[$ebon_products[$e_id]["AmountType"]]);
 					} else {
 						$error[] = "unknown amount type: " . $ebon_products[$e_id]["AmountType"];
 					}
 				}
+				$epp->setPrice($ebon_products[$e_id]["Price"]);
 				$epps[] = $epp;
 			}
 
@@ -340,9 +484,9 @@ class UpdateEMailJob extends Job {
                 $em->find($cond);
 
 		while ($em->next()) {
-			$user_id = self::get_user($em->getFromaddress);
+			$user_id = self::get_user($em->getFromaddress());
 
-			$status = json_decode($em->getStatusMsg());
+			$status = json_decode($em->getStatusMsg(), true);
 
 			if ($user_id == -1) {
 				$status["status"] = false;
@@ -353,7 +497,6 @@ class UpdateEMailJob extends Job {
 				$processed_result = array();
 				$processed_result["status"] = false;
 
-				$status = json_decode($em->getStatusMsg());
 				if ($status["type"] == self::EMAIL_TYPE_REWE_EBON) {
 					$processed_result = self::parse_rewe_ebon($user_id, $em);
 				} /* else if (...) {
@@ -455,6 +598,80 @@ class UpdateEMailJob extends Job {
 				}
                         }
 		}
+		return $foreign_login_result;
+	}
+
+	public function upload_tables($foreign_login, $ebon_products_max_id, $ebon_products_parsed_max_id) {
+		$foreign_base_url = $this->config->getConfigValue(array('admin_login', 'foreign_url'));
+                $local_base_url = $this->config->getConfigValue(array('admin_login', "local_url"));
+
+                $login_action = "users/login";
+
+                $admin_user = $this->config->getConfigValue(array('admin_login', 'user'));
+                $admin_password_local = $this->config->getConfigValue(array('admin_login', 'local_password'));
+
+                $local_login_json = '{"email": "' . $admin_user . '", "password": "' . $admin_password_local . '"}';
+                $local_login_result = self::get_post($local_base_url . $login_action, $local_login_json);
+
+                $foreign_login_result = $foreign_login;
+
+		$max_ids = array(
+                                "EbonProducts" => $ebon_products_max_id,
+                                "EbonProductsParsed" => $ebon_products_parsed_max_id
+                        );
+		if ($foreign_login_result->{"status"} == true && $local_login_result->{"status"} == true) {
+	                $insert_action = "app/backup/insert";
+
+        	        $tables = array(
+                                "EbonProducts",
+                                "EbonProductsParsed"
+                        );
+
+			$conds = array(
+				"EbonProducts" => new Condition("[c1]", array(
+                                        "[c1]" => [
+                                                [EbonProductsModel::class, EbonProductsModel::FIELD_ID],
+                                                Condition::COMPARISON_GREATER,
+                                                [Condition::CONDITION_CONST, $ebon_products_max_id]
+                                        ]
+                                )),
+				"EbonProductsParsed" => new Condition("[c1]", array(
+                                        "[c1]" => [
+                                                [EbonProductsParsedModel::class, EbonProductsParsedModel::FIELD_ID],
+                                                Condition::COMPARISON_GREATER,
+                                                [Condition::CONDITION_CONST, $ebon_products_parsed_max_id]
+                                        ]
+                                ))
+			);
+
+			$model = array(
+				"EbonProducts" => new EbonProductsModel(),
+				"EbonProductsParsed" => new EbonProductsParsedModel()
+			);
+
+	                foreach ($tables as $table) {
+				$rows = new \stdClass();
+
+				$model[$table]->find($conds[$table]);
+
+				while ($model[$table]->next()) {
+					$rows->{$model[$table]->getId()} = $model[$table]->toArray();
+					$max_ids[$table] = $model[$table]->getId();
+				}
+
+				$foreign_data_arr = array(
+                                        "login_data" => $foreign_login_result->{'login_data'},
+                                        "table" => array(
+                                                        "name"          =>      $table,
+							"rows"		=>	$rows
+                                                )
+                                        );
+
+                                $foreign_json = json_encode($foreign_data_arr, JSON_INVALID_UTF8_SUBSTITUTE);
+                                $insert_result = self::get_post($foreign_base_url . $insert_action, $foreign_json);
+			}
+		}
+		return $max_ids;
 	}
 
 	public function run() {
@@ -483,11 +700,28 @@ class UpdateEMailJob extends Job {
 		$GLOBALS['Boot']->loadModule("app", "Status");
 		$fields = StatusController::getFields($status_fields);
 
-		$this->update_user_table();
+		$ebon_products_max_id = -1;
+		$ebon_products_parsed_max_id = -1;
+		if (isset($fields["app_status"]->{"ebon_products_max_id"})) {
+			$ebon_products_max_id = $fields["app_status"]->{"ebon_products_max_id"};
+                }
+		if (isset($fields["app_status"]->{"ebon_products_parsed_max_id"})) {
+			$ebon_products_parsed_max_id = $fields["app_status"]->{"ebon_products_parsed_max_id"};
+		}
+
+		$foreign_login_result = $this->update_user_table();
 
 		$this->get_mail();
 		self::get_types();
 		self::parse_emails();
+
+		$max_ids = $this->upload_tables($foreign_login_result, $ebon_products_max_id, $ebon_products_parsed_max_id);
+
+		$fields = array(
+                        self::APP_STATUS_EMAIL => array( "ebon_products_max_id" => $max_ids["EbonProducts"], "ebon_products_parsed_max_id" => $max_ids["EbonProductsParsed"])
+                );
+
+                StatusController::setFields($fields);
 
 		parent::setJobStatus(parent::JOB_STATUS_FINISHED, array("status" => true));
 	}
