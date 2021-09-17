@@ -9,6 +9,7 @@ class EbonProductsParsedModel extends \Frame\DBTable {
 	const FIELD_ID = 'Id';
 	const FIELD_USERS_ID = 'UsersId';
 	const FIELD_DATETIME = 'Datetime';
+	const FIELD_PRODUCTS_SOURCE_ID = 'ProductsSourceId';
 	const FIELD_EBON_PRODUCTS_ID = 'EbonProductsId';
 	const FIELD_AMOUNT_TYPE_ID = 'AmountTypeId';
 	const FIELD_AMOUNT = 'Amount';
@@ -24,6 +25,9 @@ class EbonProductsParsedModel extends \Frame\DBTable {
 	private $Datetime;
 
 	/* int(11) */
+	private $ProductsSourceId;
+
+	/* int(11) */
 	private $EbonProductsId;
 
 	/* int(11) */
@@ -37,7 +41,7 @@ class EbonProductsParsedModel extends \Frame\DBTable {
 
 
 	public function __construct($values = null) {
-		parent::__construct('ebon_products_parsed','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"UsersId":{"Field":"users_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Datetime":{"Field":"datetime","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"EbonProductsId":{"Field":"ebon_products_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"AmountTypeId":{"Field":"amount_type_id","Type":"int(11)","Null":"YES","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"Price":{"Field":"price","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""}}', $values);
+		parent::__construct('ebon_products_parsed','{"Id":{"Field":"id","Type":"int(11)","Null":"NO","Key":"PRI","Default":null,"Extra":"auto_increment"},"UsersId":{"Field":"users_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"Datetime":{"Field":"datetime","Type":"datetime","Null":"NO","Key":"","Default":null,"Extra":""},"ProductsSourceId":{"Field":"products_source_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"EbonProductsId":{"Field":"ebon_products_id","Type":"int(11)","Null":"NO","Key":"","Default":null,"Extra":""},"AmountTypeId":{"Field":"amount_type_id","Type":"int(11)","Null":"YES","Key":"","Default":null,"Extra":""},"Amount":{"Field":"amount","Type":"double","Null":"YES","Key":"","Default":null,"Extra":""},"Price":{"Field":"price","Type":"double","Null":"NO","Key":"","Default":null,"Extra":""}}', $values);
 	}
 
 	/* @return int(11) $this->Id */
@@ -63,6 +67,14 @@ class EbonProductsParsedModel extends \Frame\DBTable {
 	/* @param datetime $Datetime */
 	public function setDatetime($Datetime) {
 		$this->Datetime = $Datetime;
+	}
+	/* @return int(11) $this->ProductsSourceId */
+	public function getProductsSourceId() {
+		return $this->ProductsSourceId;
+	}
+	/* @param int(11) $ProductsSourceId */
+	public function setProductsSourceId($ProductsSourceId) {
+		$this->ProductsSourceId = $ProductsSourceId;
 	}
 	/* @return int(11) $this->EbonProductsId */
 	public function getEbonProductsId() {
