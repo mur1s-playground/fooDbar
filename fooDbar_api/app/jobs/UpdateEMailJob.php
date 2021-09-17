@@ -297,7 +297,7 @@ class UpdateEMailJob extends Job {
 			if ($sum_line == -1) {
 				$tl = array_values(array_filter(explode(" ", trim($lines[$l]))));
 				if (count($tl) == 3) {
-					if ($tl[0] == "SUMME" && $tl[1] = "EUR") {
+					if ($tl[0] == "SUMME" && $tl[1] == "EUR") {
 						$sum_line = $l;
 					}
 				}

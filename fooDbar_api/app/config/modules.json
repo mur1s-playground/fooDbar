@@ -82,6 +82,14 @@
     },
     "shopping": {
         "controllers": {
+            "Ebon": {
+                "defaultAction": "get",
+                "actions": [
+                    "get",
+                    "tostorage",
+                    "remove"
+                ]
+            },
             "Index": {
                 "defaultAction": "get",
                 "actions": [

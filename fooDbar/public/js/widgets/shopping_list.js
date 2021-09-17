@@ -7,6 +7,26 @@ var ShoppingList = function(db, change_dependencies) {
 	this.elem = this.widget.elem;
 	this.elem.style.display = "none";
 
+	this.data_table_ebon = new DataTable(this, "ebon",
+				{
+					"Datetime": { "title": "Datetime", "header": { "type": "text", "text": "Datetime", "text_class": "datatable_header" } },
+					"ProductsSourceId": { "title": "ProductsSource", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
+					"EbonProductsId": { "title": "EbonProductId", "header": { "type": "text", "text": "EbonProduct", "text_class": "datatable_header"}, "join": { "model": "ebon_products", "field": "Name" } },
+					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
+					"Price": { "title": "Price", "header": { "type": "img", "img_src": "./img/symbol_price.svg", "img_class": "datatable_header" } }
+				},
+				{ },
+                                { }
+				);
+
+	this.ebon_list_data = null;
+	this.ebon_products_data = null;
+	this.ebon_products_source_data = null;
+	this.ebon_products_link_data = null;
+
+	this.ebon_list = document.createElement("table");
+	this.ebon_list.className = "";
+
 	this.data_table = new DataTable(this, "recipe_consumption_group",
                                 {
 					"OrderId": {  "title": "OrderId", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
@@ -220,6 +240,76 @@ var ShoppingList = function(db, change_dependencies) {
 
 	}
 
+	this.on_ebon_to_storage_response = function() {
+		storage.changed_f();
+		shopping_list.changed_f();
+	}
+
+	this.append_ebon_link = function(row, eb) {
+		var to_storage_form = document.createElement("td");
+
+		var to_storage_tbl = document.createElement("table");
+		var to_storage_row = document.createElement("tr");
+
+		/* TMP */
+		var a_td = document.createElement("td");
+		var a_id = this.widget.name + "_ebon_to_storage_ProductsId_" + eb;
+                var autocomplete = new AutocompleteTextfield(a_id, products.product_data, "Name");
+                a_td.appendChild(autocomplete.elem);
+		to_storage_row.appendChild(a_td);
+
+		var add_td = document.createElement("td");
+		var add_button = document.createElement("button");
+                add_button.id = this.widget.name + "_ebon_to_storage_add_button_" + eb;
+                add_button.obj = eb;
+		add_button.a_id = a_id;
+                add_button.innerHTML = "&#xFF0B;";
+                add_button.onclick = function() {
+			var p = {
+                                "ebon_list_item" : {
+                                                        "Id": this.obj,
+							"ProductsId": document.getElementById(this.a_id + "_input").selected_value
+                                }
+                        };
+                        storage.db.query_post("shopping/ebon/tostorage", p, shopping_list.on_ebon_to_storage_response);
+		};
+		add_td.appendChild(add_button);
+		to_storage_row.appendChild(add_td);
+		/* *** */
+
+		to_storage_tbl.appendChild(to_storage_row);
+		to_storage_form.appendChild(to_storage_tbl);
+
+		row.appendChild(to_storage_form);
+	}
+
+
+	this.on_ebon_get_response = function() {
+		var resp = JSON.parse(this.responseText);
+		if (resp["status"] == true) {
+			shopping_list.ebon_list_data = resp["ebon_list_data"];
+			shopping_list.ebon_products_data = resp["ebon_products"];
+			shopping_list.ebon_products_source_data = resp["ebon_products_source"];
+			shopping_list.ebon_products_link_data = resp["ebon_products_link"];
+			shopping_list.ebon_list.innerHTML = "";
+
+			var header = shopping_list.data_table_ebon.get_header_row();
+			shopping_list.ebon_list.appendChild(header);
+
+			for (var eb in shopping_list.ebon_list_data) {
+				if (shopping_list.ebon_list_data.hasOwnProperty(eb)) {
+					var row = shopping_list.data_table_ebon.get_data_row(shopping_list.ebon_list_data[eb], { "ebon_products": shopping_list.ebon_products_data,
+																"products_source": shopping_list.ebon_products_source_data } );
+					shopping_list.append_ebon_link(row, eb);
+					shopping_list.ebon_list.appendChild(row);
+				}
+			}
+
+			shopping_list.changed_f();
+			shopping_list.changed = false;
+		}
+	}
+
 	this.changed = true;
 
 	this.changed_f = function() {
@@ -239,6 +329,8 @@ var ShoppingList = function(db, change_dependencies) {
 			this.widget.content.innerHTML = "";
 			if (user.login_data != null && products.product_data != null) {
 				var p = { };
+				shopping_list.db.query_post("shopping/ebon/get", p, shopping_list.on_ebon_get_response);
+				this.widget.content.appendChild(shopping_list.ebon_list);
 				shopping_list.db.query_post("shopping/index/get", p, shopping_list.on_get_response);
 				this.widget.content.appendChild(shopping_list.shopping_list);
 			} else {

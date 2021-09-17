@@ -41,6 +41,7 @@ var AutocompleteTextfield = function(id, values, field) {
 	this.list.style.border = "1px solid black";
 	this.list.style.padding = "5px";
 	this.list.style.display = "none";
+	this.list.style.zIndex = 1;
 	this.values = values;
 
 	this.init_list_items = function() {
