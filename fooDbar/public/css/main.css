@@ -619,8 +619,37 @@ div.recipes_product_in_storage {
 
 /* SHOPPING LIST */
 
+.shopping_list_ebon tr:nth-child(2n+0) {
+	background: var(--table_row_2n_bg);
+}
+
+.shopping_list_ebon tr:first-child td:nth-child(-n+5) {
+	background: var(--shopping_list_color);
+}
+
+.shopping_list_ebon_to_storage tr:first-child td:nth-child(-n+4) {
+        background: var(--products_color) !important;
+}
+
+.shopping_list_ebon_to_storage tr td:nth-child(1) select {
+	min-width: 100px;
+	max-width: 100px;
+}
+
+.shopping_list_ebon_to_storage tr td:nth-child(2) select {
+	min-width: 250px;
+	max-width: 250px;
+	margin: 0px;
+}
+
+.shopping_list_ebon_to_storage tr td:nth-child(2) input {
+	min-width: 250px;
+        max-width: 250px;
+}
+
+
 .shopping_list tr:nth-child(2n+0) {
-	background: var(--table_row_2n_bg);;
+	background: var(--table_row_2n_bg);
 }
 
 .shopping_list tr:first-child td:nth-child(-n+5) {

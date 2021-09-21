@@ -74,7 +74,7 @@ class IndexController {
         $s_id_array = array();
         foreach ($storages as $id => $storage_obj) {
                 if ($storages_id == $id) {
-			return;
+			return array("status" => true);
                 }
         }
 

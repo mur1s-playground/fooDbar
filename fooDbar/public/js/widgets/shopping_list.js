@@ -9,9 +9,9 @@ var ShoppingList = function(db, change_dependencies) {
 
 	this.data_table_ebon = new DataTable(this, "ebon",
 				{
-					"Datetime": { "title": "Datetime", "header": { "type": "text", "text": "Datetime", "text_class": "datatable_header" } },
-					"ProductsSourceId": { "title": "ProductsSource", "header": { "type": "img", "img_src": "./img/symbol_products.svg", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
-					"EbonProductsId": { "title": "EbonProductId", "header": { "type": "text", "text": "EbonProduct", "text_class": "datatable_header"}, "join": { "model": "ebon_products", "field": "Name" } },
+					"Datetime": { "title": "Datetime", "header": { "type": "text", "text": "", "text_class": "datatable_header" } },
+					"ProductsSourceId": { "title": "ProductsSource", "header": { "type": "text", "text": "", "img_class": "datatable_header" }, "join": { "model": "products_source", "field": "Name" } },
+					"EbonProductsId": { "title": "EbonProductId", "header": { "type": "img", "img_src": "./img/symbol_shopping_list.svg", "img_class": "datatable_header"}, "join": { "model": "ebon_products", "field": "Name" } },
 					"Amount": { "title": "Amount", "header": { "type": "img", "img_src": "./img/symbol_weight.svg", "img_class": "datatable_header" } },
 					"Price": { "title": "Price", "header": { "type": "img", "img_src": "./img/symbol_price.svg", "img_class": "datatable_header" } }
 				},
@@ -25,7 +25,7 @@ var ShoppingList = function(db, change_dependencies) {
 	this.ebon_products_link_data = null;
 
 	this.ebon_list = document.createElement("table");
-	this.ebon_list.className = "";
+	this.ebon_list.className = "shopping_list_ebon";
 
 	this.data_table = new DataTable(this, "recipe_consumption_group",
                                 {
@@ -245,37 +245,88 @@ var ShoppingList = function(db, change_dependencies) {
 		shopping_list.changed_f();
 	}
 
+	this.on_ebon_remove_response = function() {
+		var resp = JSON.parse(this.responseText);
+                if (resp["status"] == true) {
+			var row = document.getElementById(shopping_list.widget.name + "_ebon_" + resp["ebon_list_item_id"]);
+			row.parentNode.removeChild(row);
+		}
+		shopping_list.changed_f();
+		shopping_list.changed = false;
+	}
+
 	this.append_ebon_link = function(row, eb) {
 		var to_storage_form = document.createElement("td");
 
 		var to_storage_tbl = document.createElement("table");
+		to_storage_tbl.className = "shopping_list_ebon_to_storage";
 		var to_storage_row = document.createElement("tr");
 
-		/* TMP */
+		var storage_td = document.createElement("td");
+		var storage_select = document.createElement("select");
+		storage_select.id = this.widget.name + "_ebon_to_storage_StoragesId_" + eb;
+		for (var o in storage.storages) {
+			if (storage.storages.hasOwnProperty(o)) {
+				var option = document.createElement("option");
+				option.value = storage.storages[o]["Id"];
+				option.innerHTML = storage.storages[o]["Desc"];
+				storage_select.appendChild(option);
+			}
+		}
+		storage_td.appendChild(storage_select);
+		to_storage_row.appendChild(storage_td);
+
 		var a_td = document.createElement("td");
 		var a_id = this.widget.name + "_ebon_to_storage_ProductsId_" + eb;
-                var autocomplete = new AutocompleteTextfield(a_id, products.product_data, "Name");
-                a_td.appendChild(autocomplete.elem);
+
+		var suggestions = [];
+		if (shopping_list.ebon_products_link_data.hasOwnProperty(eb)) {
+			for (var s = 0; s < shopping_list.ebon_products_link_data[eb].length; s++) {
+				suggestions.push(products.product_data[shopping_list.ebon_products_link_data[eb][s]]);
+			}
+		}
+
+		var suggestive_select = new SuggestiveSelect(a_id, products.product_data, "Name", suggestions);
+		a_td.appendChild(suggestive_select.elem);
 		to_storage_row.appendChild(a_td);
 
 		var add_td = document.createElement("td");
 		var add_button = document.createElement("button");
                 add_button.id = this.widget.name + "_ebon_to_storage_add_button_" + eb;
                 add_button.obj = eb;
-		add_button.a_id = a_id;
+		add_button.ss = suggestive_select;
                 add_button.innerHTML = "&#xFF0B;";
                 add_button.onclick = function() {
+			var storages_select = document.getElementById(shopping_list.widget.name + "_ebon_to_storage_StoragesId_" + this.obj);
+
 			var p = {
                                 "ebon_list_item" : {
                                                         "Id": this.obj,
-							"ProductsId": document.getElementById(this.a_id + "_input").selected_value
+							"StoragesId": storages_select.options[storages_select.selectedIndex].value,
+							"ProductsId": this.ss.get_selection()
                                 }
                         };
                         storage.db.query_post("shopping/ebon/tostorage", p, shopping_list.on_ebon_to_storage_response);
 		};
 		add_td.appendChild(add_button);
 		to_storage_row.appendChild(add_td);
-		/* *** */
+
+		var del_td = document.createElement("td");
+                var del_button = document.createElement("button");
+                del_button.id = this.widget.name + "_ebon_to_storage_del_button_" + eb;
+                del_button.obj = eb;
+		del_button.innerHTML = "&#128465;";
+                del_button.onclick = function() {
+			var r = confirm("Delete ebon item " + this.obj + "?");
+                        if (r == 1) {
+	                        var p = {
+        	                        "ebon_list_item_id" : this.obj
+                	        };
+                 	       storage.db.query_post("shopping/ebon/remove", p, shopping_list.on_ebon_remove_response);
+			}
+                }
+                del_td.appendChild(del_button);
+                to_storage_row.appendChild(del_td);
 
 		to_storage_tbl.appendChild(to_storage_row);
 		to_storage_form.appendChild(to_storage_tbl);

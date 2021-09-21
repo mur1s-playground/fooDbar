@@ -26,6 +26,7 @@ use \FooDBar\ProductsModel		as ProductsModel;
 use \FooDBar\Users\ProductssourceController 	as ProductssourceController;
 use \FooDBar\Products\PriceController 		as PriceController;
 use \FooDBar\Users\LimitController              as LimitController;
+use \FooDBar\Storage				as Storage;
 
 class EbonController {
     private $DefaultController = false;
@@ -59,7 +60,7 @@ class EbonController {
 	));
 
 	$el = new EbonProductsParsedModel();
-	$el->find($el_cond, $el_join);
+	$el->find($el_cond, array($el_join));
 
 	$result["status"] = true;
 	$result["ebon_list_data"] = new \stdClass();
@@ -162,9 +163,10 @@ class EbonController {
 
 			$GLOBALS['Boot']->loadModule("users", "Limit");
 		        if (LimitController::countInOrDecrement($user, LimitController::LIMIT_FIELD_STORAGE)) { //FIX storage count for times > 1
-				/* TMP $data->{"StoragesId"} */
-	                        $storages_id = 1;
-		                //self::requireStorageMembership($user, $storages_id);
+				$storages_id = $data->{"StoragesId"};
+
+				$GLOBALS['Boot']->loadModule("storage", "Index");
+				Storage\IndexController::requireStorageMembership($user, $storages_id);
 
 				$products_source_id = $epp->getProductsSourceId();
 				/*
@@ -218,14 +220,35 @@ class EbonController {
     }
 
     public function removeAction() {
-/*
 	$user = LoginController::requireAuth();
 
-	$data = $GLOBALS['POST']->{'shopping_list_item_id'};
+	$data = $GLOBALS['POST']->{'ebon_list_item_id'};
 
-	$result = self::removeItem($user, $data);
+	$cond = new Condition("[c1] AND [c2]", array(
+		"[c1]" => [
+			[EbonProductsParsedModel::class, EbonProductsParsedModel::FIELD_ID],
+			Condition::COMPARISON_EQUALS,
+			[Condition::CONDITION_CONST, $data]
+		],
+		"[c2]" => [
+			[EbonProductsParsedModel::class, EbonProductsParsedModel::FIELD_USERS_ID],
+			Condition::COMPARISON_EQUALS,
+			[Condition::CONDITION_CONST, $user->getId()]
+		]
+	));
+
+	$epp = new EbonProductsParsedModel();
+	$epp->find($cond);
+
+	$result = array();
+	if ($epp->next()) {
+		$result["status"] = true;
+		$result["ebon_list_item_id"] = $epp->getId();
+		$epp->delete();
+	} else {
+		$result["status"] = false;
+	}
 
         exit(json_encode($result, JSON_INVALID_UTF8_SUBSTITUTE));
-*/
     }
 }
