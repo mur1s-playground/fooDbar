@@ -70,7 +70,7 @@ class EbonController {
 	while ($el->next()) {
 		$result["ebon_list_data"]->{$el->getId()} = $el->toArray();
 
-		$ebon_products_ids[] = $el->getId();
+		$ebon_products_ids[] = $el->getEbonProductsId();
 
 		$ebon_product = $el->joinedModelByClass(EbonProductsModel::class);
 		$result["ebon_products"]->{$ebon_product->getId()} = $ebon_product->toArray();

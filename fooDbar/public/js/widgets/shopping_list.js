@@ -279,10 +279,12 @@ var ShoppingList = function(db, change_dependencies) {
 		var a_td = document.createElement("td");
 		var a_id = this.widget.name + "_ebon_to_storage_ProductsId_" + eb;
 
+		var ebon_products_id = shopping_list.ebon_list_data[eb]["EbonProductsId"];
+
 		var suggestions = [];
-		if (shopping_list.ebon_products_link_data.hasOwnProperty(eb)) {
-			for (var s = 0; s < shopping_list.ebon_products_link_data[eb].length; s++) {
-				suggestions.push(products.product_data[shopping_list.ebon_products_link_data[eb][s]]);
+		if (shopping_list.ebon_products_link_data.hasOwnProperty(ebon_products_id)) {
+			for (var s = 0; s < shopping_list.ebon_products_link_data[ebon_products_id].length; s++) {
+				suggestions.push(products.product_data[shopping_list.ebon_products_link_data[ebon_products_id][s]]);
 			}
 		}
 
